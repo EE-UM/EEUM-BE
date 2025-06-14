@@ -1,13 +1,13 @@
-package com.eeum;
+package com.eeum.posts;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class UserApplication {
+public class PostsApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(UserApplication.class, args);
+        SpringApplication.run(PostsApplication.class, args);
     }
 
 }

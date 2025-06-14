@@ -1,13 +1,13 @@
-package com.eeum;
+package com.eeum.user;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class LikeApplication {
+public class UserApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(LikeApplication.class, args);
+        SpringApplication.run(UserApplication.class, args);
     }
 
 }
