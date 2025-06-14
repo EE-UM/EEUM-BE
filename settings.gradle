@@ -1,1 +1,8 @@
 rootProject.name = 'EEUM'
+
+include 'common'
+include 'service'
+include 'service:user'
+include 'service:comment'
+include 'service:posts'
+include 'service:like'
