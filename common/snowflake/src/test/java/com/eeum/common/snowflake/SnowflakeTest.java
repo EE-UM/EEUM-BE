@@ -1,6 +1,6 @@
-package com.eeum.snowflake;
+package com.eeum.common.snowflake;
 
-import com.eeum.snowflake.Snowflake;
+import com.eeum.common.snowflake.Snowflake;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

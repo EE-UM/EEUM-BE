@@ -1,4 +1,4 @@
-package com.eeum.snowflake;
+package com.eeum.common.snowflake;
 
 import java.util.random.RandomGenerator;
 
