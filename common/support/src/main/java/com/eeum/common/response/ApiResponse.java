@@ -2,7 +2,9 @@ package com.eeum.common.response;
 
 import com.eeum.common.error.ErrorMessage;
 import com.eeum.common.error.ErrorType;
+import lombok.Getter;
 
+@Getter
 public class ApiResponse<T> {
     private ResultType result;
     private T data;

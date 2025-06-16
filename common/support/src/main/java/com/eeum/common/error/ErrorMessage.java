@@ -1,5 +1,8 @@
 package com.eeum.common.error;
 
+import lombok.Getter;
+
+@Getter
 public class ErrorMessage {
     private String code;
     private String message;
