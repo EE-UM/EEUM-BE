@@ -1,0 +1,6 @@
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.3.0'
+    testImplementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-api', version: '2.3.0'
+}
