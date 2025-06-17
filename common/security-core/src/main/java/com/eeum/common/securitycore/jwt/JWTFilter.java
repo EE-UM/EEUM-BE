@@ -1,8 +1,7 @@
-package com.eeum.user.config.security.jwt;
+package com.eeum.common.securitycore.jwt;
 
 
-import com.eeum.user.config.security.token.UserPrincipal;
-import com.eeum.user.service.CustomUserDetailsService;
+import com.eeum.common.securitycore.token.UserPrincipal;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -14,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -26,7 +26,7 @@ import java.util.List;
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
-    private final CustomUserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
 
     private static final List<String> WHITELIST = List.of(
             "/user/test", "/user/login", "/swagger-ui", "/v3/api-docs"

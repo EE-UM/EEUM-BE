@@ -1,6 +1,6 @@
 package com.eeum.user.service;
 
-import com.eeum.user.config.security.token.UserPrincipal;
+import com.eeum.common.securitycore.token.UserPrincipal;
 import com.eeum.user.entity.User;
 import com.eeum.user.exception.UserNotFoundException;
 import com.eeum.user.repository.UserRepository;
@@ -20,6 +20,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(UserNotFoundException::new);
-        return UserPrincipal.createUser(user);
+        return UserPrincipal.from(user);
     }
 }

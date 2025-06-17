@@ -1,14 +1,14 @@
-package com.eeum.user.config.security;
+package com.eeum.common.securitycore;
 
-import com.eeum.user.config.security.jwt.JWTFilter;
-import com.eeum.user.config.security.jwt.JWTUtil;
-import com.eeum.user.service.CustomUserDetailsService;
+import com.eeum.common.securitycore.jwt.JWTFilter;
+import com.eeum.common.securitycore.jwt.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -20,7 +20,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
 
     private final JWTUtil jwtUtil;
-    private final CustomUserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {

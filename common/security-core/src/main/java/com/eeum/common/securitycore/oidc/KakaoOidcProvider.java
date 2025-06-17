@@ -1,4 +1,4 @@
-package com.eeum.user.config.security.oidc;
+package com.eeum.common.securitycore.oidc;
 
 import com.auth0.jwk.Jwk;
 import com.auth0.jwk.JwkProvider;
@@ -14,7 +14,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Map;
 
 @Component
-public class KakaoOidcProvider implements OidcProvider{
+public class KakaoOidcProvider implements OidcProvider {
     private final JwkProvider jwkProvider;
 
     public KakaoOidcProvider(@Value("${oauth.kakao.public-key-info}") String jwkUrl) {

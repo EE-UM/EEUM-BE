@@ -1,6 +1,5 @@
-package com.eeum.user.config.security.token;
+package com.eeum.common.securitycore.token;
 
-import com.eeum.user.entity.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -29,7 +28,18 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         this.authorities = authorities;
     }
 
-    public static UserPrincipal createUser(User user) {
+//    public static UserPrincipal createUser(User user) {
+//        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(user.getRole().toString()));
+//        return new UserPrincipal(
+//                user.getId(),
+//                user.getEmail(),
+//                user.getUsername(),
+//                user.getRole(),
+//                authorities
+//        );
+//    }
+
+    public static UserPrincipal from(UserPrincipalInfo user) {
         List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(user.getRole().toString()));
         return new UserPrincipal(
                 user.getId(),

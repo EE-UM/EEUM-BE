@@ -1,5 +1,6 @@
 package com.eeum.user.entity;
 
+import com.eeum.common.securitycore.token.UserPrincipalInfo;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
 @Entity
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class User implements UserPrincipalInfo {
 
     @Id
     private Long id;

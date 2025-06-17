@@ -1,4 +1,4 @@
-package com.eeum.user.config.security.jwt;
+package com.eeum.common.securitycore.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

@@ -1,4 +1,4 @@
-package com.eeum.user.config.security.oidc;
+package com.eeum.common.securitycore.oidc;
 
 public enum Provider {
     KAKAO,

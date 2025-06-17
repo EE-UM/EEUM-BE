@@ -2,10 +2,10 @@ package com.eeum.user.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.eeum.common.securitycore.jwt.JWTUtil;
+import com.eeum.common.securitycore.oidc.OidcProviderFactory;
+import com.eeum.common.securitycore.oidc.Provider;
 import com.eeum.common.snowflake.Snowflake;
-import com.eeum.user.config.security.jwt.JWTUtil;
-import com.eeum.user.config.security.oidc.OidcProviderFactory;
-import com.eeum.user.config.security.oidc.Provider;
 import com.eeum.user.dto.request.IdTokenRequest;
 import com.eeum.user.dto.response.LoginResponse;
 import com.eeum.user.entity.User;
