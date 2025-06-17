@@ -19,4 +19,12 @@ public class UserController {
         LoginResponse loginResponse = userService.login(idTokenRequest);
         return ApiResponse.success(loginResponse);
     }
+
+    @PostMapping("/test")
+    public ApiResponse<LoginResponse> testLogin(@RequestBody IdTokenRequest idTokenRequest) {
+        System.out.println("hello");
+        LoginResponse loginResponse = userService.testLogin();
+        System.out.println(loginResponse.accessToken());
+        return ApiResponse.success(loginResponse);
+    }
 }

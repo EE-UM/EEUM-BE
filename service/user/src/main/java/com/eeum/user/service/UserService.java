@@ -48,6 +48,12 @@ public class UserService {
         return LoginResponse.of(accessToken, user.isRegistered());
     }
 
+    @Transactional
+    public LoginResponse testLogin() {
+        String accessToken = jwtUtil.createJwt("access", "test", "USER", accessTokenExpiredMs, "test@naver.com");
+        return LoginResponse.of(accessToken, false);
+    }
+
     private User findOrCreateUser(String provider, String idToken) {
         DecodedJWT decodedJWT = JWT.decode(idToken);
         String providerId = decodedJWT.getSubject();
