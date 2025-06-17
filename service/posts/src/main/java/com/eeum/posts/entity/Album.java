@@ -20,7 +20,7 @@ public class Album {
     private String songImgUrl;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "post_id")
+    @JoinColumn(name = "post_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Posts posts;
 
     public static Album of(Long id, String songTitle, String artistName, String songImgUrl, Posts posts) {
