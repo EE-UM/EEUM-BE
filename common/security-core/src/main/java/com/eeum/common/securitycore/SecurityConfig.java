@@ -3,6 +3,7 @@ package com.eeum.common.securitycore;
 import com.eeum.common.securitycore.jwt.JWTFilter;
 import com.eeum.common.securitycore.jwt.JWTUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,7 +21,6 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
 
     private final JWTUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -28,7 +28,7 @@ public class SecurityConfig {
         http.csrf((auth) -> auth.disable());
         http.formLogin((auth) -> auth.disable());
         http.httpBasic((auth) -> auth.disable());
-        http.addFilterBefore(new JWTFilter(jwtUtil, userDetailsService), OAuth2LoginAuthenticationFilter.class);
+        http.addFilterBefore(new JWTFilter(jwtUtil), OAuth2LoginAuthenticationFilter.class);
         http.authorizeHttpRequests((auth) -> auth
                 .requestMatchers("/", "/**").permitAll()
                 .requestMatchers("/reissue").permitAll()

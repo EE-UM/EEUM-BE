@@ -1,5 +1,6 @@
-package com.eeum.common.error;
+package com.eeum.common.error.exception;
 
+import com.eeum.common.error.ErrorType;
 import lombok.Getter;
 
 @Getter

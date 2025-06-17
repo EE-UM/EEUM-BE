@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -26,7 +27,6 @@ import java.util.List;
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
 
     private static final List<String> WHITELIST = List.of(
             "/user/test", "/user/login", "/swagger-ui", "/v3/api-docs"
@@ -45,11 +45,17 @@ public class JWTFilter extends OncePerRequestFilter {
             String accessToken = getJwtFromRequest(request);
 
             if (StringUtils.hasText(accessToken) && jwtUtil.validateToken(accessToken)) {
+                Long userId = jwtUtil.getUserId(accessToken);
                 String email = jwtUtil.getEmail(accessToken);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-
-                UserPrincipal userPrincipal = (UserPrincipal) userDetails;
-                Authentication authToken = new UsernamePasswordAuthenticationToken(userPrincipal, null, userDetails.getAuthorities());
+                String username = jwtUtil.getUsername(accessToken);
+                String role = jwtUtil.getRole(accessToken);
+                UserPrincipal userPrincipal = new UserPrincipal(
+                        userId,
+                        email,
+                        username,
+                        role,
+                        List.of(new SimpleGrantedAuthority(role)));
+                Authentication authToken = new UsernamePasswordAuthenticationToken(userPrincipal, null, userPrincipal.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         } catch (ExpiredJwtException e) {

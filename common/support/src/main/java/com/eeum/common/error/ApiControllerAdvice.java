@@ -1,5 +1,6 @@
 package com.eeum.common.error;
 
+import com.eeum.common.error.exception.CoreApiException;
 import com.eeum.common.response.ApiResponse;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -19,4 +20,5 @@ public class ApiControllerAdvice {
     public ResponseEntity<ApiResponse<?>> handleException(Exception e) {
         return new ResponseEntity(ApiResponse.error(ErrorType.DEFAULT_ERROR, e.getMessage()), HttpStatusCode.valueOf(ErrorType.DEFAULT_ERROR.getStatusCode()));
     }
+
 }

@@ -43,14 +43,14 @@ public class UserService {
         User user = userRepository.findByProviderId(providerId)
                 .orElseThrow(UserNotFoundException::new);
 
-        String accessToken = jwtUtil.createJwt("access", providerId, "USER", accessTokenExpiredMs, user.getEmail());
+        String accessToken = jwtUtil.createJwt("access", user.getId(), providerId, "USER", accessTokenExpiredMs, user.getEmail());
 
         return LoginResponse.of(accessToken, user.isRegistered());
     }
 
     @Transactional
     public LoginResponse testLogin() {
-        String accessToken = jwtUtil.createJwt("access", "test", "USER", accessTokenExpiredMs, "test@naver.com");
+        String accessToken = jwtUtil.createJwt("access", 123L, "test", "USER", accessTokenExpiredMs, "test@naver.com");
         return LoginResponse.of(accessToken, false);
     }
 
