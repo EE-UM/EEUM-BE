@@ -35,7 +35,7 @@ public class User {
 
     private LocalDateTime updatedAt;
 
-    public static User of(Long id, String nickname, String username, String email, String role, String provider, String providerId, boolean isRegistered, String fcmToken, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public static User of(Long id, String nickname, String username, String email, String role, String provider, String providerId, boolean isRegistered) {
         LocalDateTime now = LocalDateTime.now();
         return User.builder()
                 .id(id)
@@ -46,7 +46,6 @@ public class User {
                 .provider(provider)
                 .providerId(providerId)
                 .isRegistered(isRegistered)
-                .fcmToken(fcmToken)
                 .createdAt(now)
                 .updatedAt(now)
                 .build();

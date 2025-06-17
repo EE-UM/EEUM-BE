@@ -1,17 +1,22 @@
 package com.eeum.user.controller;
 
 import com.eeum.common.response.ApiResponse;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.eeum.user.dto.request.IdTokenRequest;
+import com.eeum.user.dto.response.LoginResponse;
+import com.eeum.user.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/user")
+@RequiredArgsConstructor
 public class UserController {
 
-    @GetMapping
-    public ApiResponse<?> test() {
-        System.out.println("hello");
-        return ApiResponse.success("test");
+    private final UserService userService;
+
+    @PostMapping("/login")
+    public ApiResponse<LoginResponse> login(@RequestBody IdTokenRequest idTokenRequest) {
+        LoginResponse loginResponse = userService.login(idTokenRequest);
+        return ApiResponse.success(loginResponse);
     }
 }
