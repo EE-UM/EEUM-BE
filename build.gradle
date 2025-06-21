@@ -7,11 +7,13 @@ plugins {
 group = 'com'
 version = '0.0.1-SNAPSHOT'
 
-subprojects {
+allprojects {
     repositories {
         mavenCentral()
     }
+}
 
+subprojects {
     java {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
