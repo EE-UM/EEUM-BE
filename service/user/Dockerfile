@@ -5,7 +5,7 @@ FROM openjdk:21-jdk-slim
 WORKDIR /app
 
 # 3. 빌드된 JAR 복사
-COPY ./service/user/build/libs/*.jar app.jar
+COPY build/libs/*.jar app.jar
 
 # 4. 포트 오픈 (Spring Boot 내부 포트와 맞춰야 함)
 EXPOSE 9000
