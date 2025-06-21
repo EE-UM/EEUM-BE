@@ -69,7 +69,8 @@ jobs:
         run: docker compose down || true
 
       - name: Start containers with new images
-        run: docker compose -f ./EEUM/docker-compose.yml up -d
+        working-directory: ${{ github.workspace }}
+        run: docker compose up -d
 
       - name: Remove dangling images
         run: docker system prune -f
