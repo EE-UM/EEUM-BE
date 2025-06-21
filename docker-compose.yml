@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+  user:
+    image: rookie97/eeum-user:latest
+    ports:
+      - "8081:9000"
+
+  posts:
+    image: rookie97/eeum-posts:latest
+    ports:
+      - "8082:9001"
