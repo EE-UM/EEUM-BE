@@ -66,10 +66,10 @@ jobs:
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/eeum-posts
           
       - name: Stop and remove containers
-        run: docker-compose down || true
+        run: docker compose down || true
 
       - name: Start containers with new images
-        run: docker-compose up -d
+        run: docker compose up -d
 
       - name: Remove dangling images
         run: docker system prune -f
