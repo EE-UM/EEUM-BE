@@ -69,7 +69,6 @@ jobs:
         run: docker compose down || true
 
       - name: Start containers with new images
-        working-directory: ${{ github.workspace }}
         run: docker compose up -d
 
       - name: Remove dangling images
