@@ -24,3 +24,7 @@ tasks {
         enabled = false
     }
 }
+
+springBoot {
+    mainClass = 'com.eeum.posts.PostsApplication'
+}

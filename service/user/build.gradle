@@ -46,3 +46,7 @@ tasks {
         enabled = false
     }
 }
+
+springBoot {
+    mainClass = 'com.eeum.user.UserApplication'
+}
