@@ -3,42 +3,34 @@ package com.eeum.posts.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Table(name = "albums")
 @Getter
-@Entity
 @ToString
+@Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Album {
 
-    @Id
-    private Long id;
+    private String albumName;
 
-    private String songTitle;
+    private String songName;
 
     private String artistName;
 
-    private String songImgUrl;
+    private String artworkUrl;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "post_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-    private Posts posts;
-
-    public static Album of(Long id, String songTitle, String artistName, String songImgUrl, Posts posts) {
+    public static Album of(String albumName, String songName, String artistName, String artworkUrl) {
         return Album.builder()
-                .id(id)
-                .songTitle(songTitle)
+                .albumName(albumName)
+                .songName(songName)
                 .artistName(artistName)
-                .songImgUrl(songImgUrl)
-                .posts(posts)
+                .artworkUrl(artworkUrl)
                 .build();
     }
 
     @Builder
-    private Album(Long id, String songTitle, String artistName, String songImgUrl, Posts posts) {
-        this.id = id;
-        this.songTitle = songTitle;
+    private Album(String albumName, String songName, String artistName, String artworkUrl) {
+        this.albumName = albumName;
+        this.songName = songName;
         this.artistName = artistName;
-        this.songImgUrl = songImgUrl;
-        this.posts = posts;
+        this.artworkUrl = artworkUrl;
     }
 }

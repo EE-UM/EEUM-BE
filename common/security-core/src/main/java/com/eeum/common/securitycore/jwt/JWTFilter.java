@@ -29,7 +29,7 @@ public class JWTFilter extends OncePerRequestFilter {
     private final JWTUtil jwtUtil;
 
     private static final List<String> WHITELIST = List.of(
-            "/user/test", "/user/login", "/swagger-ui", "/v3/api-docs"
+            "/user/test", "/user/login", "/swagger-ui", "/v3/api-docs", "/apple-music"
     );
 
     @Override
@@ -66,7 +66,7 @@ public class JWTFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             PrintWriter writer = response.getWriter();
-            writer.print("Invalid access token");
+            writer.print("Invalid access token!");
             return;
         }
 

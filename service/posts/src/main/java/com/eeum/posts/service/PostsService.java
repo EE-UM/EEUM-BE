@@ -4,6 +4,7 @@ import com.eeum.common.response.ApiResponse;
 import com.eeum.common.snowflake.Snowflake;
 import com.eeum.posts.dto.request.CreatePostRequest;
 import com.eeum.posts.dto.response.CreatePostResponse;
+import com.eeum.posts.entity.Album;
 import com.eeum.posts.entity.Posts;
 import com.eeum.posts.repository.PostsRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,8 @@ public class PostsService {
 
     @Transactional
     public CreatePostResponse createPost(Long userId, CreatePostRequest createPostRequest) {
-        Posts posts = Posts.of(snowflake.nextId(), createPostRequest.title(), createPostRequest.content(), userId);
+        Album album = Album.of(createPostRequest.albumName(), createPostRequest.songName(), createPostRequest.artistName(), createPostRequest.artworkUrl());
+        Posts posts = Posts.of(snowflake.nextId(), createPostRequest.title(), createPostRequest.content(), album, userId);
         postsRepository.save(posts);
         return CreatePostResponse.of(posts.getId(), userId);
     }

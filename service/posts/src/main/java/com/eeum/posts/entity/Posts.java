@@ -1,5 +1,6 @@
 package com.eeum.posts.entity;
 
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -21,18 +22,22 @@ public class Posts {
 
     private String content;
 
+    @Embedded
+    private Album album;
+
     private Long userId;
 
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
 
-    public static Posts of(Long id, String title, String content, Long userId) {
+    public static Posts of(Long id, String title, String content, Album album, Long userId) {
         LocalDateTime now = LocalDateTime.now();
         return Posts.builder()
                 .id(id)
                 .title(title)
                 .content(content)
+                .album(album)
                 .userId(userId)
                 .createdAt(now)
                 .updatedAt(now)
@@ -40,10 +45,11 @@ public class Posts {
     }
 
     @Builder
-    private Posts(Long id, String title, String content, Long userId, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Posts(Long id, String title, String content, Album album, Long userId, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
         this.content = content;
+        this.album = album;
         this.userId = userId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;

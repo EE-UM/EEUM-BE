@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication(scanBasePackages = {
         "com.eeum.user",
         "com.eeum.common.securitycore"
-})//
+})
 public class UserApplication {
 
     public static void main(String[] args) {

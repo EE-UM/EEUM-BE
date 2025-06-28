@@ -13,6 +13,7 @@ dependencies {
     implementation project(':common:snowflake')
     implementation project(':common:support')
     implementation project(':common:security-core')
+    implementation project(':common:apple-musickit')
 }
 
 tasks {

@@ -26,8 +26,6 @@ public class PostsController {
             @CurrentUser UserPrincipal userPrincipal,
             @RequestBody CreatePostRequest createPostRequest
             ) {
-        System.out.println("userPrincipal = " + userPrincipal);
-        System.out.println("userPrincipal.getEmail() = " + userPrincipal.getEmail());
         return ApiResponse.success(postsService.createPost(userPrincipal.getId(), createPostRequest));
     }
 }
