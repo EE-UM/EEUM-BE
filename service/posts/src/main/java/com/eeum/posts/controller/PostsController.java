@@ -6,12 +6,10 @@ import com.eeum.common.securitycore.token.UserPrincipal;
 import com.eeum.posts.aop.RequireLogin;
 import com.eeum.posts.dto.request.CreatePostRequest;
 import com.eeum.posts.dto.response.CreatePostResponse;
+import com.eeum.posts.dto.response.ShowRandomStoryOnShakeResponse;
 import com.eeum.posts.service.PostsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,5 +25,13 @@ public class PostsController {
             @RequestBody CreatePostRequest createPostRequest
             ) {
         return ApiResponse.success(postsService.createPost(userPrincipal.getId(), createPostRequest));
+    }
+
+    @RequireLogin
+    @GetMapping
+    public ApiResponse<ShowRandomStoryOnShakeResponse> showRandomStoryOnShake(
+            @CurrentUser UserPrincipal userPrincipal
+    ) {
+        return ApiResponse.success(postsService.showRandomStoryOnShake(userPrincipal.getId()));
     }
 }
