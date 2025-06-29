@@ -23,15 +23,24 @@ public class PostsController {
     public ApiResponse<CreatePostResponse> createPost(
             @CurrentUser UserPrincipal userPrincipal,
             @RequestBody CreatePostRequest createPostRequest
-            ) {
+    ) {
         return ApiResponse.success(postsService.createPost(userPrincipal.getId(), createPostRequest));
     }
 
     @RequireLogin
-    @GetMapping
+    @GetMapping("/random")
     public ApiResponse<ShowRandomStoryOnShakeResponse> showRandomStoryOnShake(
             @CurrentUser UserPrincipal userPrincipal
     ) {
         return ApiResponse.success(postsService.showRandomStoryOnShake(userPrincipal.getId()));
+    }
+
+    @RequireLogin
+    @GetMapping("/{postId}")
+    public ApiResponse<?> getPostById(
+            @CurrentUser UserPrincipal userPrincipal,
+            @PathVariable String postId
+    ) {
+        return ApiResponse.success(postsService.getPostById(userPrincipal.getId(), postId));
     }
 }

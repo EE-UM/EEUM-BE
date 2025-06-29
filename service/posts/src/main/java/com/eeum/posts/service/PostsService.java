@@ -7,6 +7,7 @@ import com.eeum.posts.dto.response.CreatePostResponse;
 import com.eeum.posts.dto.response.ShowRandomStoryOnShakeResponse;
 import com.eeum.posts.entity.Album;
 import com.eeum.posts.entity.Posts;
+import com.eeum.posts.exception.NoAvailablePostsException;
 import com.eeum.posts.repository.PostsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,12 @@ public class PostsService {
     public ShowRandomStoryOnShakeResponse showRandomStoryOnShake(Long userId) {
         Random random = new Random();
 
-        List<Long> postIds = postsRepository.findAllIdsIsNotCompletedPosts();
+        List<Long> postIds = postsRepository.findAllIdsIsNotCompletedPosts(userId);
+
+        if (postIds.isEmpty()) {
+            throw new NoAvailablePostsException();
+        }
+
         Long pickedPostId = postIds.get(random.nextInt(postIds.size()));
 
         Posts posts = postsRepository.findById(pickedPostId)
@@ -45,5 +51,9 @@ public class PostsService {
 //                .orElseThrow(() -> new NullPointerException("Posts repository is empty."));
 
         return new ShowRandomStoryOnShakeResponse(String.valueOf(posts.getId()), String.valueOf(posts.getUserId()), posts.getTitle(), posts.getContent());
+    }
+
+    public Object getPostById(Long id, String postId) {
+        return null;
     }
 }
