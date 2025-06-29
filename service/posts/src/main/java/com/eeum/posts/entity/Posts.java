@@ -31,6 +31,10 @@ public class Posts {
 
     private LocalDateTime updatedAt;
 
+    private boolean isDeleted;
+
+    private boolean isCompleted;
+
     public static Posts of(Long id, String title, String content, Album album, Long userId) {
         LocalDateTime now = LocalDateTime.now();
         return Posts.builder()
@@ -53,5 +57,7 @@ public class Posts {
         this.userId = userId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.isDeleted = false;
+        this.isCompleted = false;
     }
 }
