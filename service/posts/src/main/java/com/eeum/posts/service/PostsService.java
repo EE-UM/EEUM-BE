@@ -4,10 +4,12 @@ import com.eeum.common.response.ApiResponse;
 import com.eeum.common.snowflake.Snowflake;
 import com.eeum.posts.dto.request.CreatePostRequest;
 import com.eeum.posts.dto.response.CreatePostResponse;
+import com.eeum.posts.dto.response.GetPostByIdResponse;
 import com.eeum.posts.dto.response.ShowRandomStoryOnShakeResponse;
 import com.eeum.posts.entity.Album;
 import com.eeum.posts.entity.Posts;
 import com.eeum.posts.exception.NoAvailablePostsException;
+import com.eeum.posts.exception.PostsNotFoundException;
 import com.eeum.posts.repository.PostsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -53,7 +55,12 @@ public class PostsService {
         return new ShowRandomStoryOnShakeResponse(String.valueOf(posts.getId()), String.valueOf(posts.getUserId()), posts.getTitle(), posts.getContent());
     }
 
-    public Object getPostById(Long id, String postId) {
-        return null;
+    public GetPostByIdResponse getPostById(Long id, Long postId) {
+        Posts posts = postsRepository.findById(postId)
+                .orElseThrow(PostsNotFoundException::new);
+
+        return new GetPostByIdResponse(String.valueOf(posts.getId()), posts.getTitle(), posts.getContent(), posts.getAlbum().getSongName(),
+                posts.getAlbum().getArtistName(), posts.getAlbum().getArtworkUrl(), posts.getAlbum().getAppleMusicUrl(),
+                posts.getCreatedAt());
     }
 }

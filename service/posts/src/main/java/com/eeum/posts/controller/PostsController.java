@@ -6,6 +6,7 @@ import com.eeum.common.securitycore.token.UserPrincipal;
 import com.eeum.posts.aop.RequireLogin;
 import com.eeum.posts.dto.request.CreatePostRequest;
 import com.eeum.posts.dto.response.CreatePostResponse;
+import com.eeum.posts.dto.response.GetPostByIdResponse;
 import com.eeum.posts.dto.response.ShowRandomStoryOnShakeResponse;
 import com.eeum.posts.service.PostsService;
 import lombok.RequiredArgsConstructor;
@@ -37,9 +38,9 @@ public class PostsController {
 
     @RequireLogin
     @GetMapping("/{postId}")
-    public ApiResponse<?> getPostById(
+    public ApiResponse<GetPostByIdResponse> getPostById(
             @CurrentUser UserPrincipal userPrincipal,
-            @PathVariable String postId
+            @PathVariable(name = "postId") Long postId
     ) {
         return ApiResponse.success(postsService.getPostById(userPrincipal.getId(), postId));
     }
