@@ -6,6 +6,7 @@ public record CreatePostRequest(
         String albumName,
         String songName,
         String artistName,
-        String artworkUrl
+        String artworkUrl,
+        String appleMusicUrl
 ) {
 }

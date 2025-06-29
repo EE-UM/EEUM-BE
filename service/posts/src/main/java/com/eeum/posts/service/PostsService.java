@@ -26,7 +26,7 @@ public class PostsService {
 
     @Transactional
     public CreatePostResponse createPost(Long userId, CreatePostRequest createPostRequest) {
-        Album album = Album.of(createPostRequest.albumName(), createPostRequest.songName(), createPostRequest.artistName(), createPostRequest.artworkUrl());
+        Album album = Album.of(createPostRequest.albumName(), createPostRequest.songName(), createPostRequest.artistName(), createPostRequest.artworkUrl(), createPostRequest.appleMusicUrl());
         Posts posts = Posts.of(snowflake.nextId(), createPostRequest.title(), createPostRequest.content(), album, userId);
         postsRepository.save(posts);
         return CreatePostResponse.of(posts.getId(), userId);
@@ -43,7 +43,6 @@ public class PostsService {
 
 //        Posts randomPost = postsRepository.findRandomPost()
 //                .orElseThrow(() -> new NullPointerException("Posts repository is empty."));
-
 
         return new ShowRandomStoryOnShakeResponse(String.valueOf(posts.getId()), String.valueOf(posts.getUserId()), posts.getTitle(), posts.getContent());
     }
