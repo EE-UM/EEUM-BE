@@ -32,9 +32,9 @@ public class AppleMusicTokenController {
 
     @GetMapping("/search")
     public ApiResponse<Collection<AlbumSearchResponse>> search(
-            @RequestParam String term,
-            @RequestParam String types,
-            @RequestParam String limit) {
+            @RequestParam("term") String term,
+            @RequestParam("types") String types,
+            @RequestParam("limit") String limit) {
         Collection<AlbumSearchResponse> result = appleMusicService.search(term, types, limit);
         return ApiResponse.success(result);
     }

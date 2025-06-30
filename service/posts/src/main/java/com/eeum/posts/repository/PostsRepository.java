@@ -15,8 +15,8 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
     Optional<Posts> findRandomPost();
 
     @Query(
-            value = "select p.id from posts p where p.is_completed = false",
+            value = "select p.id from posts p where p.is_completed = false and p.user_id != :userId",
             nativeQuery = true
     )
-    List<Long> findAllIdsIsNotCompletedPosts();
+    List<Long> findAllIdsIsNotCompletedPosts(Long userId);
 }
