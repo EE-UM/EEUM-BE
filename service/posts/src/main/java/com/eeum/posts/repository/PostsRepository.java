@@ -19,4 +19,6 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
             nativeQuery = true
     )
     List<Long> findAllIdsIsNotCompletedPosts(Long userId);
+
+    List<Posts> findByUserId(Long userId);
 }

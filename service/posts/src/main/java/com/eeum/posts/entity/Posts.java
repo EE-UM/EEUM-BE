@@ -31,9 +31,9 @@ public class Posts {
 
     private LocalDateTime updatedAt;
 
-    private boolean isDeleted;
+    private Boolean isDeleted;
 
-    private boolean isCompleted;
+    private Boolean isCompleted;
 
     public static Posts of(Long id, String title, String content, Album album, Long userId) {
         LocalDateTime now = LocalDateTime.now();

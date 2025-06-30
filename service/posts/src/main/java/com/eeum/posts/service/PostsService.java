@@ -1,9 +1,9 @@
 package com.eeum.posts.service;
 
-import com.eeum.common.response.ApiResponse;
 import com.eeum.common.snowflake.Snowflake;
 import com.eeum.posts.dto.request.CreatePostRequest;
 import com.eeum.posts.dto.response.CreatePostResponse;
+import com.eeum.posts.dto.response.GetMyPostsResponse;
 import com.eeum.posts.dto.response.GetPostByIdResponse;
 import com.eeum.posts.dto.response.ShowRandomStoryOnShakeResponse;
 import com.eeum.posts.entity.Album;
@@ -15,9 +15,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -62,5 +64,16 @@ public class PostsService {
         return new GetPostByIdResponse(String.valueOf(posts.getId()), posts.getTitle(), posts.getContent(), posts.getAlbum().getSongName(),
                 posts.getAlbum().getArtistName(), posts.getAlbum().getArtworkUrl(), posts.getAlbum().getAppleMusicUrl(),
                 posts.getCreatedAt());
+    }
+
+    public List<GetMyPostsResponse> getMyPosts(Long userId) {
+        // 정렬 조건과 페이징 조건이 기획되면 쿼리문 수정 예정
+        List<Posts> posts = postsRepository.findByUserId(userId);
+        return posts.stream().map(post -> new GetMyPostsResponse(
+                String.valueOf(post.getUserId()),
+                post.getTitle(),
+                post.getAlbum().getArtworkUrl(),
+                post.getIsCompleted()
+        )).toList();
     }
 }
