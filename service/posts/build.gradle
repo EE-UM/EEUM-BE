@@ -14,6 +14,7 @@ dependencies {
     implementation project(':common:support')
     implementation project(':common:security-core')
     implementation project(':common:apple-musickit')
+    implementation project(':common:aop')
 }
 
 tasks {

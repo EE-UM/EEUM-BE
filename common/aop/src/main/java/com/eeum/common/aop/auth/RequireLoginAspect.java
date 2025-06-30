@@ -1,4 +1,4 @@
-package com.eeum.posts.aop;
+package com.eeum.common.aop.auth;
 
 import com.eeum.common.securitycore.token.UserPrincipal;
 import lombok.extern.slf4j.Slf4j;
@@ -9,10 +9,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Aspect
-@Component
 @Slf4j
+@Component
 public class RequireLoginAspect {
-
     @Before("@annotation(requireLogin)")
     public void checkAuthentication(JoinPoint joinPoint, RequireLogin requireLogin) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
