@@ -9,3 +9,8 @@ services:
     image: rookie97/eeum-posts:latest
     ports:
       - "8082:9001"
+
+  comment:
+    image: rookie97/eeum-comment:latest
+    ports:
+      - "8083:9002"
