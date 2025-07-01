@@ -1,16 +1,19 @@
 package com.eeum.posts.controller;
 
+import com.eeum.common.aop.auth.RequireLogin;
 import com.eeum.common.response.ApiResponse;
 import com.eeum.common.securitycore.token.CurrentUser;
 import com.eeum.common.securitycore.token.UserPrincipal;
-import com.eeum.posts.aop.RequireLogin;
 import com.eeum.posts.dto.request.CreatePostRequest;
 import com.eeum.posts.dto.response.CreatePostResponse;
+import com.eeum.posts.dto.response.GetMyPostsResponse;
 import com.eeum.posts.dto.response.GetPostByIdResponse;
 import com.eeum.posts.dto.response.ShowRandomStoryOnShakeResponse;
 import com.eeum.posts.service.PostsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,8 +43,16 @@ public class PostsController {
     @GetMapping("/{postId}")
     public ApiResponse<GetPostByIdResponse> getPostById(
             @CurrentUser UserPrincipal userPrincipal,
-            @PathVariable(name = "postId") Long postId
+            @PathVariable("postId") Long postId
     ) {
         return ApiResponse.success(postsService.getPostById(userPrincipal.getId(), postId));
+    }
+
+    @RequireLogin
+    @GetMapping("/my")
+    public ApiResponse<List<GetMyPostsResponse>> getMyPosts(
+            @CurrentUser UserPrincipal userPrincipal
+    ) {
+        return ApiResponse.success(postsService.getMyPosts(userPrincipal.getId()));
     }
 }

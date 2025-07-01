@@ -1,4 +1,4 @@
-package com.eeum.posts.aop;
+package com.eeum.common.aop.auth;
 
 import java.lang.annotation.*;
 
