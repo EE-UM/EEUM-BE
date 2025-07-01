@@ -34,6 +34,11 @@ jobs:
           mkdir -p ./service/posts/src/main/resources
           echo "${{ secrets.POSTS_APPLICATION_YML }}" > ./service/posts/src/main/resources/application.yml
 
+      - name: Create application.yml for comment module
+        run: |
+          mkdir -p ./service/comment/src/main/resources
+          echo "${{ secrets.COMMENT_APPLICATION_YML }}" > ./service/comment/src/main/resources/application.yml
+
       - name: Build all modules
         run: ./gradlew clean build
 

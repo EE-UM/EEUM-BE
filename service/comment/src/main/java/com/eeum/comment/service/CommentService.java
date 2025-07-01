@@ -38,7 +38,7 @@ public class CommentService {
 
     @Transactional
     public void delete(Long userId, Long commentId) {
-        commentRepository.findById(commentId)
+        commentRepository.findByIdAndUserId(userId, commentId)
                 .filter(not(Comment::getIsDeleted))
                 .ifPresent(Comment::delete);
     }
