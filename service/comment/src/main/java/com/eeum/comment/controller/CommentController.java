@@ -10,6 +10,8 @@ import com.eeum.common.securitycore.token.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/comments")
@@ -18,12 +20,12 @@ public class CommentController {
     private final CommentService commentService;
 
     @RequireLogin
-    @GetMapping("/{commentId}")
-    public ApiResponse<CommentResponse> read(
+    @GetMapping("/{postId}")
+    public ApiResponse<List<CommentResponse>> readAllCommentsOfPost(
             @CurrentUser UserPrincipal userPrincipal,
-            @PathVariable("commentId") Long commentId
+            @PathVariable("postId") Long postId
     ) {
-        CommentResponse response = commentService.read(commentId);
+        List<CommentResponse> response = commentService.readAllCommentsOfPost(postId);
         return ApiResponse.success(response);
     }
 
