@@ -51,6 +51,7 @@ public class PostsService {
 //        Posts randomPost = postsRepository.findRandomPost()
 //                .orElseThrow(() -> new NullPointerException("Posts repository is empty."));
 
+
         return new ShowRandomStoryOnShakeResponse(String.valueOf(posts.getId()), String.valueOf(posts.getUserId()), posts.getTitle(), posts.getContent());
     }
 
