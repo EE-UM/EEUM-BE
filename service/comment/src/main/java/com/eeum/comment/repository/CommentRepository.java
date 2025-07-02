@@ -4,6 +4,7 @@ import com.eeum.comment.entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -13,4 +14,10 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             nativeQuery = true
     )
     Optional<Comment> findByIdAndUserId(Long userId, Long commentId);
+
+    @Query(
+            value = "select c.* from comments c where c.post_id = :postId order by c.created_at asc",
+            nativeQuery = true
+    )
+    List<Comment> findAllByPostsId(Long postId);
 }

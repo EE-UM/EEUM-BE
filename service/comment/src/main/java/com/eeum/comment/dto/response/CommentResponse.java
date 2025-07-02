@@ -15,8 +15,7 @@ public record CommentResponse(
 ) {
 
     public static CommentResponse from(Comment comment) {
-        LocalDateTime now = LocalDateTime.now();
         return new CommentResponse(String.valueOf(comment.getId()), comment.getContent(), String.valueOf(comment.getPostId()),
-                String.valueOf(comment.getUserId()), false, now, now);
+                String.valueOf(comment.getUserId()), false, comment.getCreatedAt(), comment.getModifiredAt());
     }
 }

@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+import java.util.List;
+
 import static java.util.function.Predicate.*;
 
 @Service
@@ -31,9 +33,10 @@ public class CommentService {
         return CommentResponse.from(comment);
     }
 
-    public CommentResponse read(Long commentId) {
-        Comment comment = commentRepository.findById(commentId).orElseThrow();
-        return CommentResponse.from(comment);
+    public List<CommentResponse> readAllCommentsOfPost(Long postId) {
+        List<Comment> comments = commentRepository.findAllByPostsId(postId);
+        List<CommentResponse> commentResponseList = comments.stream().map(CommentResponse::from).toList();
+        return commentResponseList;
     }
 
     @Transactional
