@@ -9,6 +9,7 @@ public record CommentResponse(
         String content,
         String postId,
         String userId,
+        String username,
         Boolean isDeleted,
         LocalDateTime createdAt,
         LocalDateTime modifiedAt
@@ -16,6 +17,6 @@ public record CommentResponse(
 
     public static CommentResponse from(Comment comment) {
         return new CommentResponse(String.valueOf(comment.getId()), comment.getContent(), String.valueOf(comment.getPostId()),
-                String.valueOf(comment.getUserId()), false, comment.getCreatedAt(), comment.getModifiredAt());
+                String.valueOf(comment.getUserId()), comment.getUsername(), false, comment.getCreatedAt(), comment.getModifiredAt());
     }
 }

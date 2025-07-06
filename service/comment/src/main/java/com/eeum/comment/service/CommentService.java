@@ -4,6 +4,7 @@ import com.eeum.comment.dto.request.CommentCreateRequest;
 import com.eeum.comment.dto.response.CommentResponse;
 import com.eeum.comment.entity.Comment;
 import com.eeum.comment.repository.CommentRepository;
+import com.eeum.common.securitycore.token.UserPrincipal;
 import com.eeum.common.snowflake.Snowflake;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,12 +23,13 @@ public class CommentService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public CommentResponse create(Long userId, CommentCreateRequest request) {
+    public CommentResponse create(UserPrincipal userPrincipal, CommentCreateRequest request) {
         Comment comment = Comment.of(
                 snowflake.nextId(),
                 request.content(),
                 request.postId(),
-                userId
+                userPrincipal.getId(),
+                userPrincipal.getUsername()
         );
         commentRepository.save(comment);
         return CommentResponse.from(comment);

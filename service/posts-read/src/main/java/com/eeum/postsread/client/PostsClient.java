@@ -1,10 +1,13 @@
 package com.eeum.postsread.client;
 
+import com.eeum.common.response.ApiResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -26,11 +29,11 @@ public class PostsClient {
 
     public Optional<PostsResponse> read(Long postId) {
         try {
-            PostsResponse response = restClient.get()
+            ApiResponse<PostsResponse> response = restClient.get()
                     .uri("/posts/{postId}", postId)
                     .retrieve()
-                    .body(PostsResponse.class);
-            return Optional.ofNullable(response);
+                    .body(new ParameterizedTypeReference<ApiResponse<PostsResponse>>() {});
+            return Optional.ofNullable(response.getData());
         } catch (Exception e) {
             log.error("[PostsClient.read] postId={}", postId);
             return Optional.empty();
@@ -38,14 +41,17 @@ public class PostsClient {
     }
 
     @Getter
+    @ToString
     public static class PostsResponse {
-        private Long postId;
+        private String postId;
         private String title;
         private String content;
+        private String userId;
         private String songName;
         private String artistName;
         private String artworkUrl;
         private String appleMusicUrl;
         private LocalDateTime createdAt;
+        private LocalDateTime modifiedAt;
     }
 }

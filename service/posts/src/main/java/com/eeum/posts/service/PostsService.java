@@ -55,11 +55,11 @@ public class PostsService {
         return new ShowRandomStoryOnShakeResponse(String.valueOf(posts.getId()), String.valueOf(posts.getUserId()), posts.getTitle(), posts.getContent());
     }
 
-    public GetPostByIdResponse getPostById(Long id, Long postId) {
+    public GetPostByIdResponse getPostById(Long postId) {
         Posts posts = postsRepository.findById(postId)
                 .orElseThrow(PostsNotFoundException::new);
 
-        return new GetPostByIdResponse(String.valueOf(posts.getId()), posts.getTitle(), posts.getContent(), posts.getAlbum().getSongName(),
+        return new GetPostByIdResponse(String.valueOf(posts.getId()), posts.getTitle(), posts.getContent(), String.valueOf(posts.getUserId()), posts.getAlbum().getSongName(),
                 posts.getAlbum().getArtistName(), posts.getAlbum().getArtworkUrl(), posts.getAlbum().getAppleMusicUrl(),
                 posts.getCreatedAt());
     }

@@ -6,6 +6,7 @@ public record GetPostByIdResponse(
         String postId,
         String title,
         String content,
+        String userId,
         String songName,
         String artistName,
         String artworkUrl,
@@ -13,6 +14,5 @@ public record GetPostByIdResponse(
         LocalDateTime createdAt
 
 
-        // todo: 댓글
 ) {
 }

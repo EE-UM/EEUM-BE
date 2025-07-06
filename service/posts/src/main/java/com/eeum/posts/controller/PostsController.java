@@ -39,13 +39,11 @@ public class PostsController {
         return ApiResponse.success(postsService.showRandomStoryOnShake(userPrincipal.getId()));
     }
 
-    @RequireLogin
     @GetMapping("/{postId}")
     public ApiResponse<GetPostByIdResponse> getPostById(
-            @CurrentUser UserPrincipal userPrincipal,
             @PathVariable("postId") Long postId
     ) {
-        return ApiResponse.success(postsService.getPostById(userPrincipal.getId(), postId));
+        return ApiResponse.success(postsService.getPostById(postId));
     }
 
     @RequireLogin
