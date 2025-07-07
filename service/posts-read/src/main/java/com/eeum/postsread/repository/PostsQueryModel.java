@@ -17,10 +17,11 @@ public class PostsQueryModel {
     private String appleMusicUrl;
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
-    private Long postCommentCount;
-    private Long postLikeCount;
+//    private Long postCommentCount;
+//    private Long postLikeCount;
 
-    public static PostsQueryModel create(PostsClient.PostsResponse post, Long commentCount, Long postLikeCount) {
+
+    public static PostsQueryModel create(PostsClient.PostsResponse post) {
         PostsQueryModel postsQueryModel = new PostsQueryModel();
         postsQueryModel.postId = Long.valueOf(post.getPostId());
         postsQueryModel.title = post.getTitle();
@@ -32,8 +33,8 @@ public class PostsQueryModel {
         postsQueryModel.appleMusicUrl = post.getAppleMusicUrl();
         postsQueryModel.createdAt = post.getCreatedAt();
         postsQueryModel.modifiedAt = post.getModifiedAt();
-        postsQueryModel.postCommentCount = commentCount;
-        postsQueryModel.postLikeCount = postLikeCount;
+//        postsQueryModel.postCommentCount = commentCount;
+//        postsQueryModel.postLikeCount = postLikeCount;
         return postsQueryModel;
     }
 }
