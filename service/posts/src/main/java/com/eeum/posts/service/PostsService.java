@@ -2,15 +2,14 @@ package com.eeum.posts.service;
 
 import com.eeum.common.snowflake.Snowflake;
 import com.eeum.posts.dto.request.CreatePostRequest;
-import com.eeum.posts.dto.response.CreatePostResponse;
-import com.eeum.posts.dto.response.GetMyPostsResponse;
-import com.eeum.posts.dto.response.GetPostByIdResponse;
-import com.eeum.posts.dto.response.ShowRandomStoryOnShakeResponse;
+import com.eeum.posts.dto.request.UpdatePostRequest;
+import com.eeum.posts.dto.response.*;
 import com.eeum.posts.entity.Album;
 import com.eeum.posts.entity.Posts;
 import com.eeum.posts.exception.NoAvailablePostsException;
 import com.eeum.posts.exception.PostsNotFoundException;
 import com.eeum.posts.repository.PostsRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +31,22 @@ public class PostsService {
         Posts posts = Posts.of(snowflake.nextId(), createPostRequest.title(), createPostRequest.content(), album, userId);
         postsRepository.save(posts);
         return CreatePostResponse.of(posts.getId(), userId);
+    }
+
+    @Transactional
+    public UpdatePostResponse updatePost(Long userId, UpdatePostRequest updatePostRequest) {
+        Posts posts = postsRepository.findByIdAndUserId(updatePostRequest.postId(), userId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 게시글 정보를 찾을 수 없습니다."));
+
+        posts.update(updatePostRequest.title(), updatePostRequest.content());
+
+        return UpdatePostResponse.from(posts);
+    }
+
+    @Transactional
+    public Long delete(Long postId) {
+        postsRepository.deleteById(postId);
+        return postId;
     }
 
     public ShowRandomStoryOnShakeResponse showRandomStoryOnShake(Long userId) {
@@ -73,5 +88,12 @@ public class PostsService {
                 post.getAlbum().getArtworkUrl(),
                 post.getIsCompleted()
         )).toList();
+    }
+
+    public List<ReadAllInfiiniteScrollResponse> readAllInfiiniteScroll(Long pageSize, Long lastPostId) {
+        List<Posts> posts = lastPostId == null ?
+                postsRepository.findAllInfiniteScroll(pageSize) :
+                postsRepository.findAllInfiniteScroll(pageSize, lastPostId);
+        return posts.stream().map(ReadAllInfiiniteScrollResponse::from).toList();
     }
 }

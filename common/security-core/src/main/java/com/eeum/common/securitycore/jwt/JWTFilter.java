@@ -29,7 +29,7 @@ public class JWTFilter extends OncePerRequestFilter {
     private final JWTUtil jwtUtil;
 
     private static final List<String> WHITELIST = List.of(
-            "/user/test", "/user/login", "/swagger-ui", "/v3/api-docs", "/apple-music", "/posts-read", "/posts"
+            "/user/test", "/user/login", "/swagger-ui", "/v3/api-docs", "/apple-music", "/posts-read"
     );
 
     @Override
@@ -37,6 +37,12 @@ public class JWTFilter extends OncePerRequestFilter {
 
         try {
             String path = request.getRequestURI();
+            String method = request.getMethod();
+            if ("GET".equals(method) && path.matches("^/posts/\\d+$")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             if (WHITELIST.stream().anyMatch(path::startsWith)) {
                 filterChain.doFilter(request, response);
                 return;
