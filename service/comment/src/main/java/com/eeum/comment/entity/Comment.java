@@ -25,6 +25,8 @@ public class Comment {
 
     private Long userId;
 
+    private String username;
+
     private Boolean isDeleted;
 
     private LocalDateTime createdAt;
@@ -40,13 +42,14 @@ public class Comment {
         this.isDeleted = true;
     }
 
-    public static Comment of(Long id, String content, Long postId, Long userId) {
+    public static Comment of(Long id, String content, Long postId, Long userId, String username) {
         LocalDateTime now = LocalDateTime.now();
         return Comment.builder()
                 .id(id)
                 .content(content)
                 .postId(postId)
                 .userId(userId)
+                .username(username)
                 .isDeleted(false)
                 .createdAt(now)
                 .modifiredAt(now)
@@ -54,11 +57,12 @@ public class Comment {
     }
 
     @Builder
-    private Comment(Long id, String content, Long postId, Long userId, Boolean isDeleted, LocalDateTime createdAt, LocalDateTime modifiredAt) {
+    public Comment(Long id, String content, Long postId, Long userId, String username, Boolean isDeleted, LocalDateTime createdAt, LocalDateTime modifiredAt) {
         this.id = id;
         this.content = content;
         this.postId = postId;
         this.userId = userId;
+        this.username = username;
         this.isDeleted = isDeleted;
         this.createdAt = createdAt;
         this.modifiredAt = modifiredAt;
