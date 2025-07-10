@@ -43,6 +43,11 @@ public class JWTFilter extends OncePerRequestFilter {
                 return;
             }
 
+            if ("GET".equals(method) && path.startsWith("/posts-read")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             if (WHITELIST.stream().anyMatch(path::startsWith)) {
                 filterChain.doFilter(request, response);
                 return;

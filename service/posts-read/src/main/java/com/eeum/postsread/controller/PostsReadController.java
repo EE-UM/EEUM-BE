@@ -1,13 +1,13 @@
 package com.eeum.postsread.controller;
 
 import com.eeum.common.response.ApiResponse;
+import com.eeum.postsread.dto.response.PostsReadInfiniteScrollResponse;
 import com.eeum.postsread.dto.response.PostsReadResponse;
 import com.eeum.postsread.service.PostsReadService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,5 +19,13 @@ public class PostsReadController {
     public ApiResponse<PostsReadResponse> read(@PathVariable("postId") Long postId) {
         PostsReadResponse response = postsReadService.read(postId);
         return ApiResponse.success(response);
+    }
+
+    @GetMapping("/infinite-scroll")
+    public List<PostsReadInfiniteScrollResponse> readAllInfiniteScroll(
+            @RequestParam(value = "lastPostId", required = false) Long lastPostId,
+            @RequestParam("pageSize") Long pageSize
+    ) {
+        return postsReadService.readAllInfiniteScroll(lastPostId, pageSize);
     }
 }
