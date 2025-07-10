@@ -35,6 +35,12 @@ public class Posts {
 
     private Boolean isCompleted;
 
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public static Posts of(Long id, String title, String content, Album album, Long userId) {
         LocalDateTime now = LocalDateTime.now();
         return Posts.builder()
@@ -49,7 +55,7 @@ public class Posts {
     }
 
     @Builder
-    public Posts(Long id, String title, String content, Album album, Long userId, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    private Posts(Long id, String title, String content, Album album, Long userId, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
         this.content = content;

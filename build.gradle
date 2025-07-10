@@ -30,7 +30,7 @@ subprojects {
     apply plugin: 'io.spring.dependency-management'
 
     afterEvaluate {
-        if (!["user", "posts", "comment"].contains(project.name)) {
+        if (!["user", "posts", "comment", "posts-read"].contains(project.name)) {
             tasks.named('bootJar') {
                 enabled = false
             }

@@ -19,10 +19,8 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    @RequireLogin
     @GetMapping("/{postId}")
     public ApiResponse<List<CommentResponse>> readAllCommentsOfPost(
-            @CurrentUser UserPrincipal userPrincipal,
             @PathVariable("postId") Long postId
     ) {
         List<CommentResponse> response = commentService.readAllCommentsOfPost(postId);
@@ -35,7 +33,7 @@ public class CommentController {
             @CurrentUser UserPrincipal userPrincipal,
             @RequestBody CommentCreateRequest request
     ) {
-        CommentResponse response = commentService.create(userPrincipal.getId(), request);
+        CommentResponse response = commentService.create(userPrincipal, request);
         return ApiResponse.success(response);
     }
 

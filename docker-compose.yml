@@ -14,3 +14,8 @@ services:
     image: rookie97/eeum-comment:latest
     ports:
       - "8083:9002"
+
+  posts-read:
+    image: rookie97/eeum-posts-read:latest
+    ports:
+      - "8084:9003"
