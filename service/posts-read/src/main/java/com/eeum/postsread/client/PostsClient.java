@@ -25,7 +25,10 @@ public class PostsClient {
 
     @PostConstruct
     public void initRestClient() {
-        restClient = RestClient.create(postsServiceUrl);
+        this.restClient = RestClient.builder()
+                .baseUrl(postsServiceUrl)
+                .defaultHeader("Authorization", "Bearer ")
+                .build();
     }
 
     public Optional<PostsResponse> read(Long postId) {
