@@ -15,6 +15,8 @@ dependencies {
     implementation project(':common:security-core')
     implementation project(':common:apple-musickit')
     implementation project(':common:aop')
+    implementation project(':common:data-serializer')
+    implementation project(':service:posts-read')
 }
 
 tasks {
