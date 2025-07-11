@@ -8,6 +8,7 @@ import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.Duration;
 import java.util.List;
 
 @Repository
@@ -18,10 +19,12 @@ public class PostsIdListRepository {
     private static final String KEY = "posts-read::post-list";
 
     public void add(Long postId, Long limit) {
+        redisTemplate.expire(KEY, Duration.ofSeconds(60));
         redisTemplate.executePipelined((RedisCallback<?>) action -> {
             StringRedisConnection conn = (StringRedisConnection) action;
             conn.zAdd(KEY, 0, toPaddedString(postId));
             conn.zRemRange(KEY, 0, -limit - 1);
+
             return null;
         });
     }

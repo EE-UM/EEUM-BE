@@ -11,12 +11,14 @@ import com.eeum.posts.exception.PostsNotFoundException;
 import com.eeum.posts.repository.PostsRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Random;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -25,11 +27,13 @@ public class PostsService {
     private final Snowflake snowflake = new Snowflake();
     private final PostsRepository postsRepository;
 
+
     @Transactional
     public CreatePostResponse createPost(Long userId, CreatePostRequest createPostRequest) {
         Album album = Album.of(createPostRequest.albumName(), createPostRequest.songName(), createPostRequest.artistName(), createPostRequest.artworkUrl(), createPostRequest.appleMusicUrl());
         Posts posts = Posts.of(snowflake.nextId(), createPostRequest.title(), createPostRequest.content(), album, userId);
         postsRepository.save(posts);
+
         return CreatePostResponse.of(posts.getId(), userId);
     }
 
