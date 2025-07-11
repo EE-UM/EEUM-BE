@@ -26,7 +26,10 @@ public class CommentClient {
 
     @PostConstruct
     public void initRestClient() {
-        restClient = RestClient.create(commentServiceUrl);
+        this.restClient = RestClient.builder()
+                .baseUrl(commentServiceUrl)
+                .defaultHeader("Authorization", "Bearer ") // 내부 요청용 빈 토큰
+                .build();
     }
 
     public List<CommentResponse> read(Long postId) {
