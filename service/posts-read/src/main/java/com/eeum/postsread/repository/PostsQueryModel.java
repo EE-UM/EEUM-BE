@@ -37,4 +37,29 @@ public class PostsQueryModel {
 //        postsQueryModel.postLikeCount = postLikeCount;
         return postsQueryModel;
     }
+
+    public static PostsQueryModel of(
+            Long postId,
+            String title,
+            String content,
+            Long userId,
+            String songName,
+            String artistName,
+            String artworkUrl,
+            String appleMusicUrl,
+            LocalDateTime createdAt,
+            LocalDateTime modifiedAt) {
+        PostsQueryModel postsQueryModel = new PostsQueryModel();
+        postsQueryModel.postId = postId;
+        postsQueryModel.title = title;
+        postsQueryModel.content = content;
+        postsQueryModel.userId = userId;
+        postsQueryModel.songName = songName;
+        postsQueryModel.artistName = artistName;
+        postsQueryModel.artworkUrl = artworkUrl;
+        postsQueryModel.appleMusicUrl = appleMusicUrl;
+        postsQueryModel.createdAt = createdAt;
+        postsQueryModel.modifiedAt = modifiedAt;
+        return postsQueryModel;
+    }
 }

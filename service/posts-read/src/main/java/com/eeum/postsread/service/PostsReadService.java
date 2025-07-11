@@ -54,7 +54,7 @@ public class PostsReadService {
         postsQueryModelOptional
                 .ifPresent(postsQueryModel -> {
                     log.info("[fetch] caching key={}, value={}", postsQueryModel.getPostId(), postsQueryModel);
-                    postsQueryModelRepository.create(postsQueryModel, Duration.ofDays(1));
+                    postsQueryModelRepository.create(postsQueryModel, Duration.ofSeconds(60));
                 });
         log.info("[PostsReadService.fetch] fetch data. postId={}, isPresent={}", postId, postsQueryModelOptional.isPresent());
         return postsQueryModelOptional;
