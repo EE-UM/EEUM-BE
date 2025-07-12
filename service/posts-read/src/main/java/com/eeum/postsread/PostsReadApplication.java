@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
         "com.eeum.postsread",
         "com.eeum.common.securitycore"
 }
-)
+)//
 public class PostsReadApplication {
 
     public static void main(String[] args) {
