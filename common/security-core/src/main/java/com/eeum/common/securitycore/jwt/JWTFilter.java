@@ -38,7 +38,13 @@ public class JWTFilter extends OncePerRequestFilter {
         try {
             String path = request.getRequestURI();
             String method = request.getMethod();
+
             if ("GET".equals(method) && path.matches("^/posts/\\d+$")) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            if ("GET".equals(method) && path.matches("/comments")) {
                 filterChain.doFilter(request, response);
                 return;
             }
