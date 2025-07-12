@@ -13,11 +13,8 @@ dependencies {
     implementation project(':common:snowflake')
     implementation project(':common:support')
     implementation project(':common:security-core')
-    implementation project(':common:apple-musickit')
     implementation project(':common:aop')
     implementation project(':common:data-serializer')
-    implementation project(':service:posts-read')
-
 }
 
 tasks {
@@ -31,5 +28,5 @@ tasks {
 }
 
 springBoot {
-    mainClass = 'com.eeum.posts.PostsApplication'
+    mainClass = 'com.eeum.view.ViewApplication'
 }
