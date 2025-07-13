@@ -40,4 +40,11 @@ public class LikeController {
         likeService.unlike(postId, userPrincipal.getId());
         return ApiResponse.success("좋아요 삭제 완료");
     }
+
+    @GetMapping("/count/{postId}")
+    public ApiResponse<Long> count(
+            @PathVariable("postId") Long postId
+    ) {
+        return ApiResponse.success(likeService.count(postId));
+    }
 }

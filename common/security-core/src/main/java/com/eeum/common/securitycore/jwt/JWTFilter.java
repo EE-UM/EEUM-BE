@@ -29,7 +29,7 @@ public class JWTFilter extends OncePerRequestFilter {
     private final JWTUtil jwtUtil;
 
     private static final List<String> WHITELIST = List.of(
-            "/user/test", "/user/login", "/swagger-ui", "/v3/api-docs", "/apple-music", "/posts-read"
+            "/user/test", "/user/login", "/swagger-ui", "/v3/api-docs", "/apple-music", "/posts-read", "like/count"
     );
 
     @Override
