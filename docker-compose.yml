@@ -23,3 +23,15 @@ services:
     container_name: posts-read
     ports:
       - "8084:9003"
+
+  like:
+    image: rookie97/eeum-like:latest
+    container_name: like
+    ports:
+      - "8085:9004"
+
+  view:
+    image: rookie97/eeum-view:latest
+    container_name: view
+    ports:
+      - "8086:9005"
