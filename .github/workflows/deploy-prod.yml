@@ -42,7 +42,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Push image
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/eeum
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/eeum:prod
             
   deploy:
     needs: build-and-push
@@ -54,7 +54,7 @@ jobs:
 
       - name: Pull latest images
         run: |
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/eeum
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/eeum:prod
 
       - name: Stop and remove containers
         run: docker compose down || true
