@@ -1,0 +1,9 @@
+version: "3.8"
+services:
+  eeum-dev:
+    image: rookie97/eeum
+    container_name: eeum-dev
+    ports:
+      - "8081:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
