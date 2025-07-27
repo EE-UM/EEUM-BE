@@ -98,7 +98,7 @@ public class PostsService {
         return PostsReadResponse.from(postsQueryModel, commentResponse);
     }
 
-    public List<PostsReadInfiniteScrollResponse> readAllInfiniteScroll(Long lastPostId, Long pageSize) {
+    public List<PostsReadInfiniteScrollResponse> readAllInfiniteScroll(Long pageSize, Long lastPostId) {
         return readAll(
                 readAllInfiniteScrollPostsIds(lastPostId, pageSize)
         );
@@ -187,7 +187,7 @@ public class PostsService {
                 .toList();
     }
 
-    private List<ReadAllInfiiniteScrollResponse> readAllInfiiniteScroll(Long pageSize, Long lastPostId) {
+    private List<ReadAllInfiiniteScrollResponse> readAllInfiiniteScroll(Long lastPostId, Long pageSize) {
         List<Posts> posts = lastPostId == null ?
                 postsRepository.findAllInfiniteScroll(pageSize) :
                 postsRepository.findAllInfiniteScroll(pageSize, lastPostId);
