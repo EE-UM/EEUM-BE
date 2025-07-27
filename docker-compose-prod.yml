@@ -1,0 +1,9 @@
+version: "3.8"
+services:
+  eeum-prod:
+    image: rookie97/eeum:prod
+    container_name: eeum-prod
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
