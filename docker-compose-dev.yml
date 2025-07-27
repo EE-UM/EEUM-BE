@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   eeum-dev:
-    image: rookie97/eeum
+    image: rookie97/eeum:dev
     container_name: eeum-dev
     ports:
       - "8081:8080"
