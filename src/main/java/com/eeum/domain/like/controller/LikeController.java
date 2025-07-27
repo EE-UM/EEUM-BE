@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/like")
 public class LikeController {
 
-    private final LikeService likeService;
+    private final LikeService likeService;//
 
     @GetMapping("/users/{userId}")
     public ApiResponse<List<LikeResponse>> readUserLikedPosts(@PathVariable("userId") Long userId) {
