@@ -3,7 +3,6 @@ package com.eeum.domain.comment.controller;
 import com.eeum.domain.comment.dto.request.CommentCreateRequest;
 import com.eeum.domain.comment.dto.response.CommentResponse;
 import com.eeum.domain.comment.service.CommentService;
-import com.eeum.global.aop.auth.RequireLogin;
 import com.eeum.global.support.response.ApiResponse;
 import com.eeum.global.securitycore.token.CurrentUser;
 import com.eeum.global.securitycore.token.UserPrincipal;
@@ -27,7 +26,6 @@ public class CommentController {
         return ApiResponse.success(response);
     }
 
-    @RequireLogin
     @PostMapping
     public ApiResponse<CommentResponse> create(
             @CurrentUser UserPrincipal userPrincipal,
