@@ -1,6 +1,5 @@
 package com.eeum.domain.posts.controller;
 
-import com.eeum.global.aop.auth.RequireLogin;
 import com.eeum.global.support.response.ApiResponse;
 import com.eeum.global.securitycore.token.CurrentUser;
 import com.eeum.global.securitycore.token.UserPrincipal;
@@ -8,6 +7,7 @@ import com.eeum.domain.posts.dto.response.*;
 import com.eeum.domain.posts.dto.request.CreatePostRequest;
 import com.eeum.domain.posts.dto.request.UpdatePostRequest;
 import com.eeum.domain.posts.service.PostsService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,16 +20,14 @@ public class PostsController {
 
     private final PostsService postsService;
 
-    @RequireLogin
     @PostMapping
     public ApiResponse<CreatePostResponse> createPost(
             @CurrentUser UserPrincipal userPrincipal,
-            @RequestBody CreatePostRequest createPostRequest
+            @RequestBody @Valid CreatePostRequest createPostRequest
     ) {
         return ApiResponse.success(postsService.createPost(userPrincipal.getId(), createPostRequest));
     }
 
-    @RequireLogin
     @PatchMapping
     public ApiResponse<UpdatePostResponse> updatePost(
             @CurrentUser UserPrincipal userPrincipal,
@@ -46,7 +44,6 @@ public class PostsController {
         return ApiResponse.success(postsService.readAllInfiniteScroll(pageSize, lastPostId));
     }
 
-    @RequireLogin
     @DeleteMapping("/{postId}")
     public ApiResponse<String> delete(
             @CurrentUser UserPrincipal userPrincipal,
@@ -69,7 +66,6 @@ public class PostsController {
         return ApiResponse.success(postsService.read(postId));
     }
 
-    @RequireLogin
     @GetMapping("/my")
     public ApiResponse<List<GetMyPostsResponse>> getMyPosts(
             @CurrentUser UserPrincipal userPrincipal
