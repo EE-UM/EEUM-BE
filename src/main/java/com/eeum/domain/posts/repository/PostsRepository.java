@@ -43,4 +43,15 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
             nativeQuery = true
     )
     List<Posts> findAllInfiniteScroll(@Param("limit") Long limit, @Param("lastPostId") Long lastPostId);
+
+    @Query(
+            value = "select p.* " +
+                    "from posts p " +
+                    "left join likes l on p.id = l.post_id " +
+                    "where l.user_id = :userId " +
+                    "and (p.is_deleted = false or p.is_deleted = null) " +
+                    "order by p.created_at desc",
+            nativeQuery = true
+    )
+    List<Posts> findPostsLikedByUserId(@Param("userId") Long userId);
 }

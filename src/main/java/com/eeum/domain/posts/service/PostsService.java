@@ -116,6 +116,15 @@ public class PostsService {
         return CompletePostResponse.of(posts.getId(), posts.getUserId(), posts.getIsCompleted());
     }
 
+    public List<GetLikedPostsResponse> getLikedPosts(Long userId) {
+        List<Posts> posts = postsRepository.findPostsLikedByUserId(userId);
+
+        log.info(posts.toString());
+
+        List<GetLikedPostsResponse> response = posts.stream().map(GetLikedPostsResponse::from).toList();
+        return response;
+    }
+
     private Optional<PostsQueryModel> fetch(Long postId) {
         Optional<PostsQueryModel> postsQueryModelOptional = Optional.ofNullable(postsRepository.findById(postId)
                 .map(post -> PostsQueryModel.create(post))
