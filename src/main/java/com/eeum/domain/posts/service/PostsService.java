@@ -119,9 +119,14 @@ public class PostsService {
     public List<GetLikedPostsResponse> getLikedPosts(Long userId) {
         List<Posts> posts = postsRepository.findPostsLikedByUserId(userId);
 
-        log.info(posts.toString());
-
         List<GetLikedPostsResponse> response = posts.stream().map(GetLikedPostsResponse::from).toList();
+        return response;
+    }
+
+    public List<GetCommentedPostsResponse> getCommentedPosts(Long userId) {
+        List<Posts> posts = postsRepository.findPostsCommentedByUserId(userId);
+
+        List<GetCommentedPostsResponse> response = posts.stream().map(GetCommentedPostsResponse::from).toList();
         return response;
     }
 

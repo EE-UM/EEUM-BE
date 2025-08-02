@@ -49,9 +49,20 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
                     "from posts p " +
                     "left join likes l on p.id = l.post_id " +
                     "where l.user_id = :userId " +
-                    "and (p.is_deleted = false or p.is_deleted = null) " +
+                    "and p.is_deleted = false " +
                     "order by p.created_at desc",
             nativeQuery = true
     )
     List<Posts> findPostsLikedByUserId(@Param("userId") Long userId);
+
+    @Query(
+            value = "select distinct p.* " +
+                    "from posts p " +
+                    "left join comments c on p.id = c.post_id " +
+                    "where c.user_id = :userId " +
+                    "and p.is_deleted = false " +
+                    "order by p.created_at desc",
+            nativeQuery = true
+    )
+    List<Posts> findPostsCommentedByUserId(@Param("userId") Long userId);
 }
