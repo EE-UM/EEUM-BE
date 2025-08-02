@@ -80,4 +80,11 @@ public class PostsController {
     ) {
         return ApiResponse.success(postsService.completePost(userPrincipal.getId(), postId));
     }
+
+    @GetMapping("/liked")
+    public ApiResponse<List<GetLikedPostsResponse>> getLikedPosts(
+            @CurrentUser UserPrincipal userPrincipal
+    ) {
+        return ApiResponse.success(postsService.getLikedPosts(userPrincipal.getId()));
+    }
 }
