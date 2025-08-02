@@ -1,10 +1,7 @@
 package com.eeum.domain.posts.entity;
 
 import io.hypersistence.utils.hibernate.id.Tsid;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -38,6 +35,9 @@ public class Posts {
 
     private Boolean isCompleted;
 
+    @Enumerated(EnumType.STRING)
+    private CompletionType completionType;
+
     public void update(String title, String content) {
         this.title = title;
         this.content = content;
@@ -46,6 +46,10 @@ public class Posts {
 
     public void updateIsCompleted() {
         this.isCompleted = Boolean.TRUE;
+    }
+
+    public void updateCompletionType(CompletionType completionType) {
+        this.completionType = completionType;
     }
 
     public static Posts of(String title, String content, Album album, Long userId) {
