@@ -32,7 +32,7 @@ public class PostsController {
     public ApiResponse<UpdatePostResponse> updatePost(
             @CurrentUser UserPrincipal userPrincipal,
             @RequestBody UpdatePostRequest updatePostRequest
-            ) {
+    ) {
         return ApiResponse.success(postsService.updatePost(userPrincipal.getId(), updatePostRequest));
     }
 
@@ -86,5 +86,12 @@ public class PostsController {
             @CurrentUser UserPrincipal userPrincipal
     ) {
         return ApiResponse.success(postsService.getLikedPosts(userPrincipal.getId()));
+    }
+
+    @GetMapping("/commented")
+    public ApiResponse<List<GetCommentedPostsResponse>> getCommentedPosts(
+            @CurrentUser UserPrincipal userPrincipal
+    ) {
+        return ApiResponse.success(postsService.getCommentedPosts(userPrincipal.getId()));
     }
 }
