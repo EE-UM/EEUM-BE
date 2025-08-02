@@ -3,6 +3,8 @@ package com.eeum.domain.comment.service;
 import com.eeum.domain.comment.dto.request.CommentCreateRequest;
 import com.eeum.domain.comment.dto.response.CommentResponse;
 import com.eeum.domain.comment.entity.Comment;
+import com.eeum.domain.comment.entity.CommentCount;
+import com.eeum.domain.comment.repository.CommentCountRepository;
 import com.eeum.domain.comment.repository.CommentRepository;
 import com.eeum.global.securitycore.token.UserPrincipal;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.function.Predicate.*;
 
@@ -19,6 +22,7 @@ import static java.util.function.Predicate.*;
 @RequiredArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
+    private final CommentCountRepository commentCountRepository;
 
     @Transactional
     public CommentResponse create(UserPrincipal userPrincipal, CommentCreateRequest request) {
@@ -30,6 +34,14 @@ public class CommentService {
                 request.artworkUrl()
         );
         commentRepository.save(comment);
+
+        int result = commentCountRepository.increase(request.postId());
+        if (result == 0) {
+            commentCountRepository.save(
+                    CommentCount.of(request.postId(), 1L)
+            );
+        }
+
         return CommentResponse.from(comment);
     }
 
@@ -41,8 +53,11 @@ public class CommentService {
 
     @Transactional
     public void delete(Long userId, Long commentId) {
-        commentRepository.findByIdAndUserId(userId, commentId)
-                .filter(not(Comment::getIsDeleted))
-                .ifPresent(Comment::delete);
+        Optional<Comment> comment = commentRepository.findByIdAndUserId(userId, commentId)
+                .filter(not(Comment::getIsDeleted));
+        if (comment.isPresent()) {
+            comment.get().delete();
+            commentCountRepository.decrease(comment.get().getPostId());
+        }
     }
 }

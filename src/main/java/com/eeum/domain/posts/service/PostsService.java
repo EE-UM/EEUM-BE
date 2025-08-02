@@ -38,6 +38,7 @@ public class PostsService {
     public CreatePostResponse createPost(Long userId, CreatePostRequest createPostRequest) {
         Album album = Album.of(createPostRequest.albumName(), createPostRequest.songName(), createPostRequest.artistName(), createPostRequest.artworkUrl(), createPostRequest.appleMusicUrl());
         Posts posts = Posts.of(createPostRequest.title(), createPostRequest.content(), album, userId);
+        posts.updateCompletionType(createPostRequest.completionType());
         postsRepository.save(posts);
 
         return CreatePostResponse.of(posts.getId(), userId);

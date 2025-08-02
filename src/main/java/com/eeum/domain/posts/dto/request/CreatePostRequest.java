@@ -1,5 +1,6 @@
 package com.eeum.domain.posts.dto.request;
 
+import com.eeum.domain.posts.entity.CompletionType;
 import jakarta.validation.constraints.NotNull;
 
 public record CreatePostRequest(
@@ -10,6 +11,7 @@ public record CreatePostRequest(
         String songName,
         String artistName,
         String artworkUrl,
-        String appleMusicUrl
+        String appleMusicUrl,
+        CompletionType completionType
 ) {
 }
