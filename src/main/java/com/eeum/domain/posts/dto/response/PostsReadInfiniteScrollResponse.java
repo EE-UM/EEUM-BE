@@ -12,7 +12,8 @@ public record PostsReadInfiniteScrollResponse(
         String artistName,
         String artworkUrl,
         String appleMusicUrl,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        boolean isCompleted
 ) {
 
     public static PostsReadInfiniteScrollResponse from(PostsQueryModel postsQueryModel) {
@@ -24,7 +25,8 @@ public record PostsReadInfiniteScrollResponse(
                 postsQueryModel.getArtistName(),
                 postsQueryModel.getArtworkUrl(),
                 postsQueryModel.getAppleMusicUrl(),
-                postsQueryModel.getCreatedAt()
+                postsQueryModel.getCreatedAt(),
+                postsQueryModel.isCompleted()
         );
     }
 }

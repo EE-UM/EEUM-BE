@@ -17,6 +17,7 @@ public class PostsQueryModel {
     private String appleMusicUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private boolean isCompleted;
 
 
     public static PostsQueryModel create(Posts posts) {
@@ -31,6 +32,7 @@ public class PostsQueryModel {
         postsQueryModel.appleMusicUrl = posts.getAlbum().getAppleMusicUrl();
         postsQueryModel.createdAt = posts.getCreatedAt();
         postsQueryModel.updatedAt = posts.getUpdatedAt();
+        postsQueryModel.isCompleted = posts.getIsCompleted();
         return postsQueryModel;
     }
 
@@ -44,7 +46,8 @@ public class PostsQueryModel {
             String artworkUrl,
             String appleMusicUrl,
             LocalDateTime createdAt,
-            LocalDateTime updatedAt) {
+            LocalDateTime updatedAt,
+            boolean isCompleted) {
         PostsQueryModel postsQueryModel = new PostsQueryModel();
         postsQueryModel.postId = postId;
         postsQueryModel.title = title;
@@ -56,6 +59,7 @@ public class PostsQueryModel {
         postsQueryModel.appleMusicUrl = appleMusicUrl;
         postsQueryModel.createdAt = createdAt;
         postsQueryModel.updatedAt = updatedAt;
+        postsQueryModel.isCompleted = isCompleted;
         return postsQueryModel;
     }
 }
