@@ -43,10 +43,6 @@ public class Comment {
         this.content = content;
     }
 
-    public void delete() {
-        this.isDeleted = true;
-    }
-
     public static Comment of(String content, Long postId, Long userId, String username, String artworkUrl) {
         LocalDateTime now = LocalDateTime.now();
         return Comment.builder()

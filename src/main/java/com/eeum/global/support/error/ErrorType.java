@@ -45,6 +45,12 @@ public enum ErrorType {
             422,
             ErrorCode.VALIDATION_ERROR_422,
             "The request contains invalid data or parameters."
+    ),
+
+    ALREADY_FINISHED_POST(
+            409,
+            ErrorCode.POST_409,
+            "This post's status is already finished."
     );
 
     private final int statusCode;
