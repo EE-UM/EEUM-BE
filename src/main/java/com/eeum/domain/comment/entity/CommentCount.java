@@ -15,11 +15,13 @@ public class CommentCount {
     @Id
     private Long postId;
     private Long commentCount;
+    private Long commentCountLimit;
 
-    public static CommentCount of(Long postId, Long count) {
+    public static CommentCount of(Long postId, Long count, Long commentCountLimit) {
         CommentCount commentCount = new CommentCount();
         commentCount.postId = postId;
         commentCount.commentCount = count;
+        commentCount.commentCountLimit = commentCountLimit;
         return commentCount;
     }
 }

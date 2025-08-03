@@ -12,6 +12,7 @@ public record CreatePostRequest(
         String artistName,
         String artworkUrl,
         String appleMusicUrl,
-        CompletionType completionType
+        CompletionType completionType,
+        Long commentCountLimit
 ) {
 }

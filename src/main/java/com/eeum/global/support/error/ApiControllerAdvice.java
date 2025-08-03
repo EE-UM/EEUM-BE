@@ -1,5 +1,6 @@
 package com.eeum.global.support.error;
 
+import com.eeum.domain.comment.exception.AlreadyFinishedPostException;
 import com.eeum.global.support.error.exception.CoreApiException;
 import com.eeum.global.support.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -41,5 +42,13 @@ public class ApiControllerAdvice {
 
         log.debug("Invalid Request: {}", errorMessage);
         return new ResponseEntity<>(ApiResponse.error(ErrorType.VALIDATION_ERROR, e.getMessage()), HttpStatusCode.valueOf(ErrorType.VALIDATION_ERROR.getStatusCode()));
+    }
+
+    @ExceptionHandler(AlreadyFinishedPostException.class)
+    public ResponseEntity<ApiResponse<?>> handleAlreadyFinishedPostException(
+        AlreadyFinishedPostException e
+    ) {
+        log.info("AlreadyFinishedPostException 발생: {}", e.getMessage());
+        return new ResponseEntity<>(ApiResponse.error(ErrorType.ALREADY_FINISHED_POST, e.getMessage()), HttpStatusCode.valueOf(ErrorType.ALREADY_FINISHED_POST.getStatusCode()));
     }
 }

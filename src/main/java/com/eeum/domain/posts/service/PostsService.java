@@ -2,6 +2,8 @@ package com.eeum.domain.posts.service;
 
 import com.eeum.domain.comment.dto.response.CommentResponse;
 import com.eeum.domain.comment.entity.Comment;
+import com.eeum.domain.comment.entity.CommentCount;
+import com.eeum.domain.comment.repository.CommentCountRepository;
 import com.eeum.domain.comment.repository.CommentRepository;
 import com.eeum.domain.posts.dto.response.*;
 import com.eeum.domain.posts.repository.PostsIdListRepository;
@@ -33,13 +35,16 @@ public class PostsService {
     private final PostsQueryModelRepository postsQueryModelRepository;
     private final PostsIdListRepository postsIdListRepository;
     private final CommentRepository commentRepository;
+    private final CommentCountRepository commentCountRepository;
 
     @Transactional
     public CreatePostResponse createPost(Long userId, CreatePostRequest createPostRequest) {
         Album album = Album.of(createPostRequest.albumName(), createPostRequest.songName(), createPostRequest.artistName(), createPostRequest.artworkUrl(), createPostRequest.appleMusicUrl());
         Posts posts = Posts.of(createPostRequest.title(), createPostRequest.content(), album, userId);
         posts.updateCompletionType(createPostRequest.completionType());
-        postsRepository.save(posts);
+        Posts savedPost = postsRepository.save(posts);
+
+        createPostCommentCount(savedPost, createPostRequest.commentCountLimit());
 
         return CreatePostResponse.of(posts.getId(), userId);
     }
@@ -78,7 +83,6 @@ public class PostsService {
     }
 
     public List<GetMyPostsResponse> getMyPosts(Long userId) {
-        // Todo 정렬 조건과 페이징 조건이 기획되면 쿼리문 수정 예정
         List<Posts> posts = postsRepository.findByUserId(userId);
         return posts.stream().map(post -> new GetMyPostsResponse(
                 String.valueOf(post.getUserId()),
@@ -129,6 +133,11 @@ public class PostsService {
 
         List<GetCommentedPostsResponse> response = posts.stream().map(GetCommentedPostsResponse::from).toList();
         return response;
+    }
+
+    private void createPostCommentCount(Posts savedPost, Long commentCountLimit) {
+        CommentCount commentCount = CommentCount.of(savedPost.getId(), 0L, commentCountLimit == null ? 0L: commentCountLimit);
+        commentCountRepository.save(commentCount);
     }
 
     private Optional<PostsQueryModel> fetch(Long postId) {
