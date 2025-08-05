@@ -51,6 +51,12 @@ public enum ErrorType {
             409,
             ErrorCode.POST_409,
             "This post's status is already finished."
+    ),
+
+    DUPLICATED_MUSIC(
+            400,
+            ErrorCode.DUPLICATED_MUSIC,
+            "The music used in the comment cannot be the same as the music used in the post."
     );
 
     private final int statusCode;

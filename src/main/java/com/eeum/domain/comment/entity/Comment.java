@@ -1,6 +1,7 @@
 package com.eeum.domain.comment.entity;
 
 import io.hypersistence.utils.hibernate.id.Tsid;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -29,7 +30,8 @@ public class Comment {
 
     private String username;
 
-    private String artworkUrl;
+    @Embedded
+    private Album album;
 
     private Boolean isDeleted;
 
@@ -43,14 +45,14 @@ public class Comment {
         this.content = content;
     }
 
-    public static Comment of(String content, Long postId, Long userId, String username, String artworkUrl) {
+    public static Comment of(String content, Long postId, Long userId, String username, Album album) {
         LocalDateTime now = LocalDateTime.now();
         return Comment.builder()
                 .content(content)
                 .postId(postId)
                 .userId(userId)
                 .username(username)
-                .artworkUrl(artworkUrl)
+                .album(album)
                 .isDeleted(false)
                 .createdAt(now)
                 .modifiredAt(now)
@@ -58,12 +60,12 @@ public class Comment {
     }
 
     @Builder
-    public Comment(String content, Long postId, Long userId, String username, String artworkUrl, Boolean isDeleted, LocalDateTime createdAt, LocalDateTime modifiredAt) {
+    public Comment(String content, Long postId, Long userId, String username, Album album, Boolean isDeleted, LocalDateTime createdAt, LocalDateTime modifiredAt) {
         this.content = content;
         this.postId = postId;
         this.userId = userId;
         this.username = username;
-        this.artworkUrl = artworkUrl;
+        this.album = album;
         this.isDeleted = isDeleted;
         this.createdAt = createdAt;
         this.modifiredAt = modifiredAt;

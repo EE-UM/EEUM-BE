@@ -10,6 +10,11 @@ public record CommentResponse(
         String postId,
         String userId,
         String username,
+        String albumName,
+        String songName,
+        String artistName,
+        String artworkUrl,
+        String appleMusicUrl,
         Boolean isDeleted,
         LocalDateTime createdAt,
         LocalDateTime modifiedAt
@@ -17,6 +22,9 @@ public record CommentResponse(
 
     public static CommentResponse from(Comment comment) {
         return new CommentResponse(String.valueOf(comment.getId()), comment.getContent(), String.valueOf(comment.getPostId()),
-                String.valueOf(comment.getUserId()), comment.getUsername(), false, comment.getCreatedAt(), comment.getModifiredAt());
+                String.valueOf(comment.getUserId()), comment.getUsername(),
+                comment.getAlbum().getAlbumName(), comment.getAlbum().getSongName(),
+                comment.getAlbum().getArtistName(), comment.getAlbum().getArtworkUrl(),comment.getAlbum().getAppleMusicUrl(),
+                false, comment.getCreatedAt(), comment.getModifiredAt());
     }
 }

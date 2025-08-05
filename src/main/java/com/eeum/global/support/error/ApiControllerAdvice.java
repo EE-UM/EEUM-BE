@@ -1,6 +1,7 @@
 package com.eeum.global.support.error;
 
 import com.eeum.domain.comment.exception.AlreadyFinishedPostException;
+import com.eeum.domain.comment.exception.DuplicateMusicException;
 import com.eeum.global.support.error.exception.CoreApiException;
 import com.eeum.global.support.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -50,5 +51,13 @@ public class ApiControllerAdvice {
     ) {
         log.info("AlreadyFinishedPostException 발생: {}", e.getMessage());
         return new ResponseEntity<>(ApiResponse.error(ErrorType.ALREADY_FINISHED_POST, e.getMessage()), HttpStatusCode.valueOf(ErrorType.ALREADY_FINISHED_POST.getStatusCode()));
+    }
+
+    @ExceptionHandler(DuplicateMusicException.class)
+    public ResponseEntity<ApiResponse<?>> handleDuplicateMusicException(
+            DuplicateMusicException e
+    ) {
+        log.info("DuplicateMusicException 발생: {}", e.getMessage());
+        return new ResponseEntity<>(ApiResponse.error(ErrorType.DUPLICATED_MUSIC, e.getMessage()), HttpStatusCode.valueOf(ErrorType.DUPLICATED_MUSIC.getStatusCode()));
     }
 }
