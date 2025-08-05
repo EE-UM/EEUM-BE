@@ -17,6 +17,7 @@ public class PostsIdListRepository {
     private final StringRedisTemplate redisTemplate;
 
     private static final String KEY = "posts-read::post-list";
+    private static final String DONE_KEY = "posts-read::post-list::done";
 
     public void add(Long postId, Long limit) {
         redisTemplate.expire(KEY, Duration.ofSeconds(60));
@@ -29,9 +30,30 @@ public class PostsIdListRepository {
         });
     }
 
+    public void addDone(Long postId, Long limit) {
+        redisTemplate.expire(DONE_KEY, Duration.ofSeconds(60));
+        redisTemplate.executePipelined((RedisCallback<?>) action -> {
+            StringRedisConnection conn = (StringRedisConnection) action;
+            conn.zAdd(DONE_KEY, 0, toPaddedString(postId));
+            conn.zRemRange(DONE_KEY, 0, -limit - 1);
+
+            return null;
+        });
+    }
+
     public List<Long> readAllInfiniteScroll(Long lastPostId, Long limit) {
         return redisTemplate.opsForZSet().reverseRangeByLex(
                 KEY,
+                lastPostId == null
+                        ? Range.unbounded()
+                        : Range.leftUnbounded(Range.Bound.exclusive(toPaddedString(lastPostId))),
+                Limit.limit().count(limit.intValue())
+        ).stream().map(Long::valueOf).toList();
+    }
+
+    public List<Long> readAllInfiniteScrollDone(Long lastPostId, Long limit) {
+        return redisTemplate.opsForZSet().reverseRangeByLex(
+                DONE_KEY,
                 lastPostId == null
                         ? Range.unbounded()
                         : Range.leftUnbounded(Range.Bound.exclusive(toPaddedString(lastPostId))),

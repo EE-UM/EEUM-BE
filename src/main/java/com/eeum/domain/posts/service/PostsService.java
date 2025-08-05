@@ -52,12 +52,6 @@ public class PostsService {
         return CreatePostResponse.of(posts.getId(), userId);
     }
 
-    private static void validateInvalidAutoCompletion(CreatePostRequest createPostRequest) {
-        if (createPostRequest.completionType().equals(CompletionType.AUTO_COMPLETION) && createPostRequest.commentCountLimit() == null) {
-            throw new IllegalArgumentException("Comment count limit must not be null when the post is set to auto-complete.");
-        }
-    }
-
     @Transactional
     public UpdatePostResponse updatePost(Long userId, UpdatePostRequest updatePostRequest) {
         Posts posts = postsRepository.findByIdAndUserId(updatePostRequest.postId(), userId)
@@ -112,9 +106,15 @@ public class PostsService {
         return PostsReadResponse.from(postsQueryModel, commentResponse);
     }
 
-    public List<PostsReadInfiniteScrollResponse> readAllInfiniteScroll(Long pageSize, Long lastPostId) {
+    public List<PostsReadInfiniteScrollResponse> readAllInfiniteScrollIng(Long pageSize, Long lastPostId) {
         return readAll(
                 readAllInfiniteScrollPostsIds(lastPostId, pageSize)
+        );
+    }
+
+    public List<PostsReadInfiniteScrollResponse> readAllInfiniteScrollDone(Long pageSize, Long lastPostId) {
+        return readAll(
+                readAllInfiniteScrollPostsIdsDone(lastPostId, pageSize)
         );
     }
 
@@ -142,6 +142,12 @@ public class PostsService {
 
         List<GetCommentedPostsResponse> response = posts.stream().map(GetCommentedPostsResponse::from).toList();
         return response;
+    }
+
+    private static void validateInvalidAutoCompletion(CreatePostRequest createPostRequest) {
+        if (createPostRequest.completionType().equals(CompletionType.AUTO_COMPLETION) && createPostRequest.commentCountLimit() == null) {
+            throw new IllegalArgumentException("Comment count limit must not be null when the post is set to auto-complete.");
+        }
     }
 
     private void createPostCommentCount(Posts savedPost, Long commentCountLimit) {
@@ -220,10 +226,37 @@ public class PostsService {
                 .toList();
     }
 
+    private List<Long> readAllInfiniteScrollPostsIdsDone(Long lastPostId, Long pageSize) {
+        List<Long> postsIds = postsIdListRepository.readAllInfiniteScrollDone(lastPostId, pageSize);
+        log.info("[PostsReadService.readAllInfiniteScrollPostsIdsDone] Redis postIds: {}", postsIds);
+
+        if (pageSize == postsIds.size()) {
+            log.info("[PostsReadService.readAllInfiniteScrollPostsIdsDone] return redis data.");
+            return postsIds;
+        }
+
+        List<ReadAllInfiiniteScrollResponse> originPosts = readAllInfiiniteScrollDone(lastPostId, pageSize);
+        originPosts.forEach(post ->
+                postsIdListRepository.addDone(post.postId(), pageSize)
+        );
+
+        log.info("[PostsReadService.readAllInfiniteScrollPostsIdsDone] return origin data.");
+        return originPosts.stream()
+                .map(ReadAllInfiiniteScrollResponse::postId)
+                .toList();
+    }
+
     private List<ReadAllInfiiniteScrollResponse> readAllInfiiniteScroll(Long lastPostId, Long pageSize) {
         List<Posts> posts = lastPostId == null ?
                 postsRepository.findAllInfiniteScroll(pageSize) :
                 postsRepository.findAllInfiniteScroll(pageSize, lastPostId);
+        return posts.stream().map(ReadAllInfiiniteScrollResponse::from).toList();
+    }
+
+    private List<ReadAllInfiiniteScrollResponse> readAllInfiiniteScrollDone(Long lastPostId, Long pageSize) {
+        List<Posts> posts = lastPostId == null ?
+                postsRepository.findAllInfiniteScrollDone(pageSize) :
+                postsRepository.findAllInfiniteScrollDone(pageSize, lastPostId);
         return posts.stream().map(ReadAllInfiiniteScrollResponse::from).toList();
     }
 }

@@ -36,12 +36,20 @@ public class PostsController {
         return ApiResponse.success(postsService.updatePost(userPrincipal.getId(), updatePostRequest));
     }
 
-    @GetMapping("/infinite-scroll")
-    public ApiResponse<List<PostsReadInfiniteScrollResponse>> readAllInfiniteScroll(
+    @GetMapping("/ing/infinite-scroll")
+    public ApiResponse<List<PostsReadInfiniteScrollResponse>> readAllInfiniteScrollIng(
             @RequestParam("pageSize") Long pageSize,
             @RequestParam(value = "lastPostId", required = false) Long lastPostId
     ) {
-        return ApiResponse.success(postsService.readAllInfiniteScroll(pageSize, lastPostId));
+        return ApiResponse.success(postsService.readAllInfiniteScrollIng(pageSize, lastPostId));
+    }
+
+    @GetMapping("/done/infinite-scroll")
+    public ApiResponse<List<PostsReadInfiniteScrollResponse>> readAllInfiniteScrollDone(
+            @RequestParam("pageSize") Long pageSize,
+            @RequestParam(value = "lastPostId", required = false) Long lastPostId
+    ) {
+        return ApiResponse.success(postsService.readAllInfiniteScrollDone(pageSize, lastPostId));
     }
 
     @DeleteMapping("/{postId}")
