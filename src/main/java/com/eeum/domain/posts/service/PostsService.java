@@ -6,6 +6,7 @@ import com.eeum.domain.comment.entity.CommentCount;
 import com.eeum.domain.comment.repository.CommentCountRepository;
 import com.eeum.domain.comment.repository.CommentRepository;
 import com.eeum.domain.posts.dto.response.*;
+import com.eeum.domain.posts.entity.CompletionType;
 import com.eeum.domain.posts.repository.PostsIdListRepository;
 import com.eeum.domain.posts.repository.PostsQueryModel;
 import com.eeum.domain.posts.repository.PostsQueryModelRepository;
@@ -39,6 +40,8 @@ public class PostsService {
 
     @Transactional
     public CreatePostResponse createPost(Long userId, CreatePostRequest createPostRequest) {
+        validateInvalidAutoCompletion(createPostRequest);
+
         Album album = Album.of(createPostRequest.albumName(), createPostRequest.songName(), createPostRequest.artistName(), createPostRequest.artworkUrl(), createPostRequest.appleMusicUrl());
         Posts posts = Posts.of(createPostRequest.title(), createPostRequest.content(), album, userId);
         posts.updateCompletionType(createPostRequest.completionType());
@@ -47,6 +50,12 @@ public class PostsService {
         createPostCommentCount(savedPost, createPostRequest.commentCountLimit());
 
         return CreatePostResponse.of(posts.getId(), userId);
+    }
+
+    private static void validateInvalidAutoCompletion(CreatePostRequest createPostRequest) {
+        if (createPostRequest.completionType().equals(CompletionType.AUTO_COMPLETION) && createPostRequest.commentCountLimit() == null) {
+            throw new IllegalArgumentException("Comment count limit must not be null when the post is set to auto-complete.");
+        }
     }
 
     @Transactional

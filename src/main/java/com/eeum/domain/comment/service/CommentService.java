@@ -2,9 +2,11 @@ package com.eeum.domain.comment.service;
 
 import com.eeum.domain.comment.dto.request.CommentCreateRequest;
 import com.eeum.domain.comment.dto.response.CommentResponse;
+import com.eeum.domain.comment.entity.Album;
 import com.eeum.domain.comment.entity.Comment;
 import com.eeum.domain.comment.entity.CommentCount;
 import com.eeum.domain.comment.exception.AlreadyFinishedPostException;
+import com.eeum.domain.comment.exception.DuplicateMusicException;
 import com.eeum.domain.comment.repository.CommentCountRepository;
 import com.eeum.domain.comment.repository.CommentRepository;
 import com.eeum.domain.posts.entity.Posts;
@@ -38,6 +40,7 @@ public class CommentService {
                 .orElseThrow(() -> new IllegalArgumentException("Can't find Post Entity."));
 
         validatePostAvailableStatus(commentCount, postForValidate);
+        validateDuplicateMusic(request, postForValidate);
 
         Comment comment = createComment(userPrincipal, request);
         commentRepository.save(comment);
@@ -47,6 +50,13 @@ public class CommentService {
         validateAndUpdatePostCompleteStatus(request, commentCount);
 
         return CommentResponse.from(comment);
+    }
+
+    private static void validateDuplicateMusic(CommentCreateRequest request, Posts postForValidate) {
+        if (postForValidate.getAlbum().getAlbumName().equals(request.albumName()) &&
+                postForValidate.getAlbum().getArtistName().equals(request.artistName())) {
+            throw new DuplicateMusicException("The music used in the comment cannot be the same as the music used in the post.");
+        }
     }
 
     public List<CommentResponse> readAllCommentsOfPost(Long postId) {
@@ -77,12 +87,13 @@ public class CommentService {
     }
 
     private static Comment createComment(UserPrincipal userPrincipal, CommentCreateRequest request) {
+        Album album = Album.of(request.albumName(), request.songName(), request.artistName(), request.artworkUrl(), request.appleMusicUrl());
         return Comment.of(
                 request.content(),
                 request.postId(),
                 userPrincipal.getId(),
                 userPrincipal.getUsername(),
-                request.artworkUrl()
+                album
         );
     }
 
