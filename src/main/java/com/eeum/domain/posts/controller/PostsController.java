@@ -69,9 +69,10 @@ public class PostsController {
 
     @GetMapping("/{postId}")
     public ApiResponse<PostsReadResponse> getPostById(
+            @CurrentUser UserPrincipal userPrincipal,
             @PathVariable("postId") Long postId
     ) {
-        return ApiResponse.success(postsService.read(postId));
+        return ApiResponse.success(postsService.read(userPrincipal.getId(), postId));
     }
 
     @GetMapping("/my")
