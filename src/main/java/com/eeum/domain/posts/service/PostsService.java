@@ -17,6 +17,7 @@ import com.eeum.domain.posts.entity.Album;
 import com.eeum.domain.posts.entity.Posts;
 import com.eeum.domain.posts.exception.NoAvailablePostsException;
 import com.eeum.domain.posts.exception.PostsNotFoundException;
+import com.eeum.domain.view.service.ViewService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ public class PostsService {
     private final PostsIdListRepository postsIdListRepository;
     private final CommentRepository commentRepository;
     private final CommentCountRepository commentCountRepository;
+    private final ViewService viewService;
 
     @Transactional
     public CreatePostResponse createPost(Long userId, CreatePostRequest createPostRequest) {
@@ -68,6 +70,7 @@ public class PostsService {
         return postId;
     }
 
+    @Transactional
     public ShowRandomStoryOnShakeResponse showRandomStoryOnShake(Long userId) {
         Random random = new Random();
 
@@ -82,6 +85,8 @@ public class PostsService {
         Posts posts = postsRepository.findById(pickedPostId)
                 .orElseThrow(() -> new NullPointerException("Posts repository is empty."));
 
+        viewService.increase(posts.getId(), userId);
+
         return new ShowRandomStoryOnShakeResponse(String.valueOf(posts.getId()), String.valueOf(posts.getUserId()), posts.getTitle(), posts.getContent());
     }
 
@@ -95,13 +100,16 @@ public class PostsService {
         )).toList();
     }
 
-    public PostsReadResponse read(Long postId) {
+    @Transactional
+    public PostsReadResponse read(Long userId, Long postId) {
         PostsQueryModel postsQueryModel = postsQueryModelRepository.read(postId)
                 .or(() -> fetch(postId))
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다. postId=" + postId));
 
         List<Comment> comments = commentRepository.findAllByPostsId(postId);
         List<CommentResponse> commentResponse = comments.stream().map(CommentResponse::from).toList();
+
+        viewService.increase(postId, userId);
 
         return PostsReadResponse.from(postsQueryModel, commentResponse);
     }
