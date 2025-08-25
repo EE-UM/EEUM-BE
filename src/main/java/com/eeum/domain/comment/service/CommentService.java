@@ -85,13 +85,6 @@ public class CommentService {
         return CommentResponse.from(comment);
     }
 
-    private static void validateDuplicateMusic(CommentCreateRequest request, Posts postForValidate) {
-        if (postForValidate.getAlbum().getAlbumName().equals(request.albumName()) &&
-                postForValidate.getAlbum().getArtistName().equals(request.artistName())) {
-            throw new DuplicateMusicException("The music used in the comment cannot be the same as the music used in the post.");
-        }
-    }
-
     public List<CommentResponse> readAllCommentsOfPost(Long postId) {
         List<Comment> comments = commentRepository.findAllByPostsId(postId);
         List<CommentResponse> commentResponseList = comments.stream().map(CommentResponse::from).toList();
