@@ -9,7 +9,7 @@ import java.util.Objects;
 
 @Repository
 @RequiredArgsConstructor
-public class RedisDistributedLockRepository {
+public class RedisLockRepository {
 
     private final StringRedisTemplate redisTemplate;
 

@@ -2,7 +2,7 @@ package com.eeum.domain.like.service;
 
 import com.eeum.domain.like.dto.response.LikeResponse;
 import com.eeum.domain.like.entity.Like;
-import com.eeum.domain.like.repository.RedisDistributedLockRepository;
+import com.eeum.domain.like.repository.RedisLockRepository;
 import com.eeum.domain.like.entity.LikeCount;
 import com.eeum.domain.like.repository.LikeCountRepository;
 import com.eeum.domain.like.repository.LikeRepository;
@@ -23,7 +23,7 @@ public class LikeService {
 
     private final LikeRepository likeRepository;
     private final LikeCountRepository likeCountRepository;
-    private final RedisDistributedLockRepository redisDistributedLockRepository;
+    private final RedisLockRepository redisLockRepository;
 
     public LikeResponse read(Long postId, Long userId) {
         return likeRepository.findByPostIdAndUserId(postId, userId)
@@ -34,8 +34,8 @@ public class LikeService {
     @Transactional
     public void like(Long postId, Long userId) {
         String lockValue = UUID.randomUUID().toString();
-        String lockKey = redisDistributedLockRepository.generateKey(postId, userId);
-        boolean acquired = redisDistributedLockRepository.lock(
+        String lockKey = redisLockRepository.generateKey(postId, userId);
+        boolean acquired = redisLockRepository.lock(
                 lockKey,
                 lockValue,
                 Duration.ofSeconds(3));
@@ -64,7 +64,7 @@ public class LikeService {
             }
 
         } finally {
-            redisDistributedLockRepository.releaseLock(lockKey, lockValue);
+            redisLockRepository.releaseLock(lockKey, lockValue);
         }
     }
 

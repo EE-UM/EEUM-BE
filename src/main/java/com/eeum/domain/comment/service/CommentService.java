@@ -12,8 +12,14 @@ import com.eeum.domain.comment.repository.CommentRepository;
 import com.eeum.domain.posts.entity.Posts;
 import com.eeum.domain.posts.repository.PostsRepository;
 import com.eeum.global.securitycore.token.UserPrincipal;
+import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,13 +34,26 @@ import static java.util.function.Predicate.*;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class CommentService {
+
+    private static final int MAX_RETRIES = 3;
+
     private final CommentRepository commentRepository;
     private final CommentCountRepository commentCountRepository;
     private final PostsRepository postsRepository;
 
+    @Retryable(
+            include = {
+                    OptimisticLockException.class,
+                    OptimisticLockingFailureException.class,
+                    ObjectOptimisticLockingFailureException.class
+            },
+            maxAttempts = MAX_RETRIES,
+            backoff = @Backoff(delay = 10, multiplier = 2)
+    )
     @Transactional
-    public CommentResponse create(UserPrincipal userPrincipal, CommentCreateRequest request) {
-        CommentCount commentCount = commentCountRepository.findLockedByPostId(request.postId())
+    public CommentResponse create2(UserPrincipal userPrincipal, CommentCreateRequest request) {
+        log.info("{}", request.postId());
+        CommentCount commentCount = commentCountRepository.findById(request.postId())
                 .orElseThrow(() -> new IllegalArgumentException("Can't find CommentCount Entity."));
         Posts postForValidate = postsRepository.findById(request.postId())
                 .orElseThrow(() -> new IllegalArgumentException("Can't find Post Entity."));
@@ -45,10 +64,24 @@ public class CommentService {
         Comment comment = createComment(userPrincipal, request);
         commentRepository.save(comment);
 
+        commentCount.increaseOrThrow();
+
+        if (commentCount.hitLimit() && !postForValidate.getIsCompleted()) {
+            postForValidate.updateIsCompleted();
+        }
+
+        return CommentResponse.from(comment);
+    }
+
+    @Transactional
+    public CommentResponse create(UserPrincipal userPrincipal, CommentCreateRequest request) {
+        CommentCount commentCount = commentCountRepository.findLockedByPostId(request.postId()).orElseThrow(() -> new IllegalArgumentException("Can't find CommentCount Entity."));
+        Posts postForValidate = postsRepository.findById(request.postId()).orElseThrow(() -> new IllegalArgumentException("Can't find Post Entity."));
+        validatePostAvailableStatus(commentCount, postForValidate);
+        validateDuplicateMusic(request, postForValidate);
+        Comment comment = createComment(userPrincipal, request);
+        commentRepository.save(comment);
         commentCountRepository.increase(request.postId());
-
-        validateAndUpdatePostCompleteStatus(request, commentCount);
-
         return CommentResponse.from(comment);
     }
 
@@ -67,22 +100,20 @@ public class CommentService {
 
     @Transactional
     public void delete(Long userId, Long commentId) {
-        Optional<Comment> comment = commentRepository.findByIdAndUserId(userId, commentId)
-                .filter(not(Comment::getIsDeleted));
-        if (comment.isPresent()) {
-            commentRepository.delete(comment.get());
-
-            CommentCount commentCount = commentCountRepository.findLockedByPostId(comment.get().getPostId())
-                    .orElseThrow(() -> new RuntimeException("Can't find CommentCount Entity."));
-            commentCountRepository.decrease(comment.get().getPostId());
-        }
+        commentRepository.findByIdAndUserId(userId, commentId)
+                .filter(not(Comment::getIsDeleted))
+                .ifPresent(comment -> {
+                    commentRepository.delete(comment);
+                    CommentCount commentCount = commentCountRepository.findById(comment.getPostId())
+                            .orElseThrow(() -> new IllegalArgumentException("Can not find CommentCount Entity."));
+                    commentCount.decreaseSafely();
+                });
     }
 
-    private void validateAndUpdatePostCompleteStatus(CommentCreateRequest request, CommentCount commentCount) {
-        if ((Long.valueOf(commentCount.getCommentCount() + 1)).equals(commentCount.getCommentCountLimit())) {
-            Posts posts = postsRepository.findById(request.postId())
-                    .orElseThrow(() -> new IllegalArgumentException("That post is not founded."));
-            posts.updateIsCompleted();
+    private static void validateDuplicateMusic(CommentCreateRequest request, Posts postForValidate) {
+        if (postForValidate.getAlbum().getAlbumName().equals(request.albumName()) &&
+                postForValidate.getAlbum().getArtistName().equals(request.artistName())) {
+            throw new DuplicateMusicException("The music used in the comment cannot be the same as the music used in the post.");
         }
     }
 
