@@ -5,6 +5,7 @@ import com.eeum.domain.comment.entity.Comment;
 import com.eeum.domain.comment.entity.CommentCount;
 import com.eeum.domain.comment.repository.CommentCountRepository;
 import com.eeum.domain.comment.repository.CommentRepository;
+import com.eeum.domain.like.repository.LikeRepository;
 import com.eeum.domain.posts.dto.response.*;
 import com.eeum.domain.posts.entity.CompletionType;
 import com.eeum.domain.posts.repository.*;
@@ -35,6 +36,7 @@ public class PostsService {
     private final PostsIdListRepository postsIdListRepository;
     private final CommentRepository commentRepository;
     private final CommentCountRepository commentCountRepository;
+    private final LikeRepository likeRepository;
     private final ViewService viewService;
     private final PostsRandomShakeRepository postsRandomShakeRepository;
 
@@ -121,16 +123,14 @@ public class PostsService {
 
     @Transactional
     public PostsReadResponse read(Long userId, Long postId) {
-        PostsQueryModel postsQueryModel = postsQueryModelRepository.read(postId)
-                .or(() -> fetch(postId))
-                .orElseThrow(() -> new IllegalArgumentException("The post is not exist. postId=" + postId));
+        PostsQueryModel model = getPostsWithLikeStatusToQueryModel(userId, postId);
 
         List<Comment> comments = commentRepository.findAllByPostsId(postId);
         List<CommentResponse> commentResponse = comments.stream().map(CommentResponse::from).toList();
 
         viewService.increase(postId, userId);
 
-        return PostsReadResponse.from(postsQueryModel, commentResponse);
+        return PostsReadResponse.from(model, commentResponse);
     }
 
     public List<PostsReadInfiniteScrollResponse> readAllInfiniteScrollIng(Long pageSize, Long lastPostId) {
@@ -171,6 +171,13 @@ public class PostsService {
         return response;
     }
 
+    private PostsQueryModel getPostsWithLikeStatusToQueryModel(Long userId, Long postId) {
+        Posts post = postsRepository.findById(postId)
+                .orElseThrow(PostsNotFoundException::new);
+        boolean isLiked = likeRepository.existsByPostIdAndUserId(postId, userId);
+        return PostsQueryModel.create(post, isLiked);
+    }
+
     private void addRedisRandomPool(Posts savedPost) {
         postsRandomShakeRepository.addCandidate(new ShowRandomStoryOnShakeResponse(
                 String.valueOf(savedPost.getId()),
@@ -192,18 +199,12 @@ public class PostsService {
     }
 
     private Optional<PostsQueryModel> fetch(Long postId) {
-        Optional<PostsQueryModel> postsQueryModelOptional = Optional.ofNullable(postsRepository.findById(postId)
-                .map(post -> PostsQueryModel.create(post))
-                .orElseThrow(PostsNotFoundException::new));
-        log.info("[fetch] postId={}, fetched={}, model={}", postId, postsQueryModelOptional.isPresent(), postsQueryModelOptional);
+        Posts post = postsRepository.findById(postId)
+                .orElseThrow(PostsNotFoundException::new);
+        PostsQueryModel model = PostsQueryModel.create(post, Boolean.FALSE);
 
-        postsQueryModelOptional
-                .ifPresent(postsQueryModel -> {
-                    log.info("[fetch] caching key={}, value={}", postsQueryModel.getPostId(), postsQueryModel);
-                    postsQueryModelRepository.create(postsQueryModel, Duration.ofSeconds(60));
-                });
-        log.info("[PostsReadService.fetch] fetch data. postId={}, isPresent={}", postId, postsQueryModelOptional.isPresent());
-        return postsQueryModelOptional;
+        postsQueryModelRepository.create(model, Duration.ofSeconds(60));
+        return Optional.of(model);
     }
 
     private List<PostsReadInfiniteScrollResponse> readAll(List<Long> postsIds) {

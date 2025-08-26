@@ -46,11 +46,6 @@ public class PostsQueryModelRepository {
         ).map(json -> DataSerializer.deserialize(json, PostsQueryModel.class));
     }
 
-
-    private String generateKey(Long postId) {
-        return KEY_FORMAT.formatted(postId);
-    }
-
     public Map<Long, PostsQueryModel> readAll(List<Long> postsIds) {
         List<String> keyList = postsIds.stream()
                 .map(paddedId -> generateKey(paddedId))
@@ -59,5 +54,9 @@ public class PostsQueryModelRepository {
                 .filter(Objects::nonNull)
                 .map(json -> DataSerializer.deserialize(json, PostsQueryModel.class))
                 .collect(Collectors.toMap(PostsQueryModel::getPostId, identity()));
+    }
+
+    private String generateKey(Long postId) {
+        return KEY_FORMAT.formatted(postId);
     }
 }
