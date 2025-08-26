@@ -7,10 +7,7 @@ import com.eeum.domain.comment.repository.CommentCountRepository;
 import com.eeum.domain.comment.repository.CommentRepository;
 import com.eeum.domain.posts.dto.response.*;
 import com.eeum.domain.posts.entity.CompletionType;
-import com.eeum.domain.posts.repository.PostsIdListRepository;
-import com.eeum.domain.posts.repository.PostsQueryModel;
-import com.eeum.domain.posts.repository.PostsQueryModelRepository;
-import com.eeum.domain.posts.repository.PostsRepository;
+import com.eeum.domain.posts.repository.*;
 import com.eeum.domain.posts.dto.request.CreatePostRequest;
 import com.eeum.domain.posts.dto.request.UpdatePostRequest;
 import com.eeum.domain.posts.entity.Album;
@@ -39,6 +36,7 @@ public class PostsService {
     private final CommentRepository commentRepository;
     private final CommentCountRepository commentCountRepository;
     private final ViewService viewService;
+    private final PostsRandomShakeRepository postsRandomShakeRepository;
 
     @Transactional
     public CreatePostResponse createPost(Long userId, CreatePostRequest createPostRequest) {
@@ -51,6 +49,8 @@ public class PostsService {
 
         createPostCommentCount(savedPost, createPostRequest.commentCountLimit());
 
+        addRedisRandomPool(savedPost);
+
         return CreatePostResponse.of(posts.getId(), userId);
     }
 
@@ -61,12 +61,24 @@ public class PostsService {
 
         posts.update(updatePostRequest.title(), updatePostRequest.content());
 
+        if (!posts.getIsCompleted() && !posts.getIsDeleted()) {
+            addRedisRandomPool(posts);
+        } else {
+            postsRandomShakeRepository.removeCandidate(String.valueOf(posts.getId()));
+        }
+
         return UpdatePostResponse.from(posts);
     }
 
     @Transactional
-    public Long delete(Long postId) {
-        postsRepository.deleteById(postId);
+    public Long delete(Long userId, Long postId) {
+        Posts posts = postsRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Can not find the post."));
+        if (Objects.equals(posts.getUserId(), userId)) {
+            postsRepository.deleteById(postId);
+
+            postsRandomShakeRepository.removeCandidate(String.valueOf(postId));
+        }
         return postId;
     }
 
@@ -90,6 +102,13 @@ public class PostsService {
         return new ShowRandomStoryOnShakeResponse(String.valueOf(posts.getId()), String.valueOf(posts.getUserId()), posts.getTitle(), posts.getContent());
     }
 
+    @Transactional
+    public ShowRandomStoryOnShakeResponse showRandomStoryOnShake2(Long userId) {
+        ShowRandomStoryOnShakeResponse showRandomStoryOnShakeResponse = postsRandomShakeRepository.pickRandom().orElseThrow(NoAvailablePostsException::new);
+        viewService.increase(Long.parseLong(showRandomStoryOnShakeResponse.postId()), userId);
+        return showRandomStoryOnShakeResponse;
+    }
+
     public List<GetMyPostsResponse> getMyPosts(Long userId) {
         List<Posts> posts = postsRepository.findByUserId(userId);
         return posts.stream().map(post -> new GetMyPostsResponse(
@@ -104,7 +123,7 @@ public class PostsService {
     public PostsReadResponse read(Long userId, Long postId) {
         PostsQueryModel postsQueryModel = postsQueryModelRepository.read(postId)
                 .or(() -> fetch(postId))
-                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다. postId=" + postId));
+                .orElseThrow(() -> new IllegalArgumentException("The post is not exist. postId=" + postId));
 
         List<Comment> comments = commentRepository.findAllByPostsId(postId);
         List<CommentResponse> commentResponse = comments.stream().map(CommentResponse::from).toList();
@@ -152,6 +171,15 @@ public class PostsService {
         return response;
     }
 
+    private void addRedisRandomPool(Posts savedPost) {
+        postsRandomShakeRepository.addCandidate(new ShowRandomStoryOnShakeResponse(
+                String.valueOf(savedPost.getId()),
+                String.valueOf(savedPost.getUserId()),
+                savedPost.getTitle(),
+                savedPost.getContent()
+        ));
+    }
+
     private static void validateInvalidAutoCompletion(CreatePostRequest createPostRequest) {
         if (createPostRequest.completionType().equals(CompletionType.AUTO_COMPLETION) && createPostRequest.commentCountLimit() == null) {
             throw new IllegalArgumentException("Comment count limit must not be null when the post is set to auto-complete.");
@@ -159,7 +187,7 @@ public class PostsService {
     }
 
     private void createPostCommentCount(Posts savedPost, Long commentCountLimit) {
-        CommentCount commentCount = CommentCount.of(savedPost.getId(), 0L, commentCountLimit == null ? 0L: commentCountLimit);
+        CommentCount commentCount = CommentCount.of(savedPost.getId(), 0L, commentCountLimit == null ? 0L : commentCountLimit);
         commentCountRepository.save(commentCount);
     }
 

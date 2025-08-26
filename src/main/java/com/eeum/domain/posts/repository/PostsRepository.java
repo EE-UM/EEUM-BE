@@ -86,4 +86,11 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
             nativeQuery = true
     )
     List<Posts> findPostsCommentedByUserId(@Param("userId") Long userId);
+
+    @Query(
+            value = "select * from posts p " +
+                    "where p.is_completed = false and p.is_deleted = false",
+            nativeQuery = true
+    )
+    List<Posts> findAllActivePosts();
 }
