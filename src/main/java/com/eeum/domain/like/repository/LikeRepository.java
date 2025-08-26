@@ -25,4 +25,6 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
             nativeQuery = true
     )
     List<LikeResponse> findAllByUserId(@Param("userId") Long userId);
+
+    boolean existsByPostIdAndUserId(Long postId, Long userId);
 }

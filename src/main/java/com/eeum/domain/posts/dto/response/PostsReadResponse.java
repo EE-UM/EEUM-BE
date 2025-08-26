@@ -15,6 +15,7 @@ public record PostsReadResponse(
         String artworkUrl,
         String appleMusicUrl,
         LocalDateTime createdAt,
+        Boolean isLiked,
         List<CommentResponse> comments
 ) {
 
@@ -28,6 +29,7 @@ public record PostsReadResponse(
                 postsQueryModel.getArtworkUrl(),
                 postsQueryModel.getAppleMusicUrl(),
                 postsQueryModel.getCreatedAt(),
+                postsQueryModel.isLiked(),
                 comments
         );
     }

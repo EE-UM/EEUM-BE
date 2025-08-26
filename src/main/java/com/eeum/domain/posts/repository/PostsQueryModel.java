@@ -18,9 +18,10 @@ public class PostsQueryModel {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private boolean isCompleted;
+    private boolean isLiked;
 
 
-    public static PostsQueryModel create(Posts posts) {
+    public static PostsQueryModel create(Posts posts, boolean isLiked) {
         PostsQueryModel postsQueryModel = new PostsQueryModel();
         postsQueryModel.postId = posts.getId();
         postsQueryModel.title = posts.getTitle();
@@ -33,6 +34,7 @@ public class PostsQueryModel {
         postsQueryModel.createdAt = posts.getCreatedAt();
         postsQueryModel.updatedAt = posts.getUpdatedAt();
         postsQueryModel.isCompleted = posts.getIsCompleted();
+        postsQueryModel.isLiked = isLiked;
         return postsQueryModel;
     }
 
@@ -60,6 +62,7 @@ public class PostsQueryModel {
         postsQueryModel.createdAt = createdAt;
         postsQueryModel.updatedAt = updatedAt;
         postsQueryModel.isCompleted = isCompleted;
+        postsQueryModel.isLiked = Boolean.FALSE;
         return postsQueryModel;
     }
 }
