@@ -32,13 +32,13 @@ public class UserService {
 
     @Transactional
     public LoginResponse login(IdTokenRequest idTokenRequest) {
-        String providerId = oidcProviderFactory.getProviderId(Provider.valueOf(idTokenRequest.provider().toUpperCase()), idTokenRequest.idToken());
-
+        Provider provider = Provider.valueOf(idTokenRequest.provider().toUpperCase());
+        String providerId = oidcProviderFactory.getProviderId(provider, idTokenRequest.idToken());
         validateInvalidToken(providerId);
 
-        findOrCreateUser(idTokenRequest.provider(), idTokenRequest.idToken());
-        User user = userRepository.findByProviderId(providerId)
-                .orElseThrow(UserNotFoundException::new);
+        User user = findOrCreateUser(provider.name(), providerId, idTokenRequest.idToken());
+//        User user = userRepository.findByProviderId(providerId)
+//                .orElseThrow(UserNotFoundException::new);
 
         String accessToken = jwtUtil.createJwt("access", user.getId(), providerId, "USER", accessTokenExpiredMs, user.getEmail());
 
@@ -51,26 +51,31 @@ public class UserService {
         return LoginResponse.of(accessToken, false);
     }
 
-    private User findOrCreateUser(String provider, String idToken) {
-        DecodedJWT decodedJWT = JWT.decode(idToken);
-        String providerId = decodedJWT.getSubject();
-        String email = decodedJWT.getClaim("email").asString();
-        String username = decodedJWT.getClaim("username").asString();
+    private User findOrCreateUser(String provider, String providerId, String idToken) {
+        return userRepository.findByProviderAndProviderId(provider, providerId)
+                .orElseGet(() -> {
+                    DecodedJWT jwt = JWT.decode(idToken); // 검증은 위에서 완료, 여기선 보조정보만
+                    String email = jwt.getClaim("email").asString();
+                    String username = jwt.getClaim("username").asString();
 
-        Optional<User> optionalUser = userRepository.findByProviderAndProviderId(provider, providerId);
+                    // 애플 대응: username 없으면 파생
+                    if (username == null || username.isBlank()) {
+                        if (email != null && email.contains("@")) {
+                            username = email.substring(0, email.indexOf('@'));
+                        } else {
+                            String tail = providerId.length() > 6 ? providerId.substring(providerId.length()-6) : providerId;
+                            username = provider.toLowerCase() + "_" + tail;
+                        }
+                    }
 
-        if (optionalUser.isEmpty()) {
-            User newUser = User.of("", username, email, "USER", provider, providerId, false);
-            User savedUser = userRepository.save(newUser);
-            userRepository.flush();
-            return savedUser;
-        }
-        return optionalUser.get();
+                    User newUser = User.of("", username, email, "USER", provider, providerId, false);
+                    return userRepository.saveAndFlush(newUser);
+                });
     }
 
     private void validateInvalidToken(String providerId) {
         if (providerId == null) {
-            throw new IllegalArgumentException("아이디 토큰이 유효하지 않습니다.");
+            throw new IllegalArgumentException("IdToken is not valid.");
         }
     }
 }
