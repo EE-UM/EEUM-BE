@@ -57,14 +57,14 @@ public class PostsController {
             @CurrentUser UserPrincipal userPrincipal,
             @PathVariable("postId") Long postId
     ) {
-        return ApiResponse.success(String.valueOf(postsService.delete(postId)));
+        return ApiResponse.success(String.valueOf(postsService.delete(userPrincipal.getId(), postId)));
     }
 
     @GetMapping("/random")
     public ApiResponse<ShowRandomStoryOnShakeResponse> showRandomStoryOnShake(
             @CurrentUser UserPrincipal userPrincipal
     ) {
-        return ApiResponse.success(postsService.showRandomStoryOnShake(userPrincipal.getId()));
+        return ApiResponse.success(postsService.showRandomStoryOnShake2(userPrincipal.getId()));
     }
 
     @GetMapping("/{postId}")
