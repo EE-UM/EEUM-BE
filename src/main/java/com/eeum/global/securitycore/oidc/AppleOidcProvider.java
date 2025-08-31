@@ -20,7 +20,9 @@ import java.util.concurrent.TimeUnit;
 public class AppleOidcProvider implements OidcProvider {
 
     private static final String ISSUER = "https://appleid.apple.com";
-    private static final String JWKS_URL = "https://appleid.apple.com/auth/keys";
+
+    @Value("${oauth.apple.public-key-info}")
+    private static String JWKS_URL;
 
     private final String clientId;
     private final JwkProvider jwkProvider;
@@ -42,6 +44,9 @@ public class AppleOidcProvider implements OidcProvider {
 
     private DecodedJWT verifyAndDecode(String idToken) {
         DecodedJWT decoded = JWT.decode(idToken);
+        System.out.println("[Apple] header.kid=" + decoded.getKeyId() + ", alg=" + decoded.getAlgorithm());
+        System.out.println("[Apple] iss=" + decoded.getIssuer() + ", aud=" + decoded.getAudience() + ", sub=" + decoded.getSubject());
+        System.out.println("[Apple] iat=" + decoded.getIssuedAt() + ", exp=" + decoded.getExpiresAt());
 
         if (!ISSUER.equals(decoded.getIssuer())) {
             throw new IllegalArgumentException("Invalid iss for Apple ID token");
@@ -59,10 +64,10 @@ public class AppleOidcProvider implements OidcProvider {
             JWTVerifier verifier = JWT.require(alg)
                     .withIssuer(ISSUER)
                     .withAudience(clientId)
-                    .acceptLeeway(60) // 시계 오차 허용
+                    .acceptLeeway(60)
                     .build();
 
-            return verifier.verify(idToken); // 서명/만료 검증 포함
+            return verifier.verify(idToken);
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to verify Apple ID token", e);
         }

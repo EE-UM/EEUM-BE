@@ -77,35 +77,16 @@ public class PostsService {
         Posts posts = postsRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Can not find the post."));
         if (Objects.equals(posts.getUserId(), userId)) {
-            postsRepository.deleteById(postId);
-
-            postsRandomShakeRepository.removeCandidate(String.valueOf(postId));
+            throw new IllegalArgumentException("Only the author can delete this post.");
         }
+
+        postsRepository.deleteById(postId);
+        postsRandomShakeRepository.removeCandidate(String.valueOf(postId));
         return postId;
     }
 
     @Transactional
     public ShowRandomStoryOnShakeResponse showRandomStoryOnShake(Long userId) {
-        Random random = new Random();
-
-        List<Long> postIds = postsRepository.findAllIdsIsNotCompletedPosts(userId);
-
-        if (postIds.isEmpty()) {
-            throw new NoAvailablePostsException();
-        }
-
-        Long pickedPostId = postIds.get(random.nextInt(postIds.size()));
-
-        Posts posts = postsRepository.findById(pickedPostId)
-                .orElseThrow(() -> new NullPointerException("Posts repository is empty."));
-
-        viewService.increase(posts.getId(), userId);
-
-        return new ShowRandomStoryOnShakeResponse(String.valueOf(posts.getId()), String.valueOf(posts.getUserId()), posts.getTitle(), posts.getContent());
-    }
-
-    @Transactional
-    public ShowRandomStoryOnShakeResponse showRandomStoryOnShake2(Long userId) {
         ShowRandomStoryOnShakeResponse showRandomStoryOnShakeResponse = postsRandomShakeRepository.pickRandom().orElseThrow(NoAvailablePostsException::new);
         viewService.increase(Long.parseLong(showRandomStoryOnShakeResponse.postId()), userId);
         return showRandomStoryOnShakeResponse;

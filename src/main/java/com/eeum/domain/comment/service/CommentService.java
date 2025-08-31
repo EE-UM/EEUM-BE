@@ -41,38 +41,6 @@ public class CommentService {
     private final CommentCountRepository commentCountRepository;
     private final PostsRepository postsRepository;
 
-    @Retryable(
-            include = {
-                    OptimisticLockException.class,
-                    OptimisticLockingFailureException.class,
-                    ObjectOptimisticLockingFailureException.class
-            },
-            maxAttempts = MAX_RETRIES,
-            backoff = @Backoff(delay = 10, multiplier = 2)
-    )
-    @Transactional
-    public CommentResponse create2(UserPrincipal userPrincipal, CommentCreateRequest request) {
-        log.info("{}", request.postId());
-        CommentCount commentCount = commentCountRepository.findById(request.postId())
-                .orElseThrow(() -> new IllegalArgumentException("Can't find CommentCount Entity."));
-        Posts postForValidate = postsRepository.findById(request.postId())
-                .orElseThrow(() -> new IllegalArgumentException("Can't find Post Entity."));
-
-        validatePostAvailableStatus(commentCount, postForValidate);
-        validateDuplicateMusic(request, postForValidate);
-
-        Comment comment = createComment(userPrincipal, request);
-        commentRepository.save(comment);
-
-        commentCount.increaseOrThrow();
-
-        if (commentCount.hitLimit() && !postForValidate.getIsCompleted()) {
-            postForValidate.updateIsCompleted();
-        }
-
-        return CommentResponse.from(comment);
-    }
-
     @Transactional
     public CommentResponse create(UserPrincipal userPrincipal, CommentCreateRequest request) {
         CommentCount commentCount = commentCountRepository.findLockedByPostId(request.postId()).orElseThrow(() -> new IllegalArgumentException("Can't find CommentCount Entity."));
