@@ -21,15 +21,15 @@ public class AppleOidcProvider implements OidcProvider {
 
     private static final String ISSUER = "https://appleid.apple.com";
 
-    @Value("${oauth.apple.public-key-info}")
-    private static String JWKS_URL;
-
     private final String clientId;
     private final JwkProvider jwkProvider;
 
-    public AppleOidcProvider(@Value("${oauth.apple.client-id}") String clientId) {
+    public AppleOidcProvider(@Value("${oauth.apple.client-id}") String clientId,
+                             @Value("${oauth.apple.public-key-info}") String JWKS_URL
+                             ) {
         this.clientId = clientId;
         try {
+
             JwkProvider base = new UrlJwkProvider(new URL(JWKS_URL));
             this.jwkProvider = new GuavaCachedJwkProvider(base, 10, 24, TimeUnit.HOURS);
         } catch (Exception e) {

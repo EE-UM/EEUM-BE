@@ -12,7 +12,7 @@ import java.util.Collection;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/apple-music")
-public class AppleMusicTokenController {
+public class AppleMusicController {
 
     private final AppleMusicService appleMusicService;
 
