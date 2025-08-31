@@ -64,7 +64,7 @@ public class PostsController {
     public ApiResponse<ShowRandomStoryOnShakeResponse> showRandomStoryOnShake(
             @CurrentUser UserPrincipal userPrincipal
     ) {
-        return ApiResponse.success(postsService.showRandomStoryOnShake2(userPrincipal.getId()));
+        return ApiResponse.success(postsService.showRandomStoryOnShake(userPrincipal.getId()));
     }
 
     @GetMapping("/{postId}")
