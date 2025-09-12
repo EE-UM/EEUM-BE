@@ -61,10 +61,8 @@ public class PostsController {
     }
 
     @GetMapping("/random")
-    public ApiResponse<ShowRandomStoryOnShakeResponse> showRandomStoryOnShake(
-            @CurrentUser UserPrincipal userPrincipal
-    ) {
-        return ApiResponse.success(postsService.showRandomStoryOnShake(userPrincipal.getId()));
+    public ApiResponse<ShowRandomStoryOnShakeResponse> showRandomStoryOnShake() {
+        return ApiResponse.success(postsService.showRandomStoryOnShake());
     }
 
     @GetMapping("/{postId}")
@@ -72,7 +70,10 @@ public class PostsController {
             @CurrentUser UserPrincipal userPrincipal,
             @PathVariable("postId") Long postId
     ) {
-        return ApiResponse.success(postsService.read(userPrincipal.getId(), postId));
+        if (userPrincipal != null) {
+            return ApiResponse.success(postsService.read(userPrincipal.getId(), postId));
+        }
+        return ApiResponse.success(postsService.read(null, postId));
     }
 
     @GetMapping("/my")

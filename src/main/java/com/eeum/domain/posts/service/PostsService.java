@@ -86,9 +86,8 @@ public class PostsService {
     }
 
     @Transactional
-    public ShowRandomStoryOnShakeResponse showRandomStoryOnShake(Long userId) {
+    public ShowRandomStoryOnShakeResponse showRandomStoryOnShake() {
         ShowRandomStoryOnShakeResponse showRandomStoryOnShakeResponse = postsRandomShakeRepository.pickRandom().orElseThrow(NoAvailablePostsException::new);
-        viewService.increase(Long.parseLong(showRandomStoryOnShakeResponse.postId()), userId);
         return showRandomStoryOnShakeResponse;
     }
 
@@ -104,12 +103,22 @@ public class PostsService {
 
     @Transactional
     public PostsReadResponse read(Long userId, Long postId) {
-        PostsQueryModel model = getPostsWithLikeStatusToQueryModel(userId, postId);
+        if (userId != null) {
+            PostsQueryModel model = getPostsWithLikeStatusToQueryModel(userId, postId);
+
+            List<Comment> comments = commentRepository.findAllByPostsId(postId);
+            List<CommentResponse> commentResponse = comments.stream().map(CommentResponse::from).toList();
+
+            viewService.increase(postId, userId);
+            return PostsReadResponse.from(model, commentResponse);
+        }
+
+        Posts post = postsRepository.findById(postId)
+                .orElseThrow(PostsNotFoundException::new);
+        PostsQueryModel model = PostsQueryModel.create(post, false);
 
         List<Comment> comments = commentRepository.findAllByPostsId(postId);
         List<CommentResponse> commentResponse = comments.stream().map(CommentResponse::from).toList();
-
-        viewService.increase(postId, userId);
 
         return PostsReadResponse.from(model, commentResponse);
     }
