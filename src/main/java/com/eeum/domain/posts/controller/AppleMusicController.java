@@ -1,5 +1,6 @@
 package com.eeum.domain.posts.controller;
 
+import com.eeum.domain.posts.docs.AppleMusicApi;
 import com.eeum.global.support.response.ApiResponse;
 import com.eeum.domain.posts.dto.response.DeveloperTokenResponse;
 import com.eeum.domain.posts.dto.response.AlbumSearchResponse;
@@ -12,7 +13,7 @@ import java.util.Collection;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/apple-music")
-public class AppleMusicController {
+public class AppleMusicController implements AppleMusicApi {
 
     private final AppleMusicService appleMusicService;
 

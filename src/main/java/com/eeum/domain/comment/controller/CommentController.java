@@ -1,5 +1,6 @@
 package com.eeum.domain.comment.controller;
 
+import com.eeum.domain.comment.docs.CommentApi;
 import com.eeum.domain.comment.dto.request.CommentCreateRequest;
 import com.eeum.domain.comment.dto.response.CommentResponse;
 import com.eeum.domain.comment.service.CommentService;
@@ -14,7 +15,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/comments")
-public class CommentController {
+public class CommentController implements CommentApi {
 
     private final CommentService commentService;
 

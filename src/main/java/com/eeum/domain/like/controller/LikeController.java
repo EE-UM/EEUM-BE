@@ -1,5 +1,6 @@
 package com.eeum.domain.like.controller;
 
+import com.eeum.domain.like.docs.LikeApi;
 import com.eeum.global.support.response.ApiResponse;
 import com.eeum.global.securitycore.token.CurrentUser;
 import com.eeum.global.securitycore.token.UserPrincipal;
@@ -13,9 +14,9 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/like")
-public class LikeController {
+public class LikeController implements LikeApi {
 
-    private final LikeService likeService;//
+    private final LikeService likeService;
 
     @GetMapping("/users/{userId}")
     public ApiResponse<List<LikeResponse>> readUserLikedPosts(@PathVariable("userId") Long userId) {

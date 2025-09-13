@@ -1,5 +1,6 @@
 package com.eeum.domain.user.controller;
 
+import com.eeum.domain.user.docs.UserApi;
 import com.eeum.global.support.response.ApiResponse;
 import com.eeum.domain.user.dto.request.IdTokenRequest;
 import com.eeum.domain.user.dto.response.LoginResponse;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
-public class UserController {
+public class UserController implements UserApi {
 
     private final UserService userService;
 
