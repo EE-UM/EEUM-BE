@@ -1,5 +1,6 @@
 package com.eeum.domain.posts.controller;
 
+import com.eeum.domain.posts.docs.PostsApi;
 import com.eeum.global.support.response.ApiResponse;
 import com.eeum.global.securitycore.token.CurrentUser;
 import com.eeum.global.securitycore.token.UserPrincipal;
@@ -16,7 +17,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/posts")
-public class PostsController {
+public class PostsController implements PostsApi {
 
     private final PostsService postsService;
 
