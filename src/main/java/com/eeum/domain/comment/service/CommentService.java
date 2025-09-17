@@ -7,6 +7,7 @@ import com.eeum.domain.comment.entity.Comment;
 import com.eeum.domain.comment.entity.CommentCount;
 import com.eeum.domain.comment.exception.AlreadyFinishedPostException;
 import com.eeum.domain.comment.exception.DuplicateMusicException;
+import com.eeum.domain.comment.producer.CommentProducer;
 import com.eeum.domain.comment.repository.CommentCountRepository;
 import com.eeum.domain.comment.repository.CommentRepository;
 import com.eeum.domain.posts.entity.Posts;
@@ -22,6 +23,8 @@ import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 
 import java.util.List;
@@ -41,15 +44,27 @@ public class CommentService {
     private final CommentCountRepository commentCountRepository;
     private final PostsRepository postsRepository;
 
+    private final CommentProducer commentProducer;
+
     @Transactional
     public CommentResponse create(UserPrincipal userPrincipal, CommentCreateRequest request) {
-        CommentCount commentCount = commentCountRepository.findLockedByPostId(request.postId()).orElseThrow(() -> new IllegalArgumentException("Can't find CommentCount Entity."));
+        CommentCount commentCount = commentCountRepository.findByPostId(request.postId()).orElseThrow(() -> new IllegalArgumentException("Can't find CommentCount Entity."));
         Posts postForValidate = postsRepository.findById(request.postId()).orElseThrow(() -> new IllegalArgumentException("Can't find Post Entity."));
         validatePostAvailableStatus(commentCount, postForValidate);
         validateDuplicateMusic(request, postForValidate);
         Comment comment = createComment(userPrincipal, request);
         commentRepository.save(comment);
-        commentCountRepository.increase(request.postId());
+        commentCount.increaseOrThrow();
+
+        if (commentCount.hitLimit()) {
+            postForValidate.updateIsCompleted();
+//            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+//                @Override
+//                public void afterCommit() {
+//                    commentProducer.sendCompletedPost(postForValidate.getId());
+//                }
+//            });
+        }
         return CommentResponse.from(comment);
     }
 

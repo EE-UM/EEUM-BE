@@ -27,5 +27,7 @@ public interface CommentCountRepository extends JpaRepository<CommentCount, Long
     int decrease(@Param("postId") Long postId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<CommentCount> findLockedByPostId(Long aLong);
+    Optional<CommentCount> findLockedByPostId(Long postId);
+
+    Optional<CommentCount> findByPostId(Long aLong);
 }
