@@ -29,8 +29,8 @@ public class PostsRandomShakeWarmUp implements ApplicationRunner {
 
         List<ShowRandomStoryOnShakeResponse> candidates = activePosts.stream()
                 .map(p -> new ShowRandomStoryOnShakeResponse(
-                        String.valueOf(p.getId()),
-                        String.valueOf(p.getUserId()),
+                        p.getId(),
+                        p.getUserId(),
                         p.getTitle(),
                         p.getContent()
                 ))

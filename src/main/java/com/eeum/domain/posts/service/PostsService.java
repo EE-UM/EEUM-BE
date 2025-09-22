@@ -94,7 +94,7 @@ public class PostsService {
     public List<GetMyPostsResponse> getMyPosts(Long userId) {
         List<Posts> posts = postsRepository.findByUserId(userId);
         return posts.stream().map(post -> new GetMyPostsResponse(
-                String.valueOf(post.getUserId()),
+                post.getUserId(),
                 post.getTitle(),
                 post.getAlbum().getArtworkUrl(),
                 post.getIsCompleted()
@@ -170,8 +170,8 @@ public class PostsService {
 
     private void addRedisRandomPool(Posts savedPost) {
         postsRandomShakeRepository.addCandidate(new ShowRandomStoryOnShakeResponse(
-                String.valueOf(savedPost.getId()),
-                String.valueOf(savedPost.getUserId()),
+                savedPost.getId(),
+                savedPost.getUserId(),
                 savedPost.getTitle(),
                 savedPost.getContent()
         ));

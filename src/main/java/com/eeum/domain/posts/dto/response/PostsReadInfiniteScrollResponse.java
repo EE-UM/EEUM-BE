@@ -5,7 +5,7 @@ import com.eeum.domain.posts.repository.PostsQueryModel;
 import java.time.LocalDateTime;
 
 public record PostsReadInfiniteScrollResponse(
-        String postId,
+        Long postId,
         String title,
         String content,
         String songName,
@@ -18,7 +18,7 @@ public record PostsReadInfiniteScrollResponse(
 
     public static PostsReadInfiniteScrollResponse from(PostsQueryModel postsQueryModel) {
         return new PostsReadInfiniteScrollResponse(
-                String.valueOf(postsQueryModel.getPostId()),
+                postsQueryModel.getPostId(),
                 postsQueryModel.getTitle(),
                 postsQueryModel.getContent(),
                 postsQueryModel.getSongName(),

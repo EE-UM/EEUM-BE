@@ -1,7 +1,7 @@
 package com.eeum.domain.posts.dto.response;
 
 public record GetMyPostsResponse(
-        String postId,
+        Long postId,
         String title,
         String artworkUrl,
         Boolean isCompleted
