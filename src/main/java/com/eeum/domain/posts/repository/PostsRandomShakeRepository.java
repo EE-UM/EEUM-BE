@@ -21,7 +21,7 @@ public class PostsRandomShakeRepository {
 
     public void addCandidate(ShowRandomStoryOnShakeResponse dto) {
         try {
-            String pid = dto.postId();
+            String pid = String.valueOf(dto.postId());
             String json = objectMapper.writeValueAsString(dto);
 
             redisTemplate.opsForSet().add(KEY_CANDIDATES, pid);

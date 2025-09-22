@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record PostsReadResponse(
-        String postId,
+        Long postId,
         String title,
         String content,
         String songName,
@@ -21,7 +21,7 @@ public record PostsReadResponse(
 
     public static PostsReadResponse from(PostsQueryModel postsQueryModel, List<CommentResponse> comments) {
         return new PostsReadResponse(
-                String.valueOf(postsQueryModel.getPostId()),
+                postsQueryModel.getPostId(),
                 postsQueryModel.getTitle(),
                 postsQueryModel.getContent(),
                 postsQueryModel.getSongName(),

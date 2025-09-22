@@ -1,8 +1,8 @@
 package com.eeum.domain.posts.dto.response;
 
 public record ShowRandomStoryOnShakeResponse(
-        String postId,
-        String writerId,
+        Long postId,
+        Long writerId,
         String title,
         String content
 ) {
