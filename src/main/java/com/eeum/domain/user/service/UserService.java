@@ -16,6 +16,7 @@ import com.eeum.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 
@@ -32,7 +33,7 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public UpdateProfileResponse updateProfile(Long userId, UpdateProfileRequest updateProfileRequest) {
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("Can't find user information."));
 
