@@ -1,6 +1,7 @@
 package com.eeum.domain.user.controller;
 
 import com.eeum.domain.user.docs.UserApi;
+import com.eeum.domain.user.dto.request.DeviceIdRequest;
 import com.eeum.global.support.response.ApiResponse;
 import com.eeum.domain.user.dto.request.IdTokenRequest;
 import com.eeum.domain.user.dto.response.LoginResponse;
@@ -14,6 +15,12 @@ import org.springframework.web.bind.annotation.*;
 public class UserController implements UserApi {
 
     private final UserService userService;
+
+    @PostMapping("/guest")
+    public ApiResponse<LoginResponse> guestLogin(@RequestBody DeviceIdRequest deviceIdRequest) {
+        LoginResponse loginResponse = userService.guestLogin(deviceIdRequest);
+        return ApiResponse.success(loginResponse);
+    }
 
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(@RequestBody IdTokenRequest idTokenRequest) {

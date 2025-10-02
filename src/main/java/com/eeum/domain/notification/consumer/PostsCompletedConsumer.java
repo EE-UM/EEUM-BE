@@ -24,7 +24,6 @@ public class PostsCompletedConsumer {
     public void handle(Long postId, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long tag) {
         try {
 
-
             channel.basicAck(tag, false);
             retries.remove(postId);
             log.info("ACK postId={}",postId);
