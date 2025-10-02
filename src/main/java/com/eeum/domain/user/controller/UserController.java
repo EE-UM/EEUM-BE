@@ -2,7 +2,9 @@ package com.eeum.domain.user.controller;
 
 import com.eeum.domain.user.docs.UserApi;
 import com.eeum.domain.user.dto.request.DeviceIdRequest;
+import com.eeum.domain.user.dto.request.UpdateProfileRequest;
 import com.eeum.domain.user.dto.response.GetProfileResponse;
+import com.eeum.domain.user.dto.response.UpdateProfileResponse;
 import com.eeum.global.securitycore.token.CurrentUser;
 import com.eeum.global.securitycore.token.UserPrincipal;
 import com.eeum.global.support.response.ApiResponse;
@@ -18,6 +20,12 @@ import org.springframework.web.bind.annotation.*;
 public class UserController implements UserApi {
 
     private final UserService userService;
+
+    @PatchMapping("/profile")
+    public ApiResponse<UpdateProfileResponse> updateProfile(@CurrentUser UserPrincipal userPrincipal, @RequestBody UpdateProfileRequest updateProfileRequest) {
+        UpdateProfileResponse updateProfileResponse = userService.updateProfile(userPrincipal.getId(), updateProfileRequest);
+        return ApiResponse.success(updateProfileResponse);
+    }
 
     @GetMapping("/profile")
     public ApiResponse<GetProfileResponse> getProfile(@CurrentUser UserPrincipal userPrincipal) {

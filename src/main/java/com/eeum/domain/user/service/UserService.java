@@ -3,7 +3,9 @@ package com.eeum.domain.user.service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.eeum.domain.user.dto.request.DeviceIdRequest;
+import com.eeum.domain.user.dto.request.UpdateProfileRequest;
 import com.eeum.domain.user.dto.response.GetProfileResponse;
+import com.eeum.domain.user.dto.response.UpdateProfileResponse;
 import com.eeum.global.securitycore.jwt.JWTUtil;
 import com.eeum.global.securitycore.oidc.OidcProviderFactory;
 import com.eeum.global.securitycore.oidc.Provider;
@@ -29,6 +31,14 @@ public class UserService {
     private final JWTUtil jwtUtil;
 
     private final UserRepository userRepository;
+
+    @Transactional
+    public UpdateProfileResponse updateProfile(Long userId, UpdateProfileRequest updateProfileRequest) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("Can't find user information."));
+
+        user.updateProfile(updateProfileRequest.nickname(), updateProfileRequest.email());
+        return UpdateProfileResponse.of(user.getNickname(), user.getEmail());
+    }
 
     public GetProfileResponse getProfile(Long userId) {
         GetProfileResponse getProfileResponse = userRepository.findProfileById(userId).orElseThrow(() -> new IllegalArgumentException("Can't find user information."));
