@@ -62,7 +62,7 @@ public class UserService {
     private User findOrCreateUserByDeviceLogin(String deviceId, String provider) {
         return userRepository.findByProviderAndProviderId(provider, deviceId)
                 .orElseGet(() -> {
-                    User newUser = User.of("", "", "", "USER", provider, deviceId, false);
+                    User newUser = User.of(deviceId, "", "", "USER", provider, deviceId, false);
                     return userRepository.saveAndFlush(newUser);
                 });
     }
