@@ -3,20 +3,22 @@ package com.eeum.domain.user.service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.eeum.domain.user.dto.request.DeviceIdRequest;
+import com.eeum.domain.user.dto.request.UpdateProfileRequest;
+import com.eeum.domain.user.dto.response.GetProfileResponse;
+import com.eeum.domain.user.dto.response.UpdateProfileResponse;
 import com.eeum.global.securitycore.jwt.JWTUtil;
 import com.eeum.global.securitycore.oidc.OidcProviderFactory;
 import com.eeum.global.securitycore.oidc.Provider;
 import com.eeum.domain.user.dto.request.IdTokenRequest;
 import com.eeum.domain.user.dto.response.LoginResponse;
 import com.eeum.domain.user.entity.User;
-import com.eeum.domain.user.exception.UserNotFoundException;
 import com.eeum.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +32,20 @@ public class UserService {
     private final JWTUtil jwtUtil;
 
     private final UserRepository userRepository;
+
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+    public UpdateProfileResponse updateProfile(Long userId, UpdateProfileRequest updateProfileRequest) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("Can't find user information."));
+
+        user.updateProfile(updateProfileRequest.nickname(), updateProfileRequest.email());
+        return UpdateProfileResponse.of(user.getNickname(), user.getEmail());
+    }
+
+    public GetProfileResponse getProfile(Long userId) {
+        GetProfileResponse getProfileResponse = userRepository.findProfileById(userId).orElseThrow(() -> new IllegalArgumentException("Can't find user information."));
+
+        return getProfileResponse;
+    }
 
     @Transactional
     public LoginResponse guestLogin(DeviceIdRequest deviceIdRequest) {
@@ -62,7 +78,7 @@ public class UserService {
     private User findOrCreateUserByDeviceLogin(String deviceId, String provider) {
         return userRepository.findByProviderAndProviderId(provider, deviceId)
                 .orElseGet(() -> {
-                    User newUser = User.of("", "", "", "USER", provider, deviceId, false);
+                    User newUser = User.of(deviceId, "", "", "USER", provider, deviceId, false);
                     return userRepository.saveAndFlush(newUser);
                 });
     }

@@ -2,16 +2,27 @@ package com.eeum.domain.user.docs;
 
 import com.eeum.domain.user.dto.request.DeviceIdRequest;
 import com.eeum.domain.user.dto.request.IdTokenRequest;
+import com.eeum.domain.user.dto.request.UpdateProfileRequest;
+import com.eeum.domain.user.dto.response.GetProfileResponse;
 import com.eeum.domain.user.dto.response.LoginResponse;
+import com.eeum.domain.user.dto.response.UpdateProfileResponse;
+import com.eeum.global.securitycore.token.CurrentUser;
+import com.eeum.global.securitycore.token.UserPrincipal;
 import com.eeum.global.support.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "User", description = "User API")
 public interface UserApi {
+
+    @Operation(summary = "프로필 수정", description = "유저 프로필 수정")
+    @PatchMapping("/profile")
+    ApiResponse<UpdateProfileResponse> updateProfile(@CurrentUser UserPrincipal userPrincipal, @RequestBody UpdateProfileRequest updateProfileRequest);
+
+    @Operation(summary = "프로필 조회", description = "유저 프로필 조회")
+    @GetMapping("/profile")
+    ApiResponse<GetProfileResponse> getProfile(@CurrentUser UserPrincipal userPrincipal);
 
     @Operation(summary = "게스트 로그인", description = "Device의 고유 ID값으로 게스트 로그인합니다.")
     @PostMapping("/guest")

@@ -31,7 +31,7 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
             value = "select * " +
                     "from posts p " +
                     "where p.is_completed = false " +
-                    "order by p.id desc limit :limit",
+                    "order by p.created_at desc limit :limit",
             nativeQuery = true
     )
     List<Posts> findAllInfiniteScroll(@Param("limit") Long limit);
@@ -41,7 +41,7 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
                     "from posts p " +
                     "where p.id < :lastPostId " +
                     "and p.is_completed = false " +
-                    "order by p.id desc limit :limit",
+                    "order by p.created_at desc limit :limit",
             nativeQuery = true
     )
     List<Posts> findAllInfiniteScroll(@Param("limit") Long limit, @Param("lastPostId") Long lastPostId);
@@ -50,7 +50,7 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
             value = "select * " +
                     "from posts p " +
                     "where p.is_completed = true " +
-                    "order by p.id desc limit :limit",
+                    "order by p.created_at desc limit :limit",
             nativeQuery = true
     )
     List<Posts> findAllInfiniteScrollDone(@Param("limit") Long limit);
@@ -60,7 +60,7 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
                     "from posts p " +
                     "where p.id < :lastPostId " +
                     "and p.is_completed = true " +
-                    "order by p.id desc limit :limit",
+                    "order by p.created_at desc limit :limit",
             nativeQuery = true
     )
     List<Posts> findAllInfiniteScrollDone(@Param("limit") Long limit, @Param("lastPostId") Long lastPostId);

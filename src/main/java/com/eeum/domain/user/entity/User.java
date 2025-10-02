@@ -38,6 +38,11 @@ public class User implements UserPrincipalInfo {
 
     private LocalDateTime updatedAt;
 
+    public void updateProfile(String nickname, String email) {
+        this.nickname = nickname;
+        this.email = email;
+    }
+
     public static User of(String nickname, String username, String email, String role, String provider, String providerId, boolean isRegistered) {
         LocalDateTime now = LocalDateTime.now();
         return User.builder()
