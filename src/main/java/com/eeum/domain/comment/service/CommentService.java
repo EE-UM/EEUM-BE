@@ -58,12 +58,12 @@ public class CommentService {
 
         if (commentCount.hitLimit()) {
             postForValidate.updateIsCompleted();
-//            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-//                @Override
-//                public void afterCommit() {
-//                    commentProducer.sendCompletedPost(postForValidate.getId());
-//                }
-//            });
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    commentProducer.sendCompletedPost(postForValidate.getId());
+                }
+            });
         }
         return CommentResponse.from(comment);
     }

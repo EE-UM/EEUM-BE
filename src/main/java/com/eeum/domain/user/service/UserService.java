@@ -2,6 +2,7 @@ package com.eeum.domain.user.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.eeum.domain.user.dto.request.DeviceIdRequest;
 import com.eeum.global.securitycore.jwt.JWTUtil;
 import com.eeum.global.securitycore.oidc.OidcProviderFactory;
 import com.eeum.global.securitycore.oidc.Provider;
@@ -31,14 +32,21 @@ public class UserService {
     private final UserRepository userRepository;
 
     @Transactional
+    public LoginResponse guestLogin(DeviceIdRequest deviceIdRequest) {
+        User user = findOrCreateUserByDeviceLogin(deviceIdRequest.deviceId(), deviceIdRequest.provider());
+
+        String accessToken = jwtUtil.createJwt("access", user.getId(), deviceIdRequest.deviceId(), "USER", accessTokenExpiredMs, "");
+
+        return LoginResponse.of(accessToken, user.isRegistered());
+    }
+
+    @Transactional
     public LoginResponse login(IdTokenRequest idTokenRequest) {
         Provider provider = Provider.valueOf(idTokenRequest.provider().toUpperCase());
         String providerId = oidcProviderFactory.getProviderId(provider, idTokenRequest.idToken());
         validateInvalidToken(providerId);
 
         User user = findOrCreateUser(provider.name(), providerId, idTokenRequest.idToken());
-//        User user = userRepository.findByProviderId(providerId)
-//                .orElseThrow(UserNotFoundException::new);
 
         String accessToken = jwtUtil.createJwt("access", user.getId(), providerId, "USER", accessTokenExpiredMs, user.getEmail());
 
@@ -49,6 +57,14 @@ public class UserService {
     public LoginResponse testLogin() {
         String accessToken = jwtUtil.createJwt("access", 195558282701148161L, "test", "USER", accessTokenExpiredMs, "test@naver.com");
         return LoginResponse.of(accessToken, false);
+    }
+
+    private User findOrCreateUserByDeviceLogin(String deviceId, String provider) {
+        return userRepository.findByProviderAndProviderId(provider, deviceId)
+                .orElseGet(() -> {
+                    User newUser = User.of("", "", "", "USER", provider, deviceId, false);
+                    return userRepository.saveAndFlush(newUser);
+                });
     }
 
     private User findOrCreateUser(String provider, String providerId, String idToken) {
