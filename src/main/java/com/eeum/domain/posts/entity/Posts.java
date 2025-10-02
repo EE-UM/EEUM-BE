@@ -7,7 +7,12 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Table(name = "posts")
+@Table(
+        name = "posts",
+        indexes = {
+                @Index(name = "idx_created_at", columnList = "created_at DESC")
+        }
+)
 @Getter
 @Entity
 @ToString
