@@ -2,6 +2,9 @@ package com.eeum.domain.user.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.eeum.domain.common.webhook.discord.DiscordWebhookResponse;
+import com.eeum.domain.common.webhook.discord.MessageFormatter;
+import com.eeum.domain.common.webhook.discord.MessageService;
 import com.eeum.domain.user.dto.request.DeviceIdRequest;
 import com.eeum.domain.user.dto.request.UpdateProfileRequest;
 import com.eeum.domain.user.dto.response.GetProfileResponse;
@@ -28,10 +31,14 @@ public class UserService {
     @Value("${app.auth.access-token-expiration-msec}")
     private Long accessTokenExpiredMs;
 
+    @Value("${discord.environment}")
+    private String environment;
+
     private final OidcProviderFactory oidcProviderFactory;
     private final JWTUtil jwtUtil;
 
     private final UserRepository userRepository;
+    private final MessageService messageService;
 
     @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public UpdateProfileResponse updateProfile(Long userId, UpdateProfileRequest updateProfileRequest) {
@@ -79,6 +86,7 @@ public class UserService {
         return userRepository.findByProviderAndProviderId(provider, deviceId)
                 .orElseGet(() -> {
                     User newUser = User.of(deviceId, "", "", "USER", provider, deviceId, false);
+                    messageService.sendDiscordWebhookMessage(DiscordWebhookResponse.of(MessageFormatter.formatSignUpMessage(deviceId, "GUEST_LOGIN", environment)));
                     return userRepository.saveAndFlush(newUser);
                 });
     }
