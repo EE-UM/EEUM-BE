@@ -2,7 +2,6 @@ package com.eeum.domain.posts.entity;
 
 import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
