@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import org.hibernate.annotations.SoftDelete;
+import org.hibernate.annotations.SoftDeleteType;
 
 @Table(
         name = "posts",
@@ -16,6 +18,7 @@ import java.time.LocalDateTime;
 @Entity
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SoftDelete(strategy = SoftDeleteType.DELETED, columnName = "is_deleted")
 public class Posts {
 
     @Id
@@ -34,8 +37,6 @@ public class Posts {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
-
-    private Boolean isDeleted;
 
     private Boolean isCompleted;
 
@@ -76,7 +77,6 @@ public class Posts {
         this.userId = userId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.isDeleted = false;
         this.isCompleted = false;
     }
 }
