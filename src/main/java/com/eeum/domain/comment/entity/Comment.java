@@ -6,6 +6,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.*;
+import org.hibernate.annotations.SoftDelete;
+import org.hibernate.annotations.SoftDeleteType;
 import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
@@ -16,6 +18,7 @@ import java.time.LocalDateTime;
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Where(clause = "is_deleted = false")
+@SoftDelete(strategy = SoftDeleteType.DELETED, columnName = "is_deleted")
 public class Comment {
 
     @Id
@@ -33,13 +36,9 @@ public class Comment {
     @Embedded
     private Album album;
 
-    private Boolean isDeleted;
-
     private LocalDateTime createdAt;
 
-    private LocalDateTime modifiredAt;
-
-
+    private LocalDateTime modifiedAt;
 
     public void updateContent(String content) {
         this.content = content;
@@ -53,21 +52,19 @@ public class Comment {
                 .userId(userId)
                 .username(username)
                 .album(album)
-                .isDeleted(false)
                 .createdAt(now)
-                .modifiredAt(now)
+                .modifiedAt(now)
                 .build();
     }
 
     @Builder
-    public Comment(String content, Long postId, Long userId, String username, Album album, Boolean isDeleted, LocalDateTime createdAt, LocalDateTime modifiredAt) {
+    public Comment(String content, Long postId, Long userId, String username, Album album, LocalDateTime createdAt, LocalDateTime modifiedAt) {
         this.content = content;
         this.postId = postId;
         this.userId = userId;
         this.username = username;
         this.album = album;
-        this.isDeleted = isDeleted;
         this.createdAt = createdAt;
-        this.modifiredAt = modifiredAt;
+        this.modifiedAt = modifiedAt;
     }
 }

@@ -25,6 +25,6 @@ public record CommentResponse(
                 comment.getUserId(), comment.getUsername(),
                 comment.getAlbum().getAlbumName(), comment.getAlbum().getSongName(),
                 comment.getAlbum().getArtistName(), comment.getAlbum().getArtworkUrl(),comment.getAlbum().getAppleMusicUrl(),
-                false, comment.getCreatedAt(), comment.getModifiredAt());
+                false, comment.getCreatedAt(), comment.getModifiedAt());
     }
 }
