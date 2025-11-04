@@ -1,4 +1,4 @@
-package com.eeum.domain.common.webhook.discord;
+package com.eeum.domain.common.webhook.discord.message;
 
 import com.eeum.domain.user.entity.User;
 import org.springframework.beans.factory.annotation.Value;

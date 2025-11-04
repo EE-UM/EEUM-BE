@@ -1,5 +1,6 @@
 package com.eeum.domain.common.webhook.discord;
 
+import com.eeum.domain.common.constant.DiscordWebhookType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -13,7 +14,11 @@ public class MessageService {
     @Value("${discord.webhook-url}")
     String discordWebhookUrl;
 
-    public void sendDiscordWebhookMessage(DiscordWebhookResponse message) {
+    @Value("${discord.webhook-report-url}")
+    String discordWebhookReportUrl;
+
+    public void sendDiscordWebhookMessage(DiscordWebhookResponse message, DiscordWebhookType discordWebhookType) {
+        String url = determineUrl(discordWebhookType);
         try {
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("Content-Type", "application/json; utf-8");
@@ -21,7 +26,7 @@ public class MessageService {
 
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.exchange(
-                    discordWebhookUrl,
+                    url,
                     HttpMethod.POST,
                     messageEntity,
                     String.class
@@ -33,5 +38,13 @@ public class MessageService {
         } catch (Exception e) {
             log.error("Error : " + e);
         }
+    }
+
+    private String determineUrl(DiscordWebhookType discordWebhookType) {
+        String url = "";
+        if (discordWebhookType == DiscordWebhookType.SIGNUP) url = discordWebhookUrl;
+        if (discordWebhookType == DiscordWebhookType.REPORT) url = discordWebhookReportUrl;
+
+        return url;
     }
 }

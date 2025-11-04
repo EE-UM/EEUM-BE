@@ -30,8 +30,7 @@ public class CommentReport {
 
     private LocalDateTime createdAt;
 
-    public static CommentReport of(Long commentId, Long reportedUserId, Long reporterUserId, String reportReason,
-                                   LocalDateTime createdAt) {
+    public static CommentReport of(Long commentId, Long reportedUserId, Long reporterUserId, String reportReason) {
         LocalDateTime now = LocalDateTime.now();
         return CommentReport.builder()
                 .commentId(commentId)
