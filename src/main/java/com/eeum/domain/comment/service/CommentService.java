@@ -48,8 +48,10 @@ public class CommentService {
 
     @Transactional
     public CommentResponse create(UserPrincipal userPrincipal, CommentCreateRequest request) {
-        CommentCount commentCount = commentCountRepository.findByPostId(request.postId()).orElseThrow(() -> new IllegalArgumentException("Can't find CommentCount Entity."));
-        Posts postForValidate = postsRepository.findById(request.postId()).orElseThrow(() -> new IllegalArgumentException("Can't find Post Entity."));
+        CommentCount commentCount = commentCountRepository.findByPostId(request.postId())
+                .orElseThrow(() -> new IllegalArgumentException("Can't find CommentCount Entity."));
+        Posts postForValidate = postsRepository.findById(request.postId())
+                .orElseThrow(() -> new IllegalArgumentException("Can't find Post Entity."));
         validatePostAvailableStatus(commentCount, postForValidate);
         validateDuplicateMusic(request, postForValidate);
         Comment comment = createComment(userPrincipal, request);
@@ -77,7 +79,6 @@ public class CommentService {
     @Transactional
     public void delete(Long userId, Long commentId) {
         commentRepository.findByIdAndUserId(userId, commentId)
-                .filter(not(Comment::getIsDeleted))
                 .ifPresent(comment -> {
                     commentRepository.delete(comment);
                     CommentCount commentCount = commentCountRepository.findById(comment.getPostId())
@@ -89,12 +90,14 @@ public class CommentService {
     private static void validateDuplicateMusic(CommentCreateRequest request, Posts postForValidate) {
         if (postForValidate.getAlbum().getAlbumName().equals(request.albumName()) &&
                 postForValidate.getAlbum().getArtistName().equals(request.artistName())) {
-            throw new DuplicateMusicException("The music used in the comment cannot be the same as the music used in the post.");
+            throw new DuplicateMusicException(
+                    "The music used in the comment cannot be the same as the music used in the post.");
         }
     }
 
     private static Comment createComment(UserPrincipal userPrincipal, CommentCreateRequest request) {
-        Album album = Album.of(request.albumName(), request.songName(), request.artistName(), request.artworkUrl(), request.appleMusicUrl());
+        Album album = Album.of(request.albumName(), request.songName(), request.artistName(), request.artworkUrl(),
+                request.appleMusicUrl());
         return Comment.of(
                 request.content(),
                 request.postId(),

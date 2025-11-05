@@ -1,6 +1,9 @@
 package com.eeum.global.config;
 
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,6 +17,23 @@ public class RabbitMQConfig {
 
     public static final String RK_PLAYLIST_COMPLETED = "playlist.completed";
     public static final String RK_DLQ = "playlist.dlq";
+
+    public static final String EMAIL_EXCHANGE = "email.exchange";
+    public static final String EMAIL_QUEUE = "email.queue";
+    public static final String EMAIL_DLQ = "email.dlq";
+    public static final String EMAIL_ROUTING_KEY = "email.routing";
+
+    @Bean
+    public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
+        return new Jackson2JsonMessageConverter();
+    }
+
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, Jackson2JsonMessageConverter converter) {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory);
+        template.setMessageConverter(converter);
+        return template;
+    }
 
     @Bean
     public TopicExchange playlistExchange() {
@@ -47,5 +67,37 @@ public class RabbitMQConfig {
     @Bean
     public Binding deadLetterBinding() {
         return BindingBuilder.bind(deadLetterQueue()).to(deadLetterExchange()).with(RK_DLQ);
+    }
+
+    @Bean
+    public Queue emailQueue() {
+        return QueueBuilder.durable(EMAIL_QUEUE)
+                .withArgument("x-dead-letter-exchange", EMAIL_EXCHANGE)
+                .withArgument("x-dead-letter-routing-key", EMAIL_DLQ)
+                .build();
+    }
+
+    @Bean
+    public Queue emailDeadLetterQueue() {
+        return QueueBuilder.durable(EMAIL_DLQ).build();
+    }
+
+    @Bean
+    public DirectExchange emailExchange() {
+        return new DirectExchange(EMAIL_EXCHANGE);
+    }
+
+    @Bean
+    public Binding emailBinding() {
+        return BindingBuilder.bind(emailQueue())
+                .to(emailExchange())
+                .with(EMAIL_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding emailDlqBinding() {
+        return BindingBuilder.bind(emailDeadLetterQueue())
+                .to(emailExchange())
+                .with(EMAIL_DLQ);
     }
 }

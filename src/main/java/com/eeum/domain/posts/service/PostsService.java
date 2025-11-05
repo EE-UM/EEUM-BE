@@ -63,7 +63,7 @@ public class PostsService {
 
         posts.update(updatePostRequest.title(), updatePostRequest.content());
 
-        if (!posts.getIsCompleted() && !posts.getIsDeleted()) {
+        if (!posts.getIsCompleted()) {
             addRedisRandomPool(posts);
         } else {
             postsRandomShakeRepository.removeCandidate(String.valueOf(posts.getId()));

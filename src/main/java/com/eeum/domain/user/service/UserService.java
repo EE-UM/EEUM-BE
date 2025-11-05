@@ -2,8 +2,9 @@ package com.eeum.domain.user.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.eeum.domain.common.constant.DiscordWebhookType;
 import com.eeum.domain.common.webhook.discord.DiscordWebhookResponse;
-import com.eeum.domain.common.webhook.discord.MessageFormatter;
+import com.eeum.domain.common.webhook.discord.message.MessageFormatter;
 import com.eeum.domain.common.webhook.discord.MessageService;
 import com.eeum.domain.user.dto.request.DeviceIdRequest;
 import com.eeum.domain.user.dto.request.UpdateProfileRequest;
@@ -86,7 +87,7 @@ public class UserService {
         return userRepository.findByProviderAndProviderId(provider, deviceId)
                 .orElseGet(() -> {
                     User newUser = User.of(deviceId, "", "", "USER", provider, deviceId, false);
-                    messageService.sendDiscordWebhookMessage(DiscordWebhookResponse.of(MessageFormatter.formatSignUpMessage(deviceId, "GUEST_LOGIN", environment)));
+                    messageService.sendDiscordWebhookMessage(DiscordWebhookResponse.of(MessageFormatter.formatSignUpMessage(deviceId, "GUEST_LOGIN", environment)), DiscordWebhookType.REPORT);
                     return userRepository.saveAndFlush(newUser);
                 });
     }
@@ -94,7 +95,7 @@ public class UserService {
     private User findOrCreateUser(String provider, String providerId, String idToken) {
         return userRepository.findByProviderAndProviderId(provider, providerId)
                 .orElseGet(() -> {
-                    DecodedJWT jwt = JWT.decode(idToken); // 검증은 위에서 완료, 여기선 보조정보만
+                    DecodedJWT jwt = JWT.decode(idToken);
                     String email = jwt.getClaim("email").asString();
                     String username = jwt.getClaim("username").asString();
 
