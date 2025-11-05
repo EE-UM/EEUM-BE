@@ -3,6 +3,7 @@ package com.eeum.global.config;
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -10,11 +11,12 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMannualAckConfig {
 
     @Bean(name = "mannualAckListenerContainerFactory")
-    public SimpleRabbitListenerContainerFactory mannualAckListenerContainerFactory(ConnectionFactory cf) {
+    public SimpleRabbitListenerContainerFactory mannualAckListenerContainerFactory(ConnectionFactory cf, Jackson2JsonMessageConverter converter) {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(cf);
         factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         factory.setPrefetchCount(1);
+        factory.setMessageConverter(converter);
         return factory;
     }
 }

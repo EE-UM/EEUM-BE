@@ -6,6 +6,9 @@ import com.eeum.domain.common.constant.DiscordWebhookType;
 import com.eeum.domain.common.webhook.discord.DiscordWebhookResponse;
 import com.eeum.domain.common.webhook.discord.MessageService;
 import com.eeum.domain.common.webhook.discord.message.ReportMessageFormatter;
+import com.eeum.domain.notification.dto.request.MailRequest;
+import com.eeum.domain.notification.producer.MailProducer;
+import com.eeum.domain.notification.service.MailService;
 import com.eeum.domain.report.dto.request.CommentReportRequest;
 import com.eeum.domain.report.dto.request.PostsReportRequest;
 import com.eeum.domain.report.dto.response.CommentReportResponse;
@@ -20,6 +23,8 @@ public class ReportFacade {
 
     private final ReportService reportService;
     private final MessageService messageService;
+    private final MailService mailService;
+    private final MailProducer mailProducer;
 
     public PostsReportResponse reportPosts(Long reporterUserId, PostsReportRequest postsReportRequest) {
         reportService.postsReport(reporterUserId, postsReportRequest);
@@ -27,6 +32,13 @@ public class ReportFacade {
         sendDiscordNotification(String.valueOf(reporterUserId), String.valueOf(postsReportRequest.reportedUserId()),
                 POSTS.getStatus(), String.valueOf(postsReportRequest.postId()),
                 postsReportRequest.reportReason());
+
+        MailRequest mailRequest = MailRequest.of(
+                "hazardous10@naver.com",
+                "신고 발생: " + postsReportRequest.postId(),
+                "<p>신고자 ID: " + reporterUserId + "</p><p>신고 이유: " + postsReportRequest.reportReason() + "</p>"
+        );
+        mailProducer.publishMail(mailRequest);
 
         return PostsReportResponse.of(reporterUserId, postsReportRequest);
     }
