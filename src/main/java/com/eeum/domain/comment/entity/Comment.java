@@ -6,11 +6,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.*;
-import org.hibernate.annotations.SoftDelete;
-import org.hibernate.annotations.SoftDeleteType;
-import org.hibernate.annotations.Where;
-
 import java.time.LocalDateTime;
+import org.hibernate.annotations.Where;
 
 @Table(name = "comments")
 @Getter
@@ -18,7 +15,6 @@ import java.time.LocalDateTime;
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Where(clause = "is_deleted = false")
-@SoftDelete(strategy = SoftDeleteType.DELETED, columnName = "is_deleted")
 public class Comment {
 
     @Id
@@ -39,6 +35,8 @@ public class Comment {
     private LocalDateTime createdAt;
 
     private LocalDateTime modifiedAt;
+
+    private boolean isDeleted;
 
     public void updateContent(String content) {
         this.content = content;
@@ -66,5 +64,6 @@ public class Comment {
         this.album = album;
         this.createdAt = createdAt;
         this.modifiedAt = modifiedAt;
+        this.isDeleted = false;
     }
 }

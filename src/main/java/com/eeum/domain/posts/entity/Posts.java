@@ -7,6 +7,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.SoftDelete;
 import org.hibernate.annotations.SoftDeleteType;
+import org.hibernate.annotations.Where;
 
 @Table(
         name = "posts",
@@ -18,7 +19,7 @@ import org.hibernate.annotations.SoftDeleteType;
 @Entity
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SoftDelete(strategy = SoftDeleteType.DELETED, columnName = "is_deleted")
+@Where(clause = "is_deleted = false")
 public class Posts {
 
     @Id
@@ -42,6 +43,8 @@ public class Posts {
 
     @Enumerated(EnumType.STRING)
     private CompletionType completionType;
+
+    private boolean isDeleted;
 
     public void update(String title, String content) {
         this.title = title;
@@ -78,5 +81,6 @@ public class Posts {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.isCompleted = false;
+        this.isDeleted = false;
     }
 }
