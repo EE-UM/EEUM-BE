@@ -9,19 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PostsRepository extends JpaRepository<Posts, Long> {
-    @Query(
-            value ="select * from posts p where p.is_completed = true order by rand() limit 1",
-            nativeQuery = true
-    )
-    Optional<Posts> findRandomPost();
-
-    @Query(
-            value = "select p.id " +
-                    "from posts p " +
-                    "where p.is_completed = false and p.user_id != :userId",
-            nativeQuery = true
-    )
-    List<Long> findAllIdsIsNotCompletedPosts(Long userId);
 
     List<Posts> findByUserId(Long userId);
 
@@ -31,6 +18,7 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
             value = "select * " +
                     "from posts p " +
                     "where p.is_completed = false " +
+                    "and p.is_deleted = false " +
                     "order by p.created_at desc limit :limit",
             nativeQuery = true
     )
@@ -41,6 +29,7 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
                     "from posts p " +
                     "where p.id < :lastPostId " +
                     "and p.is_completed = false " +
+                    "and p.is_deleted = false " +
                     "order by p.created_at desc limit :limit",
             nativeQuery = true
     )
@@ -50,6 +39,7 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
             value = "select * " +
                     "from posts p " +
                     "where p.is_completed = true " +
+                    "and p.is_deleted = false " +
                     "order by p.created_at desc limit :limit",
             nativeQuery = true
     )
@@ -60,6 +50,7 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
                     "from posts p " +
                     "where p.id < :lastPostId " +
                     "and p.is_completed = true " +
+                    "and p.is_deleted = false " +
                     "order by p.created_at desc limit :limit",
             nativeQuery = true
     )

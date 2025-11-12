@@ -80,7 +80,7 @@ public class CommentService {
     public void delete(Long userId, Long commentId) {
         commentRepository.findByIdAndUserId(userId, commentId)
                 .ifPresent(comment -> {
-                    commentRepository.delete(comment);
+                    commentRepository.softDelete(commentId);
                     CommentCount commentCount = commentCountRepository.findById(comment.getPostId())
                             .orElseThrow(() -> new IllegalArgumentException("Can not find CommentCount Entity."));
                     commentCount.decreaseSafely();
