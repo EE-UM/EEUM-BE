@@ -1,8 +1,5 @@
 package com.eeum.domain.common.webhook.discord.message;
 
-import com.eeum.domain.user.entity.User;
-import org.springframework.beans.factory.annotation.Value;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 

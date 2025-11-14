@@ -87,7 +87,7 @@ public class UserService {
         return userRepository.findByProviderAndProviderId(provider, deviceId)
                 .orElseGet(() -> {
                     User newUser = User.of(deviceId, "", "", "USER", provider, deviceId, false);
-                    messageService.sendDiscordWebhookMessage(DiscordWebhookResponse.of(MessageFormatter.formatSignUpMessage(deviceId, "GUEST_LOGIN", environment)), DiscordWebhookType.REPORT);
+                    messageService.sendDiscordWebhookMessage(DiscordWebhookResponse.of(MessageFormatter.formatSignUpMessage(deviceId, "GUEST_LOGIN", environment)), DiscordWebhookType.SIGNUP);
                     return userRepository.saveAndFlush(newUser);
                 });
     }
