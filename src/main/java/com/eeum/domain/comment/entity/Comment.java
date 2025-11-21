@@ -4,12 +4,16 @@ import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.*;
 import java.time.LocalDateTime;
 import org.hibernate.annotations.Where;
 
-@Table(name = "comments")
+@Table(name = "comments",
+        indexes = {
+            @Index(name = "idx_post_id_is_deleted_created_at", columnList = "postId, isDeleted, createdAt")
+        })
 @Getter
 @Entity
 @ToString
@@ -56,7 +60,8 @@ public class Comment {
     }
 
     @Builder
-    public Comment(String content, Long postId, Long userId, String username, Album album, LocalDateTime createdAt, LocalDateTime modifiedAt) {
+    public Comment(String content, Long postId, Long userId, String username, Album album, LocalDateTime createdAt,
+                   LocalDateTime modifiedAt) {
         this.content = content;
         this.postId = postId;
         this.userId = userId;
