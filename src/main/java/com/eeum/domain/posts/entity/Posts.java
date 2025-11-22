@@ -12,7 +12,8 @@ import org.hibernate.annotations.Where;
 @Table(
         name = "posts",
         indexes = {
-                @Index(name = "idx_created_at", columnList = "created_at DESC")
+                @Index(name = "idx_is_completed_created_at", columnList = "is_completed, created_at DESC"),
+                @Index(name = "idx_is_completed_id_created_at", columnList = "is_completed, id, created_at DESC")
         }
 )
 @Getter
