@@ -68,10 +68,11 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
     List<Posts> findPostsLikedByUserId(@Param("userId") Long userId);
 
     @Query(
-            value = "select distinct p.* " +
+            value = "select p.* " +
                     "from posts p " +
                     "left join comments c on p.id = c.post_id " +
                     "where c.user_id = :userId " +
+                    "and c.is_deleted = false " +
                     "and p.is_deleted = false " +
                     "order by p.created_at desc",
             nativeQuery = true
