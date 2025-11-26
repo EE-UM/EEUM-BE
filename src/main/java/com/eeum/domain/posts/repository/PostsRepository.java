@@ -68,7 +68,7 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
     List<Posts> findPostsLikedByUserId(@Param("userId") Long userId);
 
     @Query(
-            value = "select p.* " +
+            value = "select straight_join p.* " +
                     "from posts p " +
                     "left join comments c on p.id = c.post_id " +
                     "where c.user_id = :userId " +

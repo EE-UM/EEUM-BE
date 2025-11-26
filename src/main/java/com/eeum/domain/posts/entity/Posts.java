@@ -53,6 +53,10 @@ public class Posts {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public void softDelete() {
+        this.isDeleted = true;
+    }
+
     public void updateIsCompleted() {
         this.isCompleted = Boolean.TRUE;
     }
