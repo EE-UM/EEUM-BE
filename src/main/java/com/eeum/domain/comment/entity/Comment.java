@@ -47,6 +47,10 @@ public class Comment {
         this.content = content;
     }
 
+    public void softDelete() {
+        this.isDeleted = true;
+    }
+
     public static Comment of(String content, Long postId, Long userId, String username, Album album) {
         LocalDateTime now = LocalDateTime.now();
         return Comment.builder()

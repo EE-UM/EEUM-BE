@@ -26,7 +26,7 @@ public class ReportService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public void postsReport(Long reporterUserId, PostsReportRequest postsReportRequest) {
+    public String postsReport(Long reporterUserId, PostsReportRequest postsReportRequest) {
         Posts posts = postsRepository.findById(postsReportRequest.postId())
                 .orElseThrow(AlreadyDeletedException::new);
 
@@ -35,11 +35,13 @@ public class ReportService {
                 postsReportRequest.reportReason());
 
         postsReportRepository.save(postsReport);
-        postsRepository.delete(posts);
+        posts.softDelete();
+
+        return posts.getContent();
     }
 
     @Transactional
-    public void commentReport(Long reporterUserId, CommentReportRequest commentReportRequest) {
+    public String commentReport(Long reporterUserId, CommentReportRequest commentReportRequest) {
         Comment comment = commentRepository.findById(commentReportRequest.commentId())
                 .orElseThrow(AlreadyDeletedException::new);
 
@@ -49,6 +51,8 @@ public class ReportService {
                 commentReportRequest.reportReason());
 
         commentReportRepository.save(commentReport);
-        commentRepository.delete(comment);
+        comment.softDelete();
+
+        return comment.getContent();
     }
 }

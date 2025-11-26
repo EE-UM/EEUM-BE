@@ -14,10 +14,11 @@ public class ReportMessageFormatter {
                     "신고당한 유저 ID : %s\n" +
                     "신고 유형(게시글/댓글) : %s\n" +
                     "신고 게시물/댓글 ID : %s\n" +
-                    "신고 이유 : %s\n\n" +
+                    "신고 이유 : %s\n" +
+                    "신고 받은 게시글/코멘트 내용: %s\n\n" +
                     "신고 받은 게시물/댓글은 소프트 딜리트 처리되었습니다.\n```";
 
-    public static String formatSignUpMessage(String reporterUserId, String reportedUserId, String reportType, String reportedPostsOrCommentId, String reportReason) {
+    public static String formatSignUpMessage(String reporterUserId, String reportedUserId, String reportType, String reportedPostsOrCommentId, String reportReason, String content) {
         return String.format(
                 SIGN_UP_MESSAGE,
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT)),
@@ -25,7 +26,8 @@ public class ReportMessageFormatter {
                 reportedUserId,
                 reportType,
                 reportedPostsOrCommentId,
-                reportReason
+                reportReason,
+                content
         );
     }
 }
