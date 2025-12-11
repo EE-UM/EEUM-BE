@@ -17,6 +17,9 @@ public class MessageService {
     @Value("${discord.webhook-report-url}")
     String discordWebhookReportUrl;
 
+    @Value("${discord.webhook-spam-url}")
+    String discordWebhookSpamUrl;
+
     public void sendDiscordWebhookMessage(DiscordWebhookResponse message, DiscordWebhookType discordWebhookType) {
         String url = determineUrl(discordWebhookType);
         try {
@@ -44,6 +47,7 @@ public class MessageService {
         String url = "";
         if (discordWebhookType == DiscordWebhookType.SIGNUP) url = discordWebhookUrl;
         if (discordWebhookType == DiscordWebhookType.REPORT) url = discordWebhookReportUrl;
+        if (discordWebhookType == DiscordWebhookType.SPAM) url = discordWebhookSpamUrl;
 
         return url;
     }

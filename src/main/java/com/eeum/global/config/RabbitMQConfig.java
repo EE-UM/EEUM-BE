@@ -23,6 +23,11 @@ public class RabbitMQConfig {
     public static final String EMAIL_DLQ = "email.dlq";
     public static final String EMAIL_ROUTING_KEY = "email.routing";
 
+    public static final String SPAM_FILTER_EXCHANGE = "spamFilter.exchange";
+    public static final String SPAM_FILTER_QUEUE = "spamFilter.queue";
+    public static final String SPAM_FILTER_DLQ = "spamFilter.dlq";
+    public static final String SPAM_FILTER_ROUTING_KEY = "spamFilter.routing";
+
     @Bean
     public Jackson2JsonMessageConverter jackson2JsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
@@ -99,5 +104,37 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(emailDeadLetterQueue())
                 .to(emailExchange())
                 .with(EMAIL_DLQ);
+    }
+
+    @Bean
+    public Queue spamFilterQueue() {
+        return QueueBuilder.durable(SPAM_FILTER_QUEUE)
+                .withArgument("x-dead-letter-exchange", SPAM_FILTER_EXCHANGE)
+                .withArgument("x-dead-letter-routing-key", SPAM_FILTER_DLQ)
+                .build();
+    }
+
+    @Bean
+    public Queue spamFilterDeadLetterQueue() {
+        return QueueBuilder.durable(SPAM_FILTER_DLQ).build();
+    }
+
+    @Bean
+    public DirectExchange spamFilterExchange() {
+        return new DirectExchange(SPAM_FILTER_EXCHANGE);
+    }
+
+    @Bean
+    public Binding spamFilterBinding() {
+        return BindingBuilder.bind(spamFilterQueue())
+                .to(spamFilterExchange())
+                .with(SPAM_FILTER_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding spamFilterDlqBinding() {
+        return BindingBuilder.bind(spamFilterDeadLetterQueue())
+                .to(spamFilterExchange())
+                .with(SPAM_FILTER_DLQ);
     }
 }
