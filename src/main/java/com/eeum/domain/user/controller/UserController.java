@@ -39,6 +39,12 @@ public class UserController implements UserApi {
         return ApiResponse.success(loginResponse);
     }
 
+    @PostMapping("/guest/dev-master")
+    public ApiResponse<LoginResponse> devGuestMasterLogin() {
+        LoginResponse loginResponse = userService.devGuestMasterLogin();
+        return ApiResponse.success(loginResponse);
+    }
+
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(@RequestBody IdTokenRequest idTokenRequest) {
         LoginResponse loginResponse = userService.login(idTokenRequest);

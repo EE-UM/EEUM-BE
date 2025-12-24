@@ -28,6 +28,10 @@ public interface UserApi {
     @PostMapping("/guest")
     ApiResponse<LoginResponse> guestLogin(@RequestBody DeviceIdRequest deviceIdRequest);
 
+    @Operation(summary = "dev 서버 전용 마스터 계정 guest 로그인")
+    @PostMapping("/guest/dev-master")
+    ApiResponse<LoginResponse> devGuestMasterLogin();
+
     @Operation(summary = "로그인", description = "Apple/Kakao 등 외부 인증에서 발급받은 IdToken을 이용해 로그인합니다.")
     @PostMapping("/login")
     ApiResponse<LoginResponse> login(@RequestBody IdTokenRequest idTokenRequest);

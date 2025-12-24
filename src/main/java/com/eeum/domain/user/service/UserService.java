@@ -65,6 +65,13 @@ public class UserService {
     }
 
     @Transactional
+    public LoginResponse devGuestMasterLogin() {
+
+        String accessToken = jwtUtil.createJwt("access", 195558282701148160L, "4318414917", "USER", accessTokenExpiredMs, "");
+        return LoginResponse.of(accessToken, Boolean.TRUE);
+    }
+
+    @Transactional
     public LoginResponse login(IdTokenRequest idTokenRequest) {
         Provider provider = Provider.valueOf(idTokenRequest.provider().toUpperCase());
         String providerId = oidcProviderFactory.getProviderId(provider, idTokenRequest.idToken());
