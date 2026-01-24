@@ -78,7 +78,7 @@ public class PostsController implements PostsApi {
     }
 
     @GetMapping("/my")
-    public ApiResponse<List<GetMyPostsResponse>> getMyPosts(
+    public ApiResponse<GetMyPostsResponse> getMyPosts(
             @CurrentUser UserPrincipal userPrincipal
     ) {
         return ApiResponse.success(postsService.getMyPosts(userPrincipal.getId()));

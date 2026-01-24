@@ -58,7 +58,7 @@ public interface PostsApi {
     );
 
     @Operation(summary = "내가 작성한 플레이리스트 조회", description = "내가 작성한 게시글 목록을 조회합니다.")
-    ApiResponse<List<GetMyPostsResponse>> getMyPosts(
+    ApiResponse<GetMyPostsResponse> getMyPosts(
             @CurrentUser UserPrincipal userPrincipal
     );
 

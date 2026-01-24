@@ -1,9 +1,10 @@
 package com.eeum.domain.posts.dto.response;
 
+import java.util.List;
+
 public record GetMyPostsResponse(
-        Long postId,
-        String title,
-        String artworkUrl,
-        Boolean isCompleted
+
+        Long postCount,
+        List<GetMyPostResponse> getMyPostResponses
 ) {
 }
