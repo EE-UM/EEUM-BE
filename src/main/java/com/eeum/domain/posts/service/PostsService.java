@@ -163,11 +163,12 @@ public class PostsService {
         return CompletePostResponse.of(posts.getId(), posts.getUserId(), posts.getIsCompleted());
     }
 
-    public List<GetLikedPostsResponse> getLikedPosts(Long userId) {
+    public GetLikedPostsWithSizeResponse getLikedPosts(Long userId) {
         List<Posts> posts = postsRepository.findPostsLikedByUserId(userId);
+        long postsCount = posts.size();
 
-        List<GetLikedPostsResponse> response = posts.stream().map(GetLikedPostsResponse::from).toList();
-        return response;
+        List<GetLikedPostsResponse> getLikedPostsResponses = posts.stream().map(GetLikedPostsResponse::from).toList();
+        return new GetLikedPostsWithSizeResponse(postsCount, getLikedPostsResponses);
     }
 
     public GetCommentedPostsWithSizeResponse getCommentedPosts(Long userId) {

@@ -93,7 +93,7 @@ public class PostsController implements PostsApi {
     }
 
     @GetMapping("/liked")
-    public ApiResponse<List<GetLikedPostsResponse>> getLikedPosts(
+    public ApiResponse<GetLikedPostsWithSizeResponse> getLikedPosts(
             @CurrentUser UserPrincipal userPrincipal
     ) {
         return ApiResponse.success(postsService.getLikedPosts(userPrincipal.getId()));

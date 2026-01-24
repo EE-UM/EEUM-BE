@@ -69,7 +69,7 @@ public interface PostsApi {
     );
 
     @Operation(summary = "내가 좋아요한 플레이리스트(게시글) 조회", description = "내가 좋아요를 누른 플레이리스트(게시글) 목록을 조회합니다.")
-    ApiResponse<List<GetLikedPostsResponse>> getLikedPosts(
+    ApiResponse<GetLikedPostsWithSizeResponse> getLikedPosts(
             @CurrentUser UserPrincipal userPrincipal
     );
 
