@@ -100,7 +100,7 @@ public class PostsController implements PostsApi {
     }
 
     @GetMapping("/commented")
-    public ApiResponse<List<GetCommentedPostsResponse>> getCommentedPosts(
+    public ApiResponse<GetCommentedPostsWithSizeResponse> getCommentedPosts(
             @CurrentUser UserPrincipal userPrincipal
     ) {
         return ApiResponse.success(postsService.getCommentedPosts(userPrincipal.getId()));

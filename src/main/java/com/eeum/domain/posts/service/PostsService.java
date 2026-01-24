@@ -170,11 +170,12 @@ public class PostsService {
         return response;
     }
 
-    public List<GetCommentedPostsResponse> getCommentedPosts(Long userId) {
+    public GetCommentedPostsWithSizeResponse getCommentedPosts(Long userId) {
         List<Posts> posts = postsRepository.findPostsCommentedByUserId(userId);
+        long postsSize = posts.size();
 
-        List<GetCommentedPostsResponse> response = posts.stream().map(GetCommentedPostsResponse::from).toList();
-        return response;
+        List<GetCommentedPostsResponse> getCommentedPostsResponses = posts.stream().map(GetCommentedPostsResponse::from).toList();
+        return new GetCommentedPostsWithSizeResponse(postsSize, getCommentedPostsResponses);
     }
 
     private void createPostsCommentCount(CreatePostRequest createPostRequest, Posts posts) {

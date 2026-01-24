@@ -74,7 +74,7 @@ public interface PostsApi {
     );
 
     @Operation(summary = "내가 댓글 단 플레이리스트(게시글) 조회", description = "내가 댓글을 단 게시글 목록을 조회합니다.")
-    ApiResponse<List<GetCommentedPostsResponse>> getCommentedPosts(
+    ApiResponse<GetCommentedPostsWithSizeResponse> getCommentedPosts(
             @CurrentUser UserPrincipal userPrincipal
     );
 }
