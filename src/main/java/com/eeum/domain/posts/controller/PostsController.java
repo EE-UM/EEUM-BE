@@ -78,7 +78,7 @@ public class PostsController implements PostsApi {
     }
 
     @GetMapping("/my")
-    public ApiResponse<List<GetMyPostsResponse>> getMyPosts(
+    public ApiResponse<GetMyPostsResponse> getMyPosts(
             @CurrentUser UserPrincipal userPrincipal
     ) {
         return ApiResponse.success(postsService.getMyPosts(userPrincipal.getId()));
@@ -93,14 +93,14 @@ public class PostsController implements PostsApi {
     }
 
     @GetMapping("/liked")
-    public ApiResponse<List<GetLikedPostsResponse>> getLikedPosts(
+    public ApiResponse<GetLikedPostsWithSizeResponse> getLikedPosts(
             @CurrentUser UserPrincipal userPrincipal
     ) {
         return ApiResponse.success(postsService.getLikedPosts(userPrincipal.getId()));
     }
 
     @GetMapping("/commented")
-    public ApiResponse<List<GetCommentedPostsResponse>> getCommentedPosts(
+    public ApiResponse<GetCommentedPostsWithSizeResponse> getCommentedPosts(
             @CurrentUser UserPrincipal userPrincipal
     ) {
         return ApiResponse.success(postsService.getCommentedPosts(userPrincipal.getId()));

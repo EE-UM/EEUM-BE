@@ -58,7 +58,7 @@ public interface PostsApi {
     );
 
     @Operation(summary = "내가 작성한 플레이리스트 조회", description = "내가 작성한 게시글 목록을 조회합니다.")
-    ApiResponse<List<GetMyPostsResponse>> getMyPosts(
+    ApiResponse<GetMyPostsResponse> getMyPosts(
             @CurrentUser UserPrincipal userPrincipal
     );
 
@@ -69,12 +69,12 @@ public interface PostsApi {
     );
 
     @Operation(summary = "내가 좋아요한 플레이리스트(게시글) 조회", description = "내가 좋아요를 누른 플레이리스트(게시글) 목록을 조회합니다.")
-    ApiResponse<List<GetLikedPostsResponse>> getLikedPosts(
+    ApiResponse<GetLikedPostsWithSizeResponse> getLikedPosts(
             @CurrentUser UserPrincipal userPrincipal
     );
 
     @Operation(summary = "내가 댓글 단 플레이리스트(게시글) 조회", description = "내가 댓글을 단 게시글 목록을 조회합니다.")
-    ApiResponse<List<GetCommentedPostsResponse>> getCommentedPosts(
+    ApiResponse<GetCommentedPostsWithSizeResponse> getCommentedPosts(
             @CurrentUser UserPrincipal userPrincipal
     );
 }

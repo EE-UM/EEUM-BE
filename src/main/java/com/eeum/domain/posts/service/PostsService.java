@@ -10,6 +10,7 @@ import com.eeum.domain.notification.dto.request.SpamFilterRequest;
 import com.eeum.domain.notification.producer.SpamFilterProducer;
 import com.eeum.domain.posts.dto.response.*;
 import com.eeum.domain.posts.entity.CompletionType;
+import com.eeum.domain.posts.entity.PostsCommentCount;
 import com.eeum.domain.posts.repository.*;
 import com.eeum.domain.posts.dto.request.CreatePostRequest;
 import com.eeum.domain.posts.dto.request.UpdatePostRequest;
@@ -41,6 +42,7 @@ public class PostsService {
     private final LikeRepository likeRepository;
     private final ViewService viewService;
     private final PostsRandomShakeRepository postsRandomShakeRepository;
+    private final PostsCommentCountRepository postsCommentCountRepository;
 
     private final SpamFilterProducer spamFilterProducer;
 
@@ -58,6 +60,8 @@ public class PostsService {
         addRedisRandomPool(savedPost);
 
         spamFilterProducer.publishSpamFilter(SpamFilterRequest.of(posts.getId(), posts.getContent()));
+
+        createPostsCommentCount(createPostRequest, posts);
 
         return CreatePostResponse.of(posts.getId(), userId);
     }
@@ -97,14 +101,20 @@ public class PostsService {
         return showRandomStoryOnShakeResponse;
     }
 
-    public List<GetMyPostsResponse> getMyPosts(Long userId) {
+    public GetMyPostsResponse getMyPosts(Long userId) {
         List<Posts> posts = postsRepository.findByUserId(userId);
-        return posts.stream().map(post -> new GetMyPostsResponse(
-                post.getUserId(),
-                post.getTitle(),
-                post.getAlbum().getArtworkUrl(),
-                post.getIsCompleted()
-        )).toList();
+
+        Long postCount = (long) posts.size();
+        List<GetMyPostResponse> getMyPostResponse = posts.stream().map(post -> {
+            PostsCommentCount postsCommentCount = postsCommentCountRepository.findByPostId(post.getId())
+                    .orElseThrow(IllegalArgumentException::new);
+            GetMyPostResponse test = new GetMyPostResponse(post.getId(), post.getTitle(),
+                    post.getAlbum().getArtworkUrl(), post.getIsCompleted(),
+                    postsCommentCount.getCurrentCommentCount(), postsCommentCount.getTargetCommentCount());
+            return test;
+        }).toList();
+
+        return new GetMyPostsResponse(postCount, getMyPostResponse);
     }
 
     @Transactional
@@ -153,18 +163,26 @@ public class PostsService {
         return CompletePostResponse.of(posts.getId(), posts.getUserId(), posts.getIsCompleted());
     }
 
-    public List<GetLikedPostsResponse> getLikedPosts(Long userId) {
+    public GetLikedPostsWithSizeResponse getLikedPosts(Long userId) {
         List<Posts> posts = postsRepository.findPostsLikedByUserId(userId);
+        long postsCount = posts.size();
 
-        List<GetLikedPostsResponse> response = posts.stream().map(GetLikedPostsResponse::from).toList();
-        return response;
+        List<GetLikedPostsResponse> getLikedPostsResponses = posts.stream().map(GetLikedPostsResponse::from).toList();
+        return new GetLikedPostsWithSizeResponse(postsCount, getLikedPostsResponses);
     }
 
-    public List<GetCommentedPostsResponse> getCommentedPosts(Long userId) {
+    public GetCommentedPostsWithSizeResponse getCommentedPosts(Long userId) {
         List<Posts> posts = postsRepository.findPostsCommentedByUserId(userId);
+        long postsSize = posts.size();
 
-        List<GetCommentedPostsResponse> response = posts.stream().map(GetCommentedPostsResponse::from).toList();
-        return response;
+        List<GetCommentedPostsResponse> getCommentedPostsResponses = posts.stream().map(GetCommentedPostsResponse::from).toList();
+        return new GetCommentedPostsWithSizeResponse(postsSize, getCommentedPostsResponses);
+    }
+
+    private void createPostsCommentCount(CreatePostRequest createPostRequest, Posts posts) {
+        PostsCommentCount postsCommentCount = PostsCommentCount.of(posts.getId(),
+                createPostRequest.commentCountLimit());
+        postsCommentCountRepository.save(postsCommentCount);
     }
 
     private PostsQueryModel getPostsWithLikeStatusToQueryModel(Long userId, Long postId) {
