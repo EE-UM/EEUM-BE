@@ -39,7 +39,7 @@ public class PostsController implements PostsApi {
 
     @GetMapping("/ing/infinite-scroll")
     public ApiResponse<List<PostsReadInfiniteScrollResponse>> readAllInfiniteScrollIng(
-            @RequestParam("pageSize") Long pageSize,
+            @RequestParam(value = "pageSize", defaultValue = "5") Long pageSize,
             @RequestParam(value = "lastPostId", required = false) Long lastPostId
     ) {
         return ApiResponse.success(postsService.readAllInfiniteScrollIng(pageSize, lastPostId));
@@ -47,7 +47,7 @@ public class PostsController implements PostsApi {
 
     @GetMapping("/done/infinite-scroll")
     public ApiResponse<List<PostsReadInfiniteScrollResponse>> readAllInfiniteScrollDone(
-            @RequestParam("pageSize") Long pageSize,
+            @RequestParam(value = "pageSize", defaultValue = "5") Long pageSize,
             @RequestParam(value = "lastPostId", required = false) Long lastPostId
     ) {
         return ApiResponse.success(postsService.readAllInfiniteScrollDone(pageSize, lastPostId));
