@@ -50,7 +50,8 @@ public class PostsService {
     public CreatePostResponse createPost(Long userId, CreatePostRequest createPostRequest) {
         validateInvalidAutoCompletion(createPostRequest);
 
-        Album album = Album.of(createPostRequest.albumName(), createPostRequest.songName(), createPostRequest.artistName(), createPostRequest.artworkUrl(), createPostRequest.appleMusicUrl());
+        Album album = Album.of(createPostRequest.albumName(), createPostRequest.songName(),
+                createPostRequest.artistName(), createPostRequest.artworkUrl(), createPostRequest.appleMusicUrl());
         Posts posts = Posts.of(createPostRequest.title(), createPostRequest.content(), album, userId);
         posts.updateCompletionType(createPostRequest.completionType());
         Posts savedPost = postsRepository.save(posts);
@@ -97,7 +98,8 @@ public class PostsService {
 
     @Transactional
     public ShowRandomStoryOnShakeResponse showRandomStoryOnShake() {
-        ShowRandomStoryOnShakeResponse showRandomStoryOnShakeResponse = postsRandomShakeRepository.pickRandom().orElseThrow(NoAvailablePostsException::new);
+        ShowRandomStoryOnShakeResponse showRandomStoryOnShakeResponse = postsRandomShakeRepository.pickRandom()
+                .orElseThrow(NoAvailablePostsException::new);
         return showRandomStoryOnShakeResponse;
     }
 
@@ -140,15 +142,11 @@ public class PostsService {
     }
 
     public List<PostsReadInfiniteScrollResponse> readAllInfiniteScrollIng(Long pageSize, Long lastPostId) {
-        return readAll(
-                readAllInfiniteScrollPostsIds(lastPostId, pageSize)
-        );
+        return readAllInfiniteScrollPostsIds(lastPostId, pageSize);
     }
 
     public List<PostsReadInfiniteScrollResponse> readAllInfiniteScrollDone(Long pageSize, Long lastPostId) {
-        return readAll(
-                readAllInfiniteScrollPostsIdsDone(lastPostId, pageSize)
-        );
+        return readAllInfiniteScrollPostsIdsDone(lastPostId, pageSize);
     }
 
     @Transactional
@@ -175,7 +173,8 @@ public class PostsService {
         List<Posts> posts = postsRepository.findPostsCommentedByUserId(userId);
         long postsSize = posts.size();
 
-        List<GetCommentedPostsResponse> getCommentedPostsResponses = posts.stream().map(GetCommentedPostsResponse::from).toList();
+        List<GetCommentedPostsResponse> getCommentedPostsResponses = posts.stream().map(GetCommentedPostsResponse::from)
+                .toList();
         return new GetCommentedPostsWithSizeResponse(postsSize, getCommentedPostsResponses);
     }
 
@@ -202,13 +201,16 @@ public class PostsService {
     }
 
     private static void validateInvalidAutoCompletion(CreatePostRequest createPostRequest) {
-        if (createPostRequest.completionType().equals(CompletionType.AUTO_COMPLETION) && createPostRequest.commentCountLimit() == null) {
-            throw new IllegalArgumentException("Comment count limit must not be null when the post is set to auto-complete.");
+        if (createPostRequest.completionType().equals(CompletionType.AUTO_COMPLETION)
+                && createPostRequest.commentCountLimit() == null) {
+            throw new IllegalArgumentException(
+                    "Comment count limit must not be null when the post is set to auto-complete.");
         }
     }
 
     private void createPostCommentCount(Posts savedPost, Long commentCountLimit) {
-        CommentCount commentCount = CommentCount.of(savedPost.getId(), 0L, commentCountLimit == null ? 0L : commentCountLimit);
+        CommentCount commentCount = CommentCount.of(savedPost.getId(), 0L,
+                commentCountLimit == null ? 0L : commentCountLimit);
         commentCountRepository.save(commentCount);
     }
 
@@ -257,57 +259,34 @@ public class PostsService {
         return result;
     }
 
-    private List<Long> readAllInfiniteScrollPostsIds(Long lastPostId, Long pageSize) {
-        List<Long> postsIds = postsIdListRepository.readAllInfiniteScroll(lastPostId, pageSize);
-        log.info("[PostsReadService.readAllInfiniteScrollPostsIds] Redis postIds: {}", postsIds);
+    private List<PostsReadInfiniteScrollResponse> readAllInfiniteScrollPostsIds(Long lastPostId, Long pageSize) {
+        if (lastPostId == null) {
+            List<Posts> posts = postsRepository.findAllInfiniteScroll(pageSize);
 
-        if (pageSize == postsIds.size()) {
-            log.info("[PostsReadService.readAllInfiniteScrollPostsIds] return redis data.");
-            return postsIds;
+            return posts.stream()
+                    .map(post -> PostsReadInfiniteScrollResponse.from(PostsQueryModel.create(post, false)))
+                    .toList();
         }
 
-        List<ReadAllInfiiniteScrollResponse> originPosts = readAllInfiiniteScroll(lastPostId, pageSize);
-        originPosts.forEach(post ->
-                postsIdListRepository.add(post.postId(), pageSize)
-        );
-
-        log.info("[PostsReadService.readAllInfiniteScrollPostsIds] return origin data.");
-        return originPosts.stream()
-                .map(ReadAllInfiiniteScrollResponse::postId)
+        List<Posts> posts = postsRepository.findAllInfiniteScroll(pageSize, lastPostId);
+        return posts.stream()
+                .map(post -> PostsReadInfiniteScrollResponse.from(PostsQueryModel.create(post, false)))
                 .toList();
     }
 
-    private List<Long> readAllInfiniteScrollPostsIdsDone(Long lastPostId, Long pageSize) {
-        List<Long> postsIds = postsIdListRepository.readAllInfiniteScrollDone(lastPostId, pageSize);
-        log.info("[PostsReadService.readAllInfiniteScrollPostsIdsDone] Redis postIds: {}", postsIds);
+    private List<PostsReadInfiniteScrollResponse> readAllInfiniteScrollPostsIdsDone(Long lastPostId, Long pageSize) {
+        if (lastPostId == null) {
+            List<Posts> posts = postsRepository.findAllInfiniteScrollDone(pageSize);
 
-        if (pageSize == postsIds.size()) {
-            log.info("[PostsReadService.readAllInfiniteScrollPostsIdsDone] return redis data.");
-            return postsIds;
+            return posts.stream()
+                    .map(post -> PostsReadInfiniteScrollResponse.from(PostsQueryModel.create(post, false)))
+                    .toList();
         }
 
-        List<ReadAllInfiiniteScrollResponse> originPosts = readAllInfiiniteScrollDone(lastPostId, pageSize);
-        originPosts.forEach(post ->
-                postsIdListRepository.addDone(post.postId(), pageSize)
-        );
+        List<Posts> posts = postsRepository.findAllInfiniteScrollDone(pageSize, lastPostId);
 
-        log.info("[PostsReadService.readAllInfiniteScrollPostsIdsDone] return origin data.");
-        return originPosts.stream()
-                .map(ReadAllInfiiniteScrollResponse::postId)
+        return posts.stream()
+                .map(post -> PostsReadInfiniteScrollResponse.from(PostsQueryModel.create(post, false)))
                 .toList();
-    }
-
-    private List<ReadAllInfiiniteScrollResponse> readAllInfiiniteScroll(Long lastPostId, Long pageSize) {
-        List<Posts> posts = lastPostId == null ?
-                postsRepository.findAllInfiniteScroll(pageSize) :
-                postsRepository.findAllInfiniteScroll(pageSize, lastPostId);
-        return posts.stream().map(ReadAllInfiiniteScrollResponse::from).toList();
-    }
-
-    private List<ReadAllInfiiniteScrollResponse> readAllInfiiniteScrollDone(Long lastPostId, Long pageSize) {
-        List<Posts> posts = lastPostId == null ?
-                postsRepository.findAllInfiniteScrollDone(pageSize) :
-                postsRepository.findAllInfiniteScrollDone(pageSize, lastPostId);
-        return posts.stream().map(ReadAllInfiiniteScrollResponse::from).toList();
     }
 }
