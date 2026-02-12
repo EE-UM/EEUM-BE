@@ -30,7 +30,6 @@ public class AppleMusicService {
     private static final String APPLE_MUSIC_SEARCH_URL = "https://api.music.apple.com/v1/catalog/kr/search";
 
     private final DeveloperTokenRepository developerTokenRepository;
-    private final AppleMusickit appleMusickit;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -40,14 +39,6 @@ public class AppleMusicService {
                 .orElseThrow(() -> new IllegalStateException("No valid token found"));
 
         return DeveloperTokenResponse.from(token);
-    }
-
-    @Transactional
-    public Long getOrCreateToken() {
-        String token = appleMusickit.generateToken();
-        DeveloperToken developerToken = DeveloperToken.of(token);
-        DeveloperToken savedToken = developerTokenRepository.save(developerToken);
-        return savedToken.getId();
     }
 
     public Collection<AlbumSearchResponse> search(String term, String types, String limit) {
