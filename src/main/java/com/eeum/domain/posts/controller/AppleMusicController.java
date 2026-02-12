@@ -17,12 +17,6 @@ public class AppleMusicController implements AppleMusicApi {
 
     private final AppleMusicService appleMusicService;
 
-    @GetMapping("/token")
-    public ApiResponse<DeveloperTokenResponse> getDeveloperToken() {
-        DeveloperTokenResponse developerToken = appleMusicService.getDeveloperToken();
-        return ApiResponse.success(developerToken);
-    }
-
     @GetMapping("/search")
     public ApiResponse<Collection<AlbumSearchResponse>> search(
             @RequestParam("term") String term,
