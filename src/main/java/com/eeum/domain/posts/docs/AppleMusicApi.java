@@ -1,13 +1,11 @@
 package com.eeum.domain.posts.docs;
 
 import com.eeum.domain.posts.dto.response.AlbumSearchResponse;
-import com.eeum.domain.posts.dto.response.DeveloperTokenResponse;
 import com.eeum.global.support.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Collection;
