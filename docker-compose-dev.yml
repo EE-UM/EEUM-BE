@@ -1,15 +1,15 @@
+version: "3.8"
 services:
   eeum-dev:
     image: rookie97/eeum:dev
     container_name: eeum-dev
     ports:
       - "8081:8080"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SPRING_RABBITMQ_HOST: host.docker.internal
       SPRING_RABBITMQ_PORT: 5672
-      # 아래 2개는 RabbitMQ에 만든 계정으로 바꿔
       SPRING_RABBITMQ_USERNAME: eeum
       SPRING_RABBITMQ_PASSWORD: eeum123
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
