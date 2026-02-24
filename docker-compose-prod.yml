@@ -1,9 +1,14 @@
-version: "3.8"
 services:
   eeum-prod:
     image: rookie97/eeum:prod
     container_name: eeum-prod
     ports:
       - "8080:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_RABBITMQ_HOST: host.docker.internal
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: eeum
+      SPRING_RABBITMQ_PASSWORD: eeum123
