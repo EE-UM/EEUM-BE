@@ -63,6 +63,7 @@ jobs:
         run: |
           aws ec2 start-instances --instance-ids "${{ secrets.GREEN_INSTANCE_ID }}"
           aws ec2 wait instance-running --instance-ids "${{ secrets.GREEN_INSTANCE_ID }}"
+          aws ec2 wait instance-status-ok --instance-ids "${{ secrets.GREEN_INSTANCE_ID }}"
 
       - name: Get GREEN public IP
         id: green_ip
