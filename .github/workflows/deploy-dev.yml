@@ -102,21 +102,34 @@ jobs:
             docker compose -f docker-compose-dev.yml up -d
           "
 
-      - name: Health check GREEN (inside instance)
+      - name: Health check GREEN
         run: |
           GREEN_IP=${{ steps.green_ip.outputs.GREEN_IP }}
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@$GREEN_IP "
             set -e
             for i in \$(seq 1 60); do
-              if curl -fsS http://localhost:8081/actuator/health > /dev/null; then
+              if curl -s http://localhost:8081/actuator/health; then
+                echo
+              fi
+
+              STATUS=\$(curl -s -o /tmp/health.out -w '%{http_code}' http://localhost:8081/actuator/health || true)
+              BODY=\$(cat /tmp/health.out || true)
+
+              echo \"Health check attempt \$i => HTTP \$STATUS\"
+              echo \"\$BODY\"
+
+              if [ \"\$STATUS\" = \"200\" ]; then
                 echo 'GREEN health OK'
                 exit 0
               fi
-              echo 'Waiting health... ('\"\$i\"')'
+
               sleep 5
             done
+
             echo 'GREEN health check failed'
+            echo '=== docker ps ==='
             docker ps || true
+            echo '=== app logs (tail 200) ==='
             docker compose -f /home/ubuntu/eeum/docker-compose-dev.yml logs --tail=200 || true
             exit 1
           "
