@@ -24,10 +24,10 @@ jobs:
       - name: Grant execute permission to Gradle
         run: chmod +x ./gradlew
 
-      - name: Create application.yml
+      - name: Create application-dev.yml
         run: |
           mkdir -p ./src/main/resources
-          echo "${{ secrets.APPLICATION_DEV_YML }}" > src/main/resources/application-dev.yml
+          printf "%s" "${{ secrets.APPLICATION_DEV_YML }}" > src/main/resources/application-dev.yml
 
       - name: Build module
         run: ./gradlew clean build
@@ -74,14 +74,14 @@ jobs:
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ steps.green_ip.outputs.GREEN_IP }} >> ~/.ssh/known_hosts
 
       - name: Deploy to GREEN (docker compose)
         run: |
           GREEN_IP=${{ steps.green_ip.outputs.GREEN_IP }}
-          ssh ${{ secrets.SSH_USER }}@$GREEN_IP "
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@$GREEN_IP "
             set -e
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/eeum:dev
             cd /home/ubuntu/eeum || exit 1
@@ -89,19 +89,24 @@ jobs:
             docker compose -f docker-compose-dev.yml up -d
           "
 
-      - name: Health check GREEN
+      - name: Health check GREEN (inside instance)
         run: |
           GREEN_IP=${{ steps.green_ip.outputs.GREEN_IP }}
-          for i in {1..60}; do
-            if curl -fsS http://$GREEN_IP:8081/actuator/health > /dev/null; then
-              echo "GREEN health OK"
-              exit 0
-            fi
-            echo "Waiting health... ($i)"
-            sleep 5
-          done
-          echo "GREEN health check failed"
-          exit 1
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@$GREEN_IP "
+            set -e
+            for i in \$(seq 1 60); do
+              if curl -fsS http://localhost:8081/actuator/health > /dev/null; then
+                echo 'GREEN health OK'
+                exit 0
+              fi
+              echo 'Waiting health... ('\"\$i\"')'
+              sleep 5
+            done
+            echo 'GREEN health check failed'
+            docker ps || true
+            docker compose -f /home/ubuntu/eeum/docker-compose-dev.yml logs --tail=200 || true
+            exit 1
+          "
 
       - name: Switch EIP to GREEN
         run: |
