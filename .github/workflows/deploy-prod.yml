@@ -1,8 +1,8 @@
-name: Production Server - Blue/Green Deploy (EEUM)
+name: Production Server - CI/CD for EEUM
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 permissions:
   contents: read
@@ -18,16 +18,16 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: "21"
+          distribution: "temurin"
 
       - name: Grant execute permission to Gradle
         run: chmod +x ./gradlew
 
-      - name: Create application-prod.yml
+      - name: Create application.yml
         run: |
           mkdir -p ./src/main/resources
-          printf "%s" "${{ secrets.APPLICATION_PROD_YML }}" > src/main/resources/application-prod.yml
+          echo "${{ secrets.APPLICATION_PROD_YML }}" > src/main/resources/application-prod.yml
 
       - name: Build module
         run: ./gradlew clean build
@@ -44,103 +44,23 @@ jobs:
       - name: Push image
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/eeum:prod
 
-  blue-green-deploy:
+  deploy:
     needs: build-and-push
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Start GREEN instance
+      - name: Pull latest images
         run: |
-          aws ec2 start-instances --instance-ids "${{ secrets.GREEN_INSTANCE_ID }}"
-          aws ec2 wait instance-running --instance-ids "${{ secrets.GREEN_INSTANCE_ID }}"
-          aws ec2 wait instance-status-ok --instance-ids "${{ secrets.GREEN_INSTANCE_ID }}"
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/eeum:prod
 
-      - name: Get GREEN public IP
-        id: green_ip
-        run: |
-          GREEN_IP=$(aws ec2 describe-instances --instance-ids "${{ secrets.GREEN_INSTANCE_ID }}" \
-            --query "Reservations[0].Instances[0].PublicIpAddress" --output text)
-          echo "GREEN_IP=$GREEN_IP" >> $GITHUB_OUTPUT
+      - name: Stop and remove containers
+        run: docker compose down || true
 
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          printf "%s" "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+      - name: Start containers with new images
+        run: docker compose -f ${{ github.workspace }}/docker-compose-prod.yml up -d
 
-          GREEN_IP=${{ steps.green_ip.outputs.GREEN_IP }}
-
-          for i in $(seq 1 30); do
-            if ssh-keyscan -T 5 -H "$GREEN_IP" >> ~/.ssh/known_hosts 2>/dev/null; then
-              echo "ssh-keyscan success"
-              break
-            fi
-            echo "Waiting for SSH... ($i)"
-            sleep 5
-          done
-
-          ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 ${{ secrets.SSH_USER }}@$GREEN_IP "echo SSH connected"
-
-      - name: Deploy to GREEN (docker compose)
-        run: |
-          GREEN_IP=${{ steps.green_ip.outputs.GREEN_IP }}
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@$GREEN_IP "
-            set -e
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/eeum:prod
-            cd /home/ubuntu/eeum || exit 1
-            docker compose -f docker-compose-prod.yml down || true
-            docker compose -f docker-compose-prod.yml up -d
-          "
-
-      - name: Health check GREEN
-        run: |
-          GREEN_IP=${{ steps.green_ip.outputs.GREEN_IP }}
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@$GREEN_IP "
-            set -e
-            for i in \$(seq 1 60); do
-              if curl -s http://localhost:8081/actuator/health; then
-                echo
-              fi
-
-              STATUS=\$(curl -s -o /tmp/health.out -w '%{http_code}' http://localhost:8081/actuator/health || true)
-              BODY=\$(cat /tmp/health.out || true)
-
-              echo \"Health check attempt \$i => HTTP \$STATUS\"
-              echo \"\$BODY\"
-
-              if [ \"\$STATUS\" = \"200\" ]; then
-                echo 'GREEN health OK'
-                exit 0
-              fi
-
-              sleep 5
-            done
-
-            echo 'GREEN health check failed'
-            echo '=== docker ps ==='
-            docker ps || true
-            echo '=== app logs (tail 200) ==='
-            docker compose -f /home/ubuntu/eeum/docker-compose-dev.yml logs --tail=200 || true
-            exit 1
-          "
-
-      - name: Switch EIP to GREEN
-        run: |
-          aws ec2 associate-address \
-            --allocation-id "${{ secrets.PROD_EIP_ALLOC_ID }}" \
-            --instance-id "${{ secrets.GREEN_INSTANCE_ID }}" \
-            --allow-reassociation
-
-      - name: Stop BLUE (rollback용이면 stop 추천)
-        run: |
-          aws ec2 stop-instances --instance-ids "${{ secrets.BLUE_INSTANCE_ID }}"
+      - name: Remove dangling images
+        run: docker system prune -f
