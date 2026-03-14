@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git -C /c/study/EEUM log --oneline)"
+      "Bash(git -C /c/study/EEUM log --oneline)",
+      "Bash(./gradlew test:*)",
+      "Bash(done)"
     ]
   }
 }

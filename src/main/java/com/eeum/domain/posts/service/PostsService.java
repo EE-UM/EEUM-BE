@@ -23,6 +23,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
@@ -67,12 +68,16 @@ public class PostsService {
         return CreatePostResponse.of(posts.getId(), userId);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public UpdatePostResponse updatePost(Long userId, UpdatePostRequest updatePostRequest) {
         Posts posts = postsRepository.findByIdAndUserId(updatePostRequest.postId(), userId)
                 .orElseThrow(() -> new EntityNotFoundException("Can't find the post."));
 
-        posts.update(updatePostRequest.title(), updatePostRequest.content());
+        Album album = Album.of(updatePostRequest.albumName(), updatePostRequest.songName(),
+                updatePostRequest.artistName(),
+                updatePostRequest.artworkUrl(), updatePostRequest.appleMusicUrl());
+
+        posts.update(updatePostRequest.title(), updatePostRequest.content(), album);
 
         if (!posts.getIsCompleted()) {
             addRedisRandomPool(posts);

@@ -47,9 +47,10 @@ public class Posts {
 
     private boolean isDeleted;
 
-    public void update(String title, String content) {
+    public void update(String title, String content, Album album) {
         this.title = title;
         this.content = content;
+        this.album = album;
         this.updatedAt = LocalDateTime.now();
     }
 
