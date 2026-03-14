@@ -8,6 +8,7 @@ import com.eeum.domain.common.webhook.discord.MessageService;
 import com.eeum.domain.common.webhook.discord.message.ReportMessageFormatter;
 import com.eeum.domain.notification.dto.request.MailRequest;
 import com.eeum.domain.notification.producer.MailProducer;
+import com.eeum.domain.notification.publisher.MailPublisher;
 import com.eeum.domain.report.dto.request.CommentReportRequest;
 import com.eeum.domain.report.dto.request.PostsReportRequest;
 import com.eeum.domain.report.dto.response.CommentReportResponse;
@@ -24,6 +25,7 @@ public class ReportFacade {
     private final ReportService reportService;
     private final MessageService messageService;
     private final MailProducer mailProducer;
+    private final MailPublisher mailPublisher;
 
     public PostsReportResponse reportPosts(Long reporterUserId, PostsReportRequest postsReportRequest) {
         String postContent = reportService.postsReport(reporterUserId, postsReportRequest);
@@ -44,6 +46,7 @@ public class ReportFacade {
                         + "</p><p>신고 사유: " + postsReportRequest.reportReason() + "</p>"
         );
         mailProducer.publishMail(mailRequest);
+        mailPublisher.publish(mailRequest);
 
         return PostsReportResponse.of(reporterUserId, postsReportRequest);
     }

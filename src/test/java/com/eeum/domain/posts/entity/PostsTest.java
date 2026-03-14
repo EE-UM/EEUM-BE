@@ -33,14 +33,19 @@ class PostsTest {
     }
 
     @Test
-    @DisplayName("update 호출 시 title 과 content 가 변경됨")
+    @DisplayName("update 호출 시 title 과 content과 album이 변경됨")
     void update_changesFields() {
+        // given
         Posts post = createTestPost();
+        Album album = Album.of("새 앨범이름", "새 음악이름", "새 아티스트이름", "새 아트워크url", "새 applemusicurl");
 
-        post.update("새 제목", "새 내용");
+        // when
+        post.update("새 제목", "새 내용", album);
 
+        // then
         assertThat(post.getTitle()).isEqualTo("새 제목");
         assertThat(post.getContent()).isEqualTo("새 내용");
+        assertThat(post.getAlbum().getAlbumName()).isEqualTo("새 앨범이름");
     }
 
     @Test
