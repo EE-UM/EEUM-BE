@@ -3,7 +3,7 @@ package com.eeum.domain.posts.service;
 import com.eeum.domain.comment.repository.CommentCountRepository;
 import com.eeum.domain.comment.repository.CommentRepository;
 import com.eeum.domain.like.repository.LikeRepository;
-import com.eeum.domain.notification.producer.SpamFilterProducer;
+import com.eeum.domain.notification.publisher.SpamFilterPublisher;
 import com.eeum.domain.posts.dto.request.CreatePostRequest;
 import com.eeum.domain.posts.dto.response.CompletePostResponse;
 import com.eeum.domain.posts.dto.response.CreatePostResponse;
@@ -68,7 +68,7 @@ class PostsServiceTest {
     private PostsCommentCountRepository postsCommentCountRepository;
 
     @Mock
-    private SpamFilterProducer spamFilterProducer;
+    private SpamFilterPublisher spamFilterPublisher;
 
     private static final Long USER_ID = 1L;
     private static final Long POST_ID = 100L;
@@ -114,7 +114,7 @@ class PostsServiceTest {
         verify(postsRepository).save(any(Posts.class));
         verify(commentCountRepository).save(any());
         verify(postsRandomShakeRepository).addCandidate(any());
-        verify(spamFilterProducer).publishSpamFilter(any());
+        verify(spamFilterPublisher).publish(any());
         verify(postsCommentCountRepository).save(any());
     }
 
