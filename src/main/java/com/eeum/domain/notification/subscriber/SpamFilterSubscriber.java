@@ -1,7 +1,7 @@
 package com.eeum.domain.notification.subscriber;
 
-import com.eeum.domain.notification.dto.request.MailRequest;
-import com.eeum.domain.notification.service.MailService;
+import com.eeum.domain.common.spamfilter.service.SpamFilterService;
+import com.eeum.domain.notification.dto.request.SpamFilterRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -13,22 +13,22 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class MailSubscriber implements MessageListener {
+public class SpamFilterSubscriber implements MessageListener {
 
     private final ObjectMapper objectMapper;
-    private final MailService mailService;
+    private final SpamFilterService spamFilterService;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
         try {
             String jsonBody = new String(message.getBody());
-            MailRequest mailRequest = objectMapper.readValue(jsonBody, MailRequest.class);
-            mailService.sendHtmlMail(mailRequest);
-            log.info("[MailSubscriber] 메일 전송 완료 - to={}", mailRequest.to());
+            SpamFilterRequest request = objectMapper.readValue(jsonBody, SpamFilterRequest.class);
+            spamFilterService.spamPostFilter(request.postId(), request.content());
+            log.info("[SpamFilterSubscriber] 스팸 필터 처리 완료 - postId={}", request.postId());
         } catch (JsonProcessingException e) {
-            log.error("[MailSubscriber] 메시지 역직렬화 실패", e);
+            log.error("[SpamFilterSubscriber] 메시지 역직렬화 실패", e);
         } catch (Exception e) {
-            log.error("[MailSubscriber] 메일 전송 실패", e);
+            log.error("[SpamFilterSubscriber] 스팸 필터 처리 실패", e);
         }
     }
 }

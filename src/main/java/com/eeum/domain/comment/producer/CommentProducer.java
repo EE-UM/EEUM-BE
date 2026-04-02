@@ -1,21 +1,20 @@
 package com.eeum.domain.comment.producer;
 
-import com.eeum.global.config.RabbitMQConfig;
 import lombok.RequiredArgsConstructor;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class CommentProducer {
 
-    private final RabbitTemplate rabbitTemplate;
+    private static final String CHANNEL = "notification:playlist";
+    private final StringRedisTemplate redisTemplate;
 
     public void sendCompletedPost(Long postId) {
-        rabbitTemplate.convertAndSend(
-                RabbitMQConfig.PLAYLIST_EXCHANGE,
-                RabbitMQConfig.RK_PLAYLIST_COMPLETED,
-                postId
-        );
+        redisTemplate.convertAndSend(CHANNEL, String.valueOf(postId));
+        log.info("게시물 완료 알림 발행 - 채널: {}, postId: {}", CHANNEL, postId);
     }
 }

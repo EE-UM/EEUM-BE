@@ -13,24 +13,14 @@ import com.eeum.domain.comment.repository.CommentRepository;
 import com.eeum.domain.posts.entity.Posts;
 import com.eeum.domain.posts.repository.PostsRepository;
 import com.eeum.global.securitycore.token.UserPrincipal;
-import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Recover;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-
 import java.util.List;
-import java.util.Optional;
-
-import static java.util.function.Predicate.*;
 
 @Slf4j
 @Service

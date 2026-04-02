@@ -24,10 +24,6 @@ repositories {
 }
 
 dependencies {
-    // RabbitMQ
-    implementation 'org.springframework.boot:spring-boot-starter-amqp'
-    testImplementation 'org.springframework.amqp:spring-rabbit-test'
-
     // APNS
     implementation 'com.eatthepath:pushy:0.15.2'
 

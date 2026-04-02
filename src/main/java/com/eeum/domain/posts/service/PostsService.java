@@ -7,7 +7,7 @@ import com.eeum.domain.comment.repository.CommentCountRepository;
 import com.eeum.domain.comment.repository.CommentRepository;
 import com.eeum.domain.like.repository.LikeRepository;
 import com.eeum.domain.notification.dto.request.SpamFilterRequest;
-import com.eeum.domain.notification.producer.SpamFilterProducer;
+import com.eeum.domain.notification.publisher.SpamFilterPublisher;
 import com.eeum.domain.posts.dto.response.*;
 import com.eeum.domain.posts.entity.CompletionType;
 import com.eeum.domain.posts.entity.PostsCommentCount;
@@ -45,7 +45,7 @@ public class PostsService {
     private final PostsRandomShakeRepository postsRandomShakeRepository;
     private final PostsCommentCountRepository postsCommentCountRepository;
 
-    private final SpamFilterProducer spamFilterProducer;
+    private final SpamFilterPublisher spamFilterPublisher;
 
     @Transactional
     public CreatePostResponse createPost(Long userId, CreatePostRequest createPostRequest) {
@@ -61,7 +61,7 @@ public class PostsService {
 
         addRedisRandomPool(savedPost);
 
-        spamFilterProducer.publishSpamFilter(SpamFilterRequest.of(posts.getId(), posts.getContent()));
+        spamFilterPublisher.publish(SpamFilterRequest.of(posts.getId(), posts.getContent()));
 
         createPostsCommentCount(createPostRequest, posts);
 
