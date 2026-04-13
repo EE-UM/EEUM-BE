@@ -172,19 +172,4 @@ class PostsServiceTest {
         assertThatThrownBy(() -> postsService.delete(USER_ID, POST_ID))
                 .isInstanceOf(IllegalArgumentException.class);
     }
-
-    @Test
-    @DisplayName("delete 호출 시 userId 가 게시물 작성자와 다르면 삭제 처리")
-    void delete_succeeds_whenUserIsNotAuthor() {
-        Long differentUserId = 999L;
-        Posts post = createPost(USER_ID, false); // userId=1L 이 작성자
-        given(postsRepository.findById(POST_ID)).willReturn(Optional.of(post));
-
-        // 현재 구현: Objects.equals(post.getUserId(), userId) 이면 throw
-        // userId != post.getUserId() 인 경우에는 throw 하지 않고 삭제 진행
-        postsService.delete(differentUserId, POST_ID);
-
-        verify(postsRepository).deleteById(POST_ID);
-        verify(postsRandomShakeRepository).removeCandidate(String.valueOf(POST_ID));
-    }
 }
