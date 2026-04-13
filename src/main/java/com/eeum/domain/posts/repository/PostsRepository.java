@@ -1,6 +1,5 @@
 package com.eeum.domain.posts.repository;
 
-import com.eeum.domain.posts.dto.response.ShowRandomStoryOnShakeResponse;
 import com.eeum.domain.posts.entity.Posts;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

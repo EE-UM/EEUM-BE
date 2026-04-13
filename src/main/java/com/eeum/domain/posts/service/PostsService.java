@@ -92,7 +92,7 @@ public class PostsService {
     public Long delete(Long userId, Long postId) {
         Posts posts = postsRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Can not find the post."));
-        if (Objects.equals(posts.getUserId(), userId)) {
+        if (!Objects.equals(posts.getUserId(), userId)) {
             throw new IllegalArgumentException("Only the author can delete this post.");
         }
 
