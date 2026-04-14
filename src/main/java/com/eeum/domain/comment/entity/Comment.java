@@ -13,7 +13,8 @@ import org.hibernate.annotations.Where;
 @Table(name = "comments",
         indexes = {
                 @Index(name = "idx_post_id_is_deleted_created_at", columnList = "postId, isDeleted, createdAt"),
-                @Index(name = "idx_post_id_is_deleted_user_id", columnList = "postId, isDeleted, userId")
+                @Index(name = "idx_post_id_is_deleted_user_id", columnList = "postId, isDeleted, userId"),
+                @Index(name = "idx_user_id_post_id", columnList = "userId, post_id")
         })
 @Getter
 @Entity
