@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -24,7 +25,6 @@ import java.util.Collection;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class AppleMusicService {
 
     private static final String APPLE_MUSIC_SEARCH_URL = "https://api.music.apple.com/v1/catalog/kr/search";
@@ -33,17 +33,14 @@ public class AppleMusicService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final DeveloperTokenCacheServie developerTokenCacheServie;
 
     public DeveloperTokenResponse getDeveloperToken() {
-        DeveloperToken token = developerTokenRepository.findTopByOrderByCreatedAtDesc()
-                .orElseThrow(() -> new IllegalStateException("No valid token found"));
-
-        return DeveloperTokenResponse.from(token);
+        return DeveloperTokenResponse.from(developerTokenCacheServie.getToken());
     }
 
     public Collection<AlbumSearchResponse> search(String term, String types, String limit) {
-        DeveloperToken developerToken = developerTokenRepository.findTopByOrderByCreatedAtDesc()
-                .orElseThrow(RuntimeException::new);
+        DeveloperToken developerToken = developerTokenCacheServie.getToken();
 
         String url = urlBuild(term, types, limit);
         HttpHeaders headers = new HttpHeaders();
