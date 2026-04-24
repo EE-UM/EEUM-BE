@@ -169,6 +169,7 @@ public class PostsService {
     public GetLikedPostsWithSizeResponse getLikedPosts(Long userId) {
         List<Posts> posts = postsRepository.findPostsLikedByUserId(userId);
         long postsCount = posts.size();
+        log.info("posts Size: {}", posts.size());
 
         List<GetLikedPostsResponse> getLikedPostsResponses = posts.stream().map(GetLikedPostsResponse::from).toList();
         return new GetLikedPostsWithSizeResponse(postsCount, getLikedPostsResponses);

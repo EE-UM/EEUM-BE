@@ -6,9 +6,12 @@ import com.eeum.domain.like.repository.RedisLockRepository;
 import com.eeum.domain.like.entity.LikeCount;
 import com.eeum.domain.like.repository.LikeCountRepository;
 import com.eeum.domain.like.repository.LikeRepository;
+import com.eeum.domain.posts.entity.Posts;
+import com.eeum.domain.posts.repository.PostsRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
@@ -24,6 +27,7 @@ public class LikeService {
     private final LikeRepository likeRepository;
     private final LikeCountRepository likeCountRepository;
     private final RedisLockRepository redisLockRepository;
+    private final PostsRepository postsRepository;
 
     public LikeResponse read(Long postId, Long userId) {
         return likeRepository.findByPostIdAndUserId(postId, userId)
@@ -31,8 +35,11 @@ public class LikeService {
                 .orElseThrow(() -> new EntityNotFoundException("즐겨찾기 내역이 존재하지 않습니다."));
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void like(Long postId, Long userId) {
+        postsRepository.findById(postId)
+                .orElseThrow(() -> new NullPointerException("해당 게시글이 존재하지 않습니다."));
+
         String lockValue = UUID.randomUUID().toString();
         String lockKey = redisLockRepository.generateKey(postId, userId);
         boolean acquired = redisLockRepository.lock(
