@@ -14,10 +14,8 @@ public class RedisCheck {
     @PostConstruct
     public void testRedis() {
         try {
-            // 값 조회
             String value = redisTemplate.opsForValue().get("redis-check");
 
-            // 로그 출력
             if (value != null) {
                 System.out.println("✅ Redis is working. Value of 'redis-check': " + value);
             } else {
