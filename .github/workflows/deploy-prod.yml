@@ -49,18 +49,8 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v3
-
-      - name: Pull latest images
-        run: |
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/eeum:prod
-
-      - name: Stop and remove containers
-        run: docker compose down || true
-
-      - name: Start containers with new images
-        run: docker compose -f ${{ github.workspace }}/docker-compose-prod.yml up -d
+      - name: Blue-Green Deploy
+        run: /home/ubuntu/scripts/deploy-blue-green.sh prod ${{ secrets.DOCKERHUB_USERNAME }}/eeum:prod
 
       - name: Remove dangling images
         run: docker system prune -f
