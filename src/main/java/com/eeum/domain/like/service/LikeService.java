@@ -2,95 +2,93 @@ package com.eeum.domain.like.service;
 
 import com.eeum.domain.like.dto.response.LikeResponse;
 import com.eeum.domain.like.entity.Like;
-import com.eeum.domain.like.repository.RedisLockRepository;
 import com.eeum.domain.like.entity.LikeCount;
 import com.eeum.domain.like.repository.LikeCountRepository;
 import com.eeum.domain.like.repository.LikeRepository;
-import com.eeum.domain.posts.entity.Posts;
+import com.eeum.domain.like.repository.RedisLockRepository;
 import com.eeum.domain.posts.repository.PostsRepository;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class LikeService {
 
-    private final LikeRepository likeRepository;
-    private final LikeCountRepository likeCountRepository;
-    private final RedisLockRepository redisLockRepository;
-    private final PostsRepository postsRepository;
+  private final LikeRepository likeRepository;
+  private final LikeCountRepository likeCountRepository;
+  private final RedisLockRepository redisLockRepository;
+  private final PostsRepository postsRepository;
 
-    public LikeResponse read(Long postId, Long userId) {
-        return likeRepository.findByPostIdAndUserId(postId, userId)
-                .map(LikeResponse::from)
-                .orElseThrow(() -> new EntityNotFoundException("즐겨찾기 내역이 존재하지 않습니다."));
+  public LikeResponse read(Long postId, Long userId) {
+    return likeRepository.findByPostIdAndUserId(postId, userId)
+        .map(LikeResponse::from)
+        .orElseThrow(() -> new EntityNotFoundException("즐겨찾기 내역이 존재하지 않습니다."));
+  }
+
+  @Transactional(isolation = Isolation.READ_COMMITTED)
+  public void like(Long postId, Long userId) {
+    postsRepository.findById(postId)
+        .orElseThrow(() -> new NullPointerException("해당 게시글이 존재하지 않습니다."));
+
+    String lockValue = UUID.randomUUID().toString();
+    String lockKey = redisLockRepository.generateKey(postId, userId);
+    boolean acquired = redisLockRepository.lock(
+        lockKey,
+        lockValue,
+        Duration.ofSeconds(3));
+
+    if (!acquired) {
+      throw new IllegalArgumentException("동일 자원에 대한 동시 요청이 발생했습니다. 3초 후 다시 시도해주세요.");
     }
 
-    @Transactional(isolation = Isolation.READ_COMMITTED)
-    public void like(Long postId, Long userId) {
-        postsRepository.findById(postId)
-                .orElseThrow(() -> new NullPointerException("해당 게시글이 존재하지 않습니다."));
+    try {
+      Optional<Like> like = likeRepository.findByPostIdAndUserId(postId, userId);
 
-        String lockValue = UUID.randomUUID().toString();
-        String lockKey = redisLockRepository.generateKey(postId, userId);
-        boolean acquired = redisLockRepository.lock(
-                lockKey,
-                lockValue,
-                Duration.ofSeconds(3));
+      if (like.isEmpty()) {
+        likeRepository.save(
+            Like.of(
+                userId,
+                postId
+            )
+        );
+      } else {
+        throw new RuntimeException("이미 좋아요를 누른 상태입니다.");
+      }
 
-        if (!acquired) {
-            throw new IllegalArgumentException("동일 자원에 대한 동시 요청이 발생했습니다. 3초 후 다시 시도해주세요.");
-        }
+      int result = likeCountRepository.increase(postId);
+      if (result == 0) {
+        likeCountRepository.save(LikeCount.of(postId, 1L));
+      }
 
-        try {
-            Optional<Like> like = likeRepository.findByPostIdAndUserId(postId, userId);
-
-            if (like.isEmpty()) {
-                likeRepository.save(
-                        Like.of(
-                                userId,
-                                postId
-                        )
-                );
-            } else {
-                throw new RuntimeException("이미 좋아요를 누른 상태입니다.");
-            }
-
-            int result = likeCountRepository.increase(postId);
-            if (result == 0) {
-                likeCountRepository.save(LikeCount.of(postId, 1L));
-            }
-
-        } finally {
-            redisLockRepository.releaseLock(lockKey, lockValue);
-        }
+    } finally {
+      redisLockRepository.releaseLock(lockKey, lockValue);
     }
+  }
 
-    @Transactional
-    public void unlike(Long postId, Long userId) {
-        likeRepository.findLockedByPostIdAndUserId(postId, userId)
-                .ifPresent(like -> {
-                    likeRepository.delete(like);
-                    likeCountRepository.decrease(postId);
-                });
-    }
+  @Transactional(isolation = Isolation.READ_COMMITTED)
+  public void unlike(Long postId, Long userId) {
+    likeRepository.findLockedByPostIdAndUserId(postId, userId)
+        .ifPresent(like -> {
+          likeRepository.delete(like);
+          likeCountRepository.decrease(postId);
+        });
+  }
 
-    public Long count(Long postId) {
-        return likeCountRepository.findById(postId)
-                .map(LikeCount::getLikeCount)
-                .orElse(0L);
-    }
+  public Long count(Long postId) {
+    return likeCountRepository.findById(postId)
+        .map(LikeCount::getLikeCount)
+        .orElse(0L);
+  }
 
-    public List<LikeResponse> readUserLikedPosts(Long userId) {
-        return likeRepository.findAllByUserId(userId);
-    }
+  public List<LikeResponse> readUserLikedPosts(Long userId) {
+    return likeRepository.findAllByUserId(userId);
+  }
 }

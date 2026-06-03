@@ -4,9 +4,9 @@ import com.eeum.domain.comment.docs.CommentApi;
 import com.eeum.domain.comment.dto.request.CommentCreateRequest;
 import com.eeum.domain.comment.dto.response.CommentResponse;
 import com.eeum.domain.comment.service.CommentService;
-import com.eeum.global.support.response.ApiResponse;
 import com.eeum.global.securitycore.token.CurrentUser;
 import com.eeum.global.securitycore.token.UserPrincipal;
+import com.eeum.global.support.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
