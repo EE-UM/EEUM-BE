@@ -29,7 +29,6 @@ import com.eeum.domain.posts.entity.PostsCommentCount;
 import com.eeum.domain.posts.exception.NoAvailablePostsException;
 import com.eeum.domain.posts.exception.PostsNotFoundException;
 import com.eeum.domain.posts.repository.PostsCommentCountRepository;
-import com.eeum.domain.posts.repository.PostsIdListRepository;
 import com.eeum.domain.posts.repository.PostsQueryModel;
 import com.eeum.domain.posts.repository.PostsQueryModelRepository;
 import com.eeum.domain.posts.repository.PostsRandomShakeRepository;
@@ -55,7 +54,6 @@ public class PostsService {
 
   private final PostsRepository postsRepository;
   private final PostsQueryModelRepository postsQueryModelRepository;
-  private final PostsIdListRepository postsIdListRepository;
   private final CommentRepository commentRepository;
   private final CommentCountRepository commentCountRepository;
   private final LikeRepository likeRepository;

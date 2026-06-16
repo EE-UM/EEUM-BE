@@ -1,20 +1,29 @@
 package com.eeum.domain.posts.entity;
 
 import io.hypersistence.utils.hibernate.id.Tsid;
-import jakarta.persistence.*;
-import lombok.*;
-
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.Where;
 
 @Table(
-        name = "posts",
-        indexes = {
-                @Index(name = "idx_is_completed_created_at", columnList = "is_completed, created_at DESC"),
-                @Index(name = "idx_is_completed_id_created_at", columnList = "is_completed, id, created_at DESC"),
-                @Index(name = "idx_is_completed_is_deleted_created_at", columnList = "is_completed, is_deleted, created_at DESC"),
-                @Index(name = "idx_is_deleted_created_at", columnList = "is_deleted, created_at")
-        }
+    name = "posts",
+    indexes = {
+        @Index(name = "idx_is_completed_created_at", columnList = "is_completed, created_at DESC"),
+        @Index(name = "idx_is_completed_id_created_at", columnList = "is_completed, id, created_at DESC"),
+        @Index(name = "idx_is_completed_is_deleted_created_at", columnList = "is_completed, is_deleted, created_at DESC"),
+        @Index(name = "idx_is_deleted_created_at", columnList = "is_deleted, created_at")
+    }
 )
 @Getter
 @Entity
@@ -23,70 +32,71 @@ import org.hibernate.annotations.Where;
 @Where(clause = "is_deleted = false")
 public class Posts {
 
-    @Id
-    @Tsid
-    private Long id;
+  @Id
+  @Tsid
+  private Long id;
 
-    private String title;
+  private String title;
 
-    private String content;
+  private String content;
 
-    @Embedded
-    private Album album;
+  @Embedded
+  private Album album;
 
-    private Long userId;
+  private Long userId;
 
-    private LocalDateTime createdAt;
+  private LocalDateTime createdAt;
 
-    private LocalDateTime updatedAt;
+  private LocalDateTime updatedAt;
 
-    private Boolean isCompleted;
+  private Boolean isCompleted;
 
-    @Enumerated(EnumType.STRING)
-    private CompletionType completionType;
+  @Enumerated(EnumType.STRING)
+  private CompletionType completionType;
 
-    private boolean isDeleted;
+  private boolean isDeleted;
 
-    public void update(String title, String content, Album album) {
-        this.title = title;
-        this.content = content;
-        this.album = album;
-        this.updatedAt = LocalDateTime.now();
-    }
+  public void update(String title, String content, Album album) {
+    this.title = title;
+    this.content = content;
+    this.album = album;
+    this.updatedAt = LocalDateTime.now();
+  }
 
-    public void softDelete() {
-        this.isDeleted = true;
-    }
+  public void softDelete() {
+    this.isDeleted = true;
+  }
 
-    public void updateIsCompleted() {
-        this.isCompleted = Boolean.TRUE;
-    }
+  public void updateIsCompleted() {
+    this.isCompleted = Boolean.TRUE;
+  }
 
-    public void updateCompletionType(CompletionType completionType) {
-        this.completionType = completionType;
-    }
+  public void updateCompletionType(CompletionType completionType) {
+    this.completionType = completionType;
+  }
 
-    public static Posts of(String title, String content, Album album, Long userId) {
-        LocalDateTime now = LocalDateTime.now();
-        return Posts.builder()
-                .title(title)
-                .content(content)
-                .album(album)
-                .userId(userId)
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
-    }
+  public static Posts of(String title, String content, Album album, Long userId) {
+    LocalDateTime now = LocalDateTime.now();
+    return Posts.builder()
+        .title(title)
+        .content(content)
+        .album(album)
+        .userId(userId)
+        .createdAt(now)
+        .updatedAt(now)
+        .build();
+  }
 
-    @Builder
-    private Posts(String title, String content, Album album, Long userId, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.title = title;
-        this.content = content;
-        this.album = album;
-        this.userId = userId;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.isCompleted = false;
-        this.isDeleted = false;
-    }
+  @Builder
+  private Posts(String title, String content, Album album, Long userId, LocalDateTime createdAt,
+      LocalDateTime updatedAt) {
+    this.title = title;
+    this.content = content;
+    this.album = album;
+    this.userId = userId;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+    this.isCompleted = false;
+    this.isDeleted = false;
+  }
 }
