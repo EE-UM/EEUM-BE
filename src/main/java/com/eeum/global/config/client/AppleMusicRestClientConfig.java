@@ -7,7 +7,7 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 @Configuration
-public class AppleMusicRestClient {
+public class AppleMusicRestClientConfig {
 
   @Bean
   public RestClient appleMusicClient(
