@@ -13,7 +13,7 @@ public class WebConfig implements WebMvcConfigurer {
   private final TokenBucketRateLimiter rateLimiter;
 
   public WebConfig(
-      @Value("${rate-limit.capacity") long capacity,
+      @Value("${rate-limit.capacity}") long capacity,
       @Value("${rate-limit.refill-per-second}") double refillPerSecond
   ) {
     this.rateLimiter = new TokenBucketRateLimiter(capacity, refillPerSecond, System::nanoTime);
