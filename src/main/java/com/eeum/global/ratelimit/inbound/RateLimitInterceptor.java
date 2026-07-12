@@ -1,5 +1,6 @@
-package com.eeum.global.ratelimit;
+package com.eeum.global.ratelimit.inbound;
 
+import com.eeum.global.ratelimit.TokenBucketRateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.http.HttpHeaders;
