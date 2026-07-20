@@ -39,7 +39,7 @@ public class LoggingFilter implements Filter {
     }
   }
 
-  private String maskSensitiveData(String body) {
+  String maskSensitiveData(String body) {
     return SENSITIVE_PATTERN.matcher(body).replaceAll("$1***$2");
   }
 }
