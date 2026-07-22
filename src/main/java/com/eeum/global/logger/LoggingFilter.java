@@ -15,8 +15,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class LoggingFilter implements Filter {
 
+  public static final String REGEX = "(\"(?:idToken|accessToken|refreshToken|token|password|deviceId)\"\\s*:\\s*\")[^\"]*(\")";
   private static final Pattern SENSITIVE_PATTERN = Pattern.compile(
-      "(\"(?:idToken|accessToken|refreshToken|token|password|deviceId)\"\\s*:\\s*\")[^\"]*(\")",
+      REGEX,
       Pattern.CASE_INSENSITIVE
   );
 

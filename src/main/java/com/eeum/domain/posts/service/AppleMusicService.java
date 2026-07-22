@@ -15,6 +15,11 @@ public class AppleMusicService {
   private final MusicSearchGateway musicSearchGateway;
 
   public Collection<AlbumSearchResponse> search(String term, String types, String limit) {
-    return musicSearchGateway.search(term, types, limit);
+    log.info("[AppleMusicService.search] term={}, types={}, limit={}", term, types, limit);
+
+    Collection<AlbumSearchResponse> result = musicSearchGateway.search(term, types, limit);
+
+    log.info("[AppleMusicService.search] resultSize={}", result.size());
+    return result;
   }
 }
