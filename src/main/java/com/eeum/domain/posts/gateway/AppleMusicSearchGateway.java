@@ -9,6 +9,8 @@ import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 @Slf4j
 @Component
@@ -28,16 +30,31 @@ public class AppleMusicSearchGateway implements MusicSearchGateway {
   @Override
   public Collection<AlbumSearchResponse> search(String term, String types, String limit) {
     DeveloperToken token = developerTokenProvider.getToken();
-    String response = appleMusicClient.get()
-        .uri(uriBuilder -> uriBuilder
-            .path("/v1/catalog/kr/search")
-            .queryParam("term", term)
-            .queryParam("types", types)
-            .queryParam("limit", limit)
-            .build())
-        .headers(headers -> headers.setBearerAuth(token.getToken()))
-        .retrieve()
-        .body(String.class);
+
+    String response;
+
+    try {
+      response = appleMusicClient.get()
+          .uri(uriBuilder -> uriBuilder
+              .path("/v1/catalog/kr/search")
+              .queryParam("term", term)
+              .queryParam("types", types)
+              .queryParam("limit", limit)
+              .build())
+          .headers(headers -> headers.setBearerAuth(token.getToken()))
+          .retrieve()
+          .body(String.class);
+    } catch (RestClientResponseException e) {
+      log.error(
+          "[AppleMusicSearchGateway.search] Apple Music API error. status={}, term={}, body={}",
+          e.getStatusCode(), term, e.getResponseBodyAsString(), e);
+
+      throw e;
+    } catch (RestClientException e) {
+      log.error("[AppleMusicSearchGateway.search] Failed to call Apple Music API. term={}", term,
+          e);
+      throw e;
+    }
 
     return getSearchResponses(types, response);
   }
@@ -65,6 +82,9 @@ public class AppleMusicSearchGateway implements MusicSearchGateway {
       }
       return result;
     } catch (Exception e) {
+      log.error(
+          "[AppleMusicSearchGateway.getSearchResponses] Failed to parse response. types={}, response={}",
+          types, response, e);
       throw new RuntimeException("Failed to parse Apple Music response", e);
     }
   }
