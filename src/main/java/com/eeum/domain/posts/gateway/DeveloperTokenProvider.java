@@ -5,4 +5,6 @@ import com.eeum.domain.posts.entity.DeveloperToken;
 public interface DeveloperTokenProvider {
 
   DeveloperToken getToken();
+
+  void evictToken();
 }
