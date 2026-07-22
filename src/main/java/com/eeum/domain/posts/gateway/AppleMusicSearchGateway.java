@@ -7,9 +7,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Collection;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
 @Slf4j
@@ -34,29 +35,34 @@ public class AppleMusicSearchGateway implements MusicSearchGateway {
     String response;
 
     try {
-      response = appleMusicClient.get()
-          .uri(uriBuilder -> uriBuilder
-              .path("/v1/catalog/kr/search")
-              .queryParam("term", term)
-              .queryParam("types", types)
-              .queryParam("limit", limit)
-              .build())
-          .headers(headers -> headers.setBearerAuth(token.getToken()))
-          .retrieve()
-          .body(String.class);
+      response = callAppleMusic(term, types, limit, token);
     } catch (RestClientResponseException e) {
+      if (e.getStatusCode() == HttpStatus.UNAUTHORIZED) {
+        developerTokenProvider.evictToken();
+      }
+
       log.error(
           "[AppleMusicSearchGateway.search] Apple Music API error. status={}, term={}, body={}",
           e.getStatusCode(), term, e.getResponseBodyAsString(), e);
 
       throw e;
-    } catch (RestClientException e) {
-      log.error("[AppleMusicSearchGateway.search] Failed to call Apple Music API. term={}", term,
-          e);
-      throw e;
     }
 
     return getSearchResponses(types, response);
+  }
+
+  private @Nullable String callAppleMusic(String term, String types, String limit,
+      DeveloperToken token) {
+    return appleMusicClient.get()
+        .uri(uriBuilder -> uriBuilder
+            .path("/v1/catalog/kr/search")
+            .queryParam("term", term)
+            .queryParam("types", types)
+            .queryParam("limit", limit)
+            .build())
+        .headers(headers -> headers.setBearerAuth(token.getToken()))
+        .retrieve()
+        .body(String.class);
   }
 
   private Collection<AlbumSearchResponse> getSearchResponses(String types,
