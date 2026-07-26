@@ -29,9 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class UserService {
 
-  @Value("${app.auth.access-token-expiration-msec}")
-  private Long accessTokenExpiredMs;
-
   @Value("${discord.environment}")
   private String environment;
 
@@ -64,7 +61,7 @@ public class UserService {
         deviceIdRequest.provider());
 
     String accessToken = jwtUtil.createJwt("access", user.getId(), deviceIdRequest.deviceId(),
-        "USER", accessTokenExpiredMs, "");
+        "USER", "");
 
     return LoginResponse.of(accessToken, user.isRegistered());
   }
@@ -73,7 +70,7 @@ public class UserService {
   public LoginResponse devGuestMasterLogin() {
 
     String accessToken = jwtUtil.createJwt("access", 195558282701148160L, "4318414917", "USER",
-        accessTokenExpiredMs, "");
+        "");
     return LoginResponse.of(accessToken, Boolean.TRUE);
   }
 
@@ -86,7 +83,7 @@ public class UserService {
     User user = findOrCreateUser(provider.name(), providerId, idTokenRequest.idToken());
 
     String accessToken = jwtUtil.createJwt("access", user.getId(), providerId, "USER",
-        accessTokenExpiredMs, user.getEmail());
+        user.getEmail());
 
     return LoginResponse.of(accessToken, user.isRegistered());
   }
@@ -94,7 +91,7 @@ public class UserService {
   @Transactional(isolation = Isolation.READ_COMMITTED)
   public LoginResponse testLogin() {
     String accessToken = jwtUtil.createJwt("access", 195558282701148161L, "test", "USER",
-        accessTokenExpiredMs, "test@naver.com");
+        "test@naver.com");
     return LoginResponse.of(accessToken, false);
   }
 
