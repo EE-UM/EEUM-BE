@@ -1,6 +1,7 @@
 package com.eeum.global.securitycore.jwt;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.jsonwebtoken.Claims;
 import java.time.Duration;
@@ -10,8 +11,8 @@ import org.junit.jupiter.api.Test;
 
 class JWTUtilTest {
 
-  private final JWTUtil jwtUtil = new JWTUtil(
-      "test-secret-key-must-be-at-least-256-bits-long-for-hs256!!");
+  public static final String SECRET = "test-secret-key-must-be-at-least-256-bits-long-for-hs256!!";
+  private final JWTUtil jwtUtil = new JWTUtil(SECRET);
 
   @Test
   @DisplayName("createJwt로 발급한 토큰에는 exp 클레임이 존재하지 않는다")
@@ -36,9 +37,19 @@ class JWTUtilTest {
     String token = jwtUtil.createJwt("access", 1L, "user", "USER", "test@test.com");
     Date issuedAt = jwtUtil.extractClaim(token, Claims::getIssuedAt);
 
-    // 발급 시각 기준 100년이 지난 시점을 가정해도 만료 판정 로직이 없으므로 여전히 유효해야 한다.
     Date farFuture = new Date(issuedAt.getTime() + Duration.ofDays(365L * 100).toMillis());
     assertThat(farFuture).isAfter(new Date());
     assertThat(jwtUtil.validateToken(token)).isTrue();
+  }
+
+  @Test
+  @DisplayName("토큰에 작성된 deviceId가 null이면 예외를 발생한다.")
+  void validateTokenDeviceIdIsNull() {
+    // given
+    String nullDeviceIdtoken = jwtUtil.createJwt("access", 1L, null, "USER", "test@test.com");
+
+    // when // then
+    assertThatThrownBy(() -> jwtUtil.getUsername(nullDeviceIdtoken))
+        .isInstanceOf(IllegalArgumentException.class);
   }
 }
