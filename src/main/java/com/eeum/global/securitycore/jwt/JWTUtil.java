@@ -39,8 +39,18 @@ public class JWTUtil {
   }
 
   public String getUsername(String token) {
-    return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload()
-        .get("username").toString();
+    Claims claims = Jwts.parser()
+        .verifyWith(secretKey)
+        .build()
+        .parseSignedClaims(token)
+        .getPayload();
+
+    String username = claims.get("username", String.class);
+    if (username == null || username.isBlank()) {
+      throw new IllegalArgumentException("username(deviceId) 클레임이 없는 토큰입니다.");
+    }
+
+    return username;
   }
 
   public String getEmail(String token) {
