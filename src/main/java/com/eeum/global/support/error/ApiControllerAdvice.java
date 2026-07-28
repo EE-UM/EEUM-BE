@@ -5,12 +5,15 @@ import com.eeum.domain.comment.exception.DuplicateMusicException;
 import com.eeum.global.support.error.exception.CoreApiException;
 import com.eeum.global.support.error.exception.OutboundRateLimitException;
 import com.eeum.global.support.response.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -19,43 +22,42 @@ public class ApiControllerAdvice {
 
   @ExceptionHandler
   public ResponseEntity<ApiResponse<?>> handleCoreApiException(CoreApiException e) {
-    log.info("CoreApiException 발생 - statusCode: {}, errorCode: {}, message: {}, data: {}",
-        e.getErrorType().getStatusCode(),
-        e.getErrorType().getCode(),
-        e.getErrorType().getMessage(),
-        e.getData()
-    );
-    return new ResponseEntity(ApiResponse.error(e.getErrorType(), e.getData()),
-        HttpStatusCode.valueOf(e.getErrorType().getStatusCode()));
+    ErrorType errorType = e.getErrorType();
+    log.info("CoreApiException - code: {}, message: {}, data: {}",
+        errorType.getCode(), errorType.getMessage(), e.getData());
+
+    return toResponse(errorType, e.getData());
   }
 
-  @ExceptionHandler
-  public ResponseEntity<ApiResponse<?>> handleException(Exception e) {
-    return new ResponseEntity(ApiResponse.error(ErrorType.DEFAULT_ERROR, e.getMessage()),
-        HttpStatusCode.valueOf(ErrorType.DEFAULT_ERROR.getStatusCode()));
+  @ExceptionHandler(NoResourceFoundException.class)
+  public ResponseEntity<ApiResponse<?>> handleNoResourceFoundException(
+      NoResourceFoundException e, HttpServletRequest request
+  ) {
+    log.info("NoResourceFoundException - method: {}, uri: {}",
+        e.getHttpMethod(), request.getRequestURI());
+
+    return toResponse(ErrorType.NOT_FOUND);
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ApiResponse<?>> handleMethodArgumentNotValidException(
       MethodArgumentNotValidException e
   ) {
-    StringBuilder errorMessage = new StringBuilder("Validation failed: ");
-    e.getBindingResult().getFieldErrors().forEach(error -> {
-      errorMessage.append(
-          String.format("field '%s': %s. ", error.getField(), error.getDefaultMessage()));
-    });
+    String detail = e.getBindingResult().getFieldErrors().stream()
+        .map(error -> "%s: %s".formatted(error.getField(), error.getDefaultMessage()))
+        .collect(Collectors.joining(", "));
 
-    log.debug("Invalid Request: {}", errorMessage);
-    return new ResponseEntity<>(ApiResponse.error(ErrorType.VALIDATION_ERROR, e.getMessage()),
-        HttpStatusCode.valueOf(ErrorType.VALIDATION_ERROR.getStatusCode()));
+    log.info("Validation failed - {}", detail);
+
+    return toResponse(ErrorType.VALIDATION_ERROR, detail);
   }
 
   @ExceptionHandler(OutboundRateLimitException.class)
   public ResponseEntity<ApiResponse<?>> handleOutboundRateLimitException(
       OutboundRateLimitException e
   ) {
-    return new ResponseEntity<>(ApiResponse.error(ErrorType.RETRY_AFTER, e.getMessage()),
-        HttpStatusCode.valueOf(ErrorType.RETRY_AFTER.getStatusCode()));
+
+    return toResponse(ErrorType.RETRY_AFTER);
   }
 
   @ExceptionHandler(AlreadyFinishedPostException.class)
@@ -63,8 +65,8 @@ public class ApiControllerAdvice {
       AlreadyFinishedPostException e
   ) {
     log.info("AlreadyFinishedPostException 발생: {}", e.getMessage());
-    return new ResponseEntity<>(ApiResponse.error(ErrorType.ALREADY_FINISHED_POST, e.getMessage()),
-        HttpStatusCode.valueOf(ErrorType.ALREADY_FINISHED_POST.getStatusCode()));
+
+    return toResponse(ErrorType.ALREADY_FINISHED_POST);
   }
 
   @ExceptionHandler(DuplicateMusicException.class)
@@ -72,7 +74,26 @@ public class ApiControllerAdvice {
       DuplicateMusicException e
   ) {
     log.info("DuplicateMusicException 발생: {}", e.getMessage());
-    return new ResponseEntity<>(ApiResponse.error(ErrorType.DUPLICATED_MUSIC, e.getMessage()),
-        HttpStatusCode.valueOf(ErrorType.DUPLICATED_MUSIC.getStatusCode()));
+
+    return toResponse(ErrorType.DUPLICATED_MUSIC);
+  }
+
+  @ExceptionHandler
+  public ResponseEntity<ApiResponse<?>> handleException(Exception e, HttpServletRequest request) {
+    log.error("Unhandled exception - method: {}, uri: {}",
+        request.getMethod(), request.getRequestURI(), e);
+
+    return toResponse(ErrorType.DEFAULT_ERROR);
+  }
+
+  private ResponseEntity<ApiResponse<?>> toResponse(ErrorType errorType) {
+    return toResponse(errorType, null);
+  }
+
+  private ResponseEntity<ApiResponse<?>> toResponse(ErrorType errorType, Object data) {
+    return ResponseEntity
+        .status(errorType.getStatusCode())
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(ApiResponse.error(errorType, data));
   }
 }
