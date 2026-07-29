@@ -4,26 +4,31 @@
 
 ---
 
+## 시스템 아키텍처
+
+![img.png](img.png)
+
 ## 기술 스택
 
-| 분류 | 기술 |
-|------|------|
-| **Language / Framework** | Java 21, Spring Boot 3.5.0 |
-| **Database** | MySQL (JPA/Hibernate), Redis |
-| **Messaging** | RabbitMQ (비동기 이벤트 처리) |
-| **AI** | Spring AI + OpenAI GPT-4o-mini, OpenKoreanText |
-| **Authentication** | OAuth2 (Kakao, Apple OIDC) + JWT (HS256) |
-| **Push Notification** | APNS (Pushy) |
-| **Music** | Apple Music API (ES256 JWT 토큰) |
-| **Monitoring** | Discord Webhook, Spring Actuator |
-| **Infrastructure** | Docker, AWS (RDS, ElastiCache, S3, Parameter Store) |
-| **Documentation** | SpringDoc OpenAPI (Swagger UI) |
+| 분류                       | 기술                                                  |
+|--------------------------|-----------------------------------------------------|
+| **Language / Framework** | Java 21, Spring Boot 3.5.0                          |
+| **Database**             | MySQL (JPA/Hibernate), Redis                        |
+| **Messaging**            | RabbitMQ (비동기 이벤트 처리)                               |
+| **AI**                   | Spring AI + OpenAI GPT-4o-mini, OpenKoreanText      |
+| **Authentication**       | OAuth2 (Kakao, Apple OIDC) + JWT (HS256)            |
+| **Push Notification**    | APNS (Pushy)                                        |
+| **Music**                | Apple Music API (ES256 JWT 토큰)                      |
+| **Monitoring**           | Discord Webhook, Spring Actuator                    |
+| **Infrastructure**       | Docker, AWS (RDS, ElastiCache, S3, Parameter Store) |
+| **Documentation**        | SpringDoc OpenAPI (Swagger UI)                      |
 
 ---
 
 ## 주요 기능
 
 ### Shake & Connect — 랜덤 이야기 발견
+
 기기를 흔들면 다른 사용자의 이야기를 우연히 만나볼 수 있는 핵심 기능입니다.
 
 - Redis `Set` + `randomMember()`를 활용한 **O(1) 랜덤 추천**
@@ -31,6 +36,7 @@
 - dev/prod 환경 간 Redis 키 네임스페이스 분리
 
 ### AI 기반 다단계 스팸 필터링
+
 게시글 작성 시 비동기로 콘텐츠를 검증하여 건전한 커뮤니티를 유지합니다.
 
 - **1단계 — 금칙어 필터**: OpenKoreanText 형태소 분석 후 금칙어 사전 매칭
@@ -39,12 +45,14 @@
 - **자동 조치**: 스팸 점수에 따라 경고(Discord 알림) 또는 자동 삭제
 
 ### 음악과 함께하는 이야기
+
 Apple Music API와 연동하여 게시글에 음악 메타데이터를 첨부할 수 있습니다.
 
 - 앨범명, 곡명, 아티스트, 아트워크, Apple Music 링크 포함
 - 분기별 배치 작업으로 API 토큰 자동 갱신 (6개월 유효)
 
 ### 사용자 인증 및 소통
+
 - **OAuth2 로그인**: 카카오, 애플 OIDC 기반 인증 + 게스트 로그인 지원
 - **JWT 인증**: 무상태(Stateless) API 인증
 - **댓글 & 좋아요**: 이야기에 대한 소통 기능
@@ -52,6 +60,7 @@ Apple Music API와 연동하여 게시글에 음악 메타데이터를 첨부할
 - **신고 시스템**: 부적절한 콘텐츠 신고 → 이메일 + Discord 알림
 
 ### 운영 모니터링
+
 - **Discord Webhook**: 스팸 감지, 신고, 시스템 에러 발생 시 채널별 실시간 알림
 - **Spring Actuator**: 서비스 헬스체크 및 메트릭 수집
 
@@ -126,21 +135,21 @@ com.eeum
 
 ## API 엔드포인트
 
-| Method | Endpoint | 설명 |
-|--------|----------|------|
-| `POST` | `/user/login` | OAuth2 로그인 |
-| `POST` | `/user/guest` | 게스트 로그인 |
-| `GET/PATCH` | `/user/profile` | 프로필 조회/수정 |
-| `POST` | `/posts` | 게시글 작성 |
-| `GET` | `/posts/random` | 랜덤 이야기 추천 (Shake) |
-| `GET` | `/posts/ing/infinite-scroll` | 진행 중 게시글 무한 스크롤 |
-| `GET` | `/posts/done/infinite-scroll` | 완료된 게시글 무한 스크롤 |
-| `PATCH` | `/posts/{postId}/complete` | 게시글 완료 처리 |
-| `GET/POST/DELETE` | `/comments/*` | 댓글 CRUD |
-| `POST/DELETE` | `/like/posts/{postId}` | 좋아요 토글 |
-| `POST` | `/report/posts` | 게시글 신고 |
-| `POST` | `/report/comment` | 댓글 신고 |
-| `GET` | `/apple-music/search` | 음악 검색 |
+| Method            | Endpoint                      | 설명                |
+|-------------------|-------------------------------|-------------------|
+| `POST`            | `/user/login`                 | OAuth2 로그인        |
+| `POST`            | `/user/guest`                 | 게스트 로그인           |
+| `GET/PATCH`       | `/user/profile`               | 프로필 조회/수정         |
+| `POST`            | `/posts`                      | 게시글 작성            |
+| `GET`             | `/posts/random`               | 랜덤 이야기 추천 (Shake) |
+| `GET`             | `/posts/ing/infinite-scroll`  | 진행 중 게시글 무한 스크롤   |
+| `GET`             | `/posts/done/infinite-scroll` | 완료된 게시글 무한 스크롤    |
+| `PATCH`           | `/posts/{postId}/complete`    | 게시글 완료 처리         |
+| `GET/POST/DELETE` | `/comments/*`                 | 댓글 CRUD           |
+| `POST/DELETE`     | `/like/posts/{postId}`        | 좋아요 토글            |
+| `POST`            | `/report/posts`               | 게시글 신고            |
+| `POST`            | `/report/comment`             | 댓글 신고             |
+| `GET`             | `/apple-music/search`         | 음악 검색             |
 
 > Swagger UI에서 전체 API 명세를 확인할 수 있습니다.
 
@@ -149,6 +158,7 @@ com.eeum
 ## 실행 방법
 
 ### 사전 요구사항
+
 - Java 21
 - MySQL 8.x
 - Redis
@@ -176,21 +186,21 @@ docker-compose -f docker-compose-prod.yml up -d
 
 ### 환경별 설정
 
-| 환경 | 프로필 | 포트 | Docker 이미지 |
-|------|--------|------|---------------|
-| Local | `local` | 8080 | - |
-| Dev | `dev` | 8081 | `rookie97/eeum:dev` |
-| Prod | `prod` | 8080 | `rookie97/eeum:prod` |
+| 환경    | 프로필     | 포트   | Docker 이미지           |
+|-------|---------|------|----------------------|
+| Local | `local` | 8080 | -                    |
+| Dev   | `dev`   | 8081 | `rookie97/eeum:dev`  |
+| Prod  | `prod`  | 8080 | `rookie97/eeum:prod` |
 
 ---
 
 ## 메시지 큐 구조
 
-| Exchange | Queue | 용도 |
-|----------|-------|------|
-| `spamFilter.exchange` | `spamFilter.queue` | 게시글 스팸 필터링 |
-| `email.exchange` | `email.queue` | 신고 이메일 발송 |
-| `playlist_exchange` | `playlist_completed_queue` | 플레이리스트 완료 알림 |
+| Exchange              | Queue                      | 용도           |
+|-----------------------|----------------------------|--------------|
+| `spamFilter.exchange` | `spamFilter.queue`         | 게시글 스팸 필터링   |
+| `email.exchange`      | `email.queue`              | 신고 이메일 발송    |
+| `playlist_exchange`   | `playlist_completed_queue` | 플레이리스트 완료 알림 |
 
 모든 큐는 Dead Letter Queue(DLQ)를 갖추고 있으며, 최대 3회 재시도 후 DLQ로 이동합니다.
 
