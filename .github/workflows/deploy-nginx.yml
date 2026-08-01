@@ -1,0 +1,38 @@
+name: Nginx Config Deploy
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "infra/nginx/**"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-nginx:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Backup current /etc/nginx
+        run: |
+          sudo mkdir -p /home/ubuntu/nginx-backups
+          sudo tar -czf /home/ubuntu/nginx-backups/nginx-backup-$(date +%F-%H%M%S).tar.gz -C / etc/nginx
+
+      - name: Apply eeum site config
+        run: sudo cp infra/nginx/eeum.conf /etc/nginx/sites-enabled/eeum
+
+      - name: Apply ratelimit config
+        run: sudo cp infra/nginx/ratelimit.conf /etc/nginx/conf.d/ratelimit.conf
+
+      - name: Apply deploy-blue-green.sh
+        run: |
+          sudo cp infra/nginx/deploy-blue-green.sh /home/ubuntu/scripts/deploy-blue-green.sh
+          sudo chmod +x /home/ubuntu/scripts/deploy-blue-green.sh
+
+      - name: Test and reload Nginx
+        run: sudo nginx -t && sudo systemctl reload nginx
