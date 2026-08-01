@@ -8,8 +8,10 @@ import com.eeum.global.support.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -23,10 +25,24 @@ public class ApiControllerAdvice {
   @ExceptionHandler
   public ResponseEntity<ApiResponse<?>> handleCoreApiException(CoreApiException e) {
     ErrorType errorType = e.getErrorType();
-    log.info("CoreApiException - code: {}, message: {}, data: {}",
-        errorType.getCode(), errorType.getMessage(), e.getData());
+    HttpStatus status = HttpStatus.valueOf(errorType.getStatusCode());
+
+    if (status.is5xxServerError()) {
+      log.error("서버 오류 - code: {}, message: {}, data: {}", errorType.getCode(),
+          errorType.getMessage(), e.getData());
+    }
+    if (status.is4xxClientError()) {
+      log.warn("클라이언트 오류 - code: {}, message: {}, data: {}", errorType.getCode(),
+          errorType.getMessage(), e.getData());
+    }
 
     return toResponse(errorType, e.getData());
+  }
+
+  @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+  public ResponseEntity<ApiResponse<?>> handleMethodNotSupported() {
+    log.warn("HttpRequestMethodNotSupportedException - 지원하지 않는 메서드를 사용했습니다.");
+    return toResponse(ErrorType.METHOD_NOT_SUPPORTED);
   }
 
   @ExceptionHandler(NoResourceFoundException.class)

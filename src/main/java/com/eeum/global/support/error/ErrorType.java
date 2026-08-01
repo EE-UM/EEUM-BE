@@ -35,6 +35,12 @@ public enum ErrorType {
       "The requested resource could not be found."
   ),
 
+  METHOD_NOT_SUPPORTED(
+      405,
+      ErrorCode.METHOD_NOT_SUPPORTED,
+      "The request is not supported."
+  ),
+
   CONFLICT(
       409,
       ErrorCode.CONFLICT_409,
