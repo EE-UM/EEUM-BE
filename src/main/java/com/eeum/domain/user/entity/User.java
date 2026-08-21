@@ -2,10 +2,15 @@ package com.eeum.domain.user.entity;
 
 import com.eeum.global.securitycore.token.UserPrincipalInfo;
 import io.hypersistence.utils.hibernate.id.Tsid;
-import jakarta.persistence.*;
-import lombok.*;
-
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Table(name = "users")
 @Getter
@@ -43,23 +48,26 @@ public class User implements UserPrincipalInfo {
         this.email = email;
     }
 
-    public static User of(String nickname, String username, String email, String role, String provider, String providerId, boolean isRegistered) {
+    public static User of(String nickname, String username, String email, String role,
+        String provider, String providerId, boolean isRegistered) {
         LocalDateTime now = LocalDateTime.now();
         return User.builder()
-                .nickname(nickname)
-                .username(username)
-                .email(email)
-                .role("USER")
-                .provider(provider)
-                .providerId(providerId)
-                .isRegistered(isRegistered)
-                .createdAt(now)
-                .updatedAt(now)
-                .build();
+            .nickname(nickname)
+            .username(username)
+            .email(email)
+            .role("USER")
+            .provider(provider)
+            .providerId(providerId)
+            .isRegistered(isRegistered)
+            .createdAt(now)
+            .updatedAt(now)
+            .build();
     }
 
     @Builder
-    public User(String nickname, String username, String email, String role, String provider, String providerId, boolean isRegistered, String fcmToken, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public User(String nickname, String username, String email, String role, String provider,
+        String providerId, boolean isRegistered, String fcmToken, LocalDateTime createdAt,
+        LocalDateTime updatedAt) {
         this.nickname = nickname;
         this.username = username;
         this.email = email;
