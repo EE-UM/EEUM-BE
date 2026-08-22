@@ -39,6 +39,8 @@ public class User implements UserPrincipalInfo {
 
     private String fcmToken;
 
+    private Status status;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
@@ -76,6 +78,7 @@ public class User implements UserPrincipalInfo {
         this.providerId = providerId;
         this.isRegistered = isRegistered;
         this.fcmToken = fcmToken;
+        this.status = Status.ACTIVE;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
