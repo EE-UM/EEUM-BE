@@ -49,13 +49,14 @@ public class SpamFilterService {
 
         List<String> findWords = forbiddenWordsRepository.findIn(tokens);
         if (!findWords.isEmpty()) {
-            score += SCORE_ADD_UNIT;
+            score += 2;
         }
 
         if (spamPostAiFilter(content)) {
             score += SCORE_ADD_UNIT;
         }
 
+        System.out.println(score);
         determineByScore(postId, score);
     }
 
@@ -73,7 +74,7 @@ public class SpamFilterService {
                 )), DiscordWebhookType.SPAM);
         }
 
-        if (score == 2) {
+        if (score >= 2) {
             postsRepository.delete(posts);
             messageService.sendDiscordWebhookMessage(
                 DiscordWebhookResponse.of(SpamMessageFormatter.formatSpamMessageLevel2(
