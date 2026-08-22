@@ -3,6 +3,8 @@ package com.eeum.domain.user.entity;
 import com.eeum.global.securitycore.token.UserPrincipalInfo;
 import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
@@ -39,6 +41,7 @@ public class User implements UserPrincipalInfo {
 
     private String fcmToken;
 
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     private LocalDateTime createdAt;

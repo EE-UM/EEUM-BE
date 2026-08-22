@@ -9,12 +9,16 @@ import com.eeum.domain.common.webhook.discord.message.MessageFormatter;
 import com.eeum.domain.user.dto.request.BlockUserRequest;
 import com.eeum.domain.user.dto.request.DeviceIdRequest;
 import com.eeum.domain.user.dto.request.IdTokenRequest;
+import com.eeum.domain.user.dto.request.UnblockUserRequest;
 import com.eeum.domain.user.dto.request.UpdateProfileRequest;
 import com.eeum.domain.user.dto.response.BlockUserResponse;
 import com.eeum.domain.user.dto.response.GetProfileResponse;
 import com.eeum.domain.user.dto.response.LoginResponse;
+import com.eeum.domain.user.dto.response.UnblockUserResponse;
 import com.eeum.domain.user.dto.response.UpdateProfileResponse;
+import com.eeum.domain.user.entity.Block;
 import com.eeum.domain.user.entity.User;
+import com.eeum.domain.user.repository.BlockRepository;
 import com.eeum.domain.user.repository.UserRepository;
 import com.eeum.global.securitycore.jwt.JWTUtil;
 import com.eeum.global.securitycore.oidc.OidcProviderFactory;
@@ -38,12 +42,28 @@ public class UserService {
     private final JWTUtil jwtUtil;
 
     private final UserRepository userRepository;
+    private final BlockRepository blockRepository;
     private final MessageService messageService;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public BlockUserResponse block(Long userId, BlockUserRequest blockUserRequest) {
+    public BlockUserResponse block(Long userId, BlockUserRequest request) {
+        boolean existsByUserId = userRepository.existsById(request.blockedUserId());
 
-        return null;
+        validateExistsUser(existsByUserId);
+
+        Block block = Block.of(userId, request.blockedUserId());
+        blockRepository.save(block);
+        return BlockUserResponse.of(block);
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public UnblockUserResponse unblock(Long userId, UnblockUserRequest request) {
+        boolean existsByUserId = userRepository.existsById(request.unblockedUserId());
+
+        validateExistsUser(existsByUserId);
+        Block block = Block.of(userId, request.unblockedUserId());
+        blockRepository.delete(block);
+        return UnblockUserResponse.of(block);
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
@@ -112,6 +132,12 @@ public class UserService {
                     DiscordWebhookType.SIGNUP);
                 return userRepository.saveAndFlush(newUser);
             });
+    }
+
+    private static void validateExistsUser(boolean existsByUserId) {
+        if (!existsByUserId) {
+            throw new IllegalArgumentException("The user id doesn't exist");
+        }
     }
 
     private User findOrCreateUser(String provider, String providerId, String idToken) {

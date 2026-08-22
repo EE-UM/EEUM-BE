@@ -4,13 +4,13 @@ import com.eeum.domain.user.entity.Block;
 import lombok.AccessLevel;
 import lombok.Builder;
 
-public record BlockUserResponse(
+public record UnblockUserResponse(
     Long blockerUserId,
     Long blockedUserId
 ) {
 
-    public static BlockUserResponse of(Block block) {
-        return BlockUserResponse
+    public static UnblockUserResponse of(Block block) {
+        return UnblockUserResponse
             .builder()
             .blockerUserId(block.getBlockerUserId())
             .blockedUserId(block.getBlockedUserId())
@@ -18,7 +18,7 @@ public record BlockUserResponse(
     }
 
     @Builder(access = AccessLevel.PRIVATE)
-    public BlockUserResponse(Long blockerUserId, Long blockedUserId) {
+    public UnblockUserResponse(Long blockerUserId, Long blockedUserId) {
         this.blockerUserId = blockerUserId;
         this.blockedUserId = blockedUserId;
     }

@@ -3,9 +3,9 @@ package com.eeum.global.securitycore.oidc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Map;
-
-import static org.apache.tomcat.util.codec.binary.Base64.decodeBase64;
 
 public interface OidcProvider {
 
@@ -15,7 +15,8 @@ public interface OidcProvider {
         String header = token.split("\\.")[0];
 
         try {
-            String decodedHeader = new String(decodeBase64(header), "UTF-8");
+            String decodedHeader = new String(Base64.getUrlDecoder().decode(header),
+                StandardCharsets.UTF_8);
             return new ObjectMapper().readValue(decodedHeader, Map.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
