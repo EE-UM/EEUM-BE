@@ -1,24 +1,16 @@
 package com.eeum.domain.posts.entity;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class PostsTest {
 
     private static Posts createTestPost() {
-        Album album = Album.of("앨범명", "노래명", "아티스트명", "http://artwork.url", "http://apple.music/url");
+        Album album = Album.of("앨범명", "노래명", "아티스트명", "http://artwork.url",
+            "http://apple.music/url");
         return Posts.of("제목", "내용", album, 1L);
-    }
-
-    @Test
-    @DisplayName("Posts.of 생성 시 isCompleted=false, isDeleted=false 기본값 설정")
-    void of_createsWithDefaultFlags() {
-        Posts post = createTestPost();
-
-        assertThat(post.getIsCompleted()).isFalse();
-        assertThat(post.isDeleted()).isFalse();
     }
 
     @Test
@@ -57,17 +49,6 @@ class PostsTest {
         post.updateIsCompleted();
 
         assertThat(post.getIsCompleted()).isTrue();
-    }
-
-    @Test
-    @DisplayName("softDelete 호출 시 isDeleted 가 true 로 변경됨")
-    void softDelete_setsIsDeletedTrue() {
-        Posts post = createTestPost();
-        assertThat(post.isDeleted()).isFalse();
-
-        post.softDelete();
-
-        assertThat(post.isDeleted()).isTrue();
     }
 
     @Test

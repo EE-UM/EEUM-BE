@@ -21,40 +21,40 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ReportService {
 
-  private final CommentReportRepository commentReportRepository;
-  private final PostsReportRepository postsReportRepository;
-  private final PostsRepository postsRepository;
-  private final CommentRepository commentRepository;
+    private final CommentReportRepository commentReportRepository;
+    private final PostsReportRepository postsReportRepository;
+    private final PostsRepository postsRepository;
+    private final CommentRepository commentRepository;
 
-  @Transactional(isolation = Isolation.READ_COMMITTED)
-  public String postsReport(Long reporterUserId, PostsReportRequest postsReportRequest) {
-    Posts posts = postsRepository.findById(postsReportRequest.postId())
-        .orElseThrow(AlreadyDeletedException::new);
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public String postsReport(Long reporterUserId, PostsReportRequest postsReportRequest) {
+        Posts posts = postsRepository.findById(postsReportRequest.postId())
+            .orElseThrow(AlreadyDeletedException::new);
 
-    PostsReport postsReport = PostsReport.of(postsReportRequest.postId(),
-        postsReportRequest.reportedUserId(),
-        reporterUserId,
-        postsReportRequest.reportReason());
+        PostsReport postsReport = PostsReport.of(postsReportRequest.postId(),
+            postsReportRequest.reportedUserId(),
+            reporterUserId,
+            postsReportRequest.reportReason());
 
-    postsReportRepository.save(postsReport);
-    posts.softDelete();
+        postsReportRepository.save(postsReport);
+        postsRepository.delete(posts);
 
-    return posts.getContent();
-  }
+        return posts.getContent();
+    }
 
-  @Transactional(isolation = Isolation.READ_COMMITTED)
-  public String commentReport(Long reporterUserId, CommentReportRequest commentReportRequest) {
-    Comment comment = commentRepository.findById(commentReportRequest.commentId())
-        .orElseThrow(AlreadyDeletedException::new);
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public String commentReport(Long reporterUserId, CommentReportRequest commentReportRequest) {
+        Comment comment = commentRepository.findById(commentReportRequest.commentId())
+            .orElseThrow(AlreadyDeletedException::new);
 
-    CommentReport commentReport = CommentReport.of(commentReportRequest.commentId(),
-        commentReportRequest.reportedUserId(),
-        reporterUserId,
-        commentReportRequest.reportReason());
+        CommentReport commentReport = CommentReport.of(commentReportRequest.commentId(),
+            commentReportRequest.reportedUserId(),
+            reporterUserId,
+            commentReportRequest.reportReason());
 
-    commentReportRepository.save(commentReport);
-    comment.softDelete();
+        commentReportRepository.save(commentReport);
+        commentRepository.delete(comment);
 
-    return comment.getContent();
-  }
+        return comment.getContent();
+    }
 }

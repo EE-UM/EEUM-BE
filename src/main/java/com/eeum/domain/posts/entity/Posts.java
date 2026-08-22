@@ -14,89 +14,83 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SoftDelete;
+import org.hibernate.annotations.SoftDeleteType;
 
 @Table(
     name = "posts",
     indexes = {
         @Index(name = "idx_is_completed_created_at", columnList = "is_completed, created_at DESC"),
         @Index(name = "idx_is_completed_id_created_at", columnList = "is_completed, id, created_at DESC"),
-        @Index(name = "idx_is_completed_is_deleted_created_at", columnList = "is_completed, is_deleted, created_at DESC"),
-        @Index(name = "idx_is_deleted_created_at", columnList = "is_deleted, created_at")
+        @Index(name = "idx_is_completed_deleted_created_at", columnList = "is_completed, deleted, created_at DESC"),
+        @Index(name = "idx_deleted_created_at", columnList = "deleted, created_at")
     }
 )
 @Getter
 @Entity
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Where(clause = "is_deleted = false")
+@SoftDelete(columnName = "deleted", strategy = SoftDeleteType.TIMESTAMP)
 public class Posts {
 
-  @Id
-  @Tsid
-  private Long id;
+    @Id
+    @Tsid
+    private Long id;
 
-  private String title;
+    private String title;
 
-  private String content;
+    private String content;
 
-  @Embedded
-  private Album album;
+    @Embedded
+    private Album album;
 
-  private Long userId;
+    private Long userId;
 
-  private LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 
-  private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt;
 
-  private Boolean isCompleted;
+    private Boolean isCompleted;
 
-  @Enumerated(EnumType.STRING)
-  private CompletionType completionType;
+    @Enumerated(EnumType.STRING)
+    private CompletionType completionType;
 
-  private boolean isDeleted;
+    public void update(String title, String content, Album album) {
+        this.title = title;
+        this.content = content;
+        this.album = album;
+        this.updatedAt = LocalDateTime.now();
+    }
 
-  public void update(String title, String content, Album album) {
-    this.title = title;
-    this.content = content;
-    this.album = album;
-    this.updatedAt = LocalDateTime.now();
-  }
+    public void updateIsCompleted() {
+        this.isCompleted = Boolean.TRUE;
+    }
 
-  public void softDelete() {
-    this.isDeleted = true;
-  }
+    public void updateCompletionType(CompletionType completionType) {
+        this.completionType = completionType;
+    }
 
-  public void updateIsCompleted() {
-    this.isCompleted = Boolean.TRUE;
-  }
+    public static Posts of(String title, String content, Album album, Long userId) {
+        LocalDateTime now = LocalDateTime.now();
+        return Posts.builder()
+            .title(title)
+            .content(content)
+            .album(album)
+            .userId(userId)
+            .createdAt(now)
+            .updatedAt(now)
+            .build();
+    }
 
-  public void updateCompletionType(CompletionType completionType) {
-    this.completionType = completionType;
-  }
-
-  public static Posts of(String title, String content, Album album, Long userId) {
-    LocalDateTime now = LocalDateTime.now();
-    return Posts.builder()
-        .title(title)
-        .content(content)
-        .album(album)
-        .userId(userId)
-        .createdAt(now)
-        .updatedAt(now)
-        .build();
-  }
-
-  @Builder
-  private Posts(String title, String content, Album album, Long userId, LocalDateTime createdAt,
-      LocalDateTime updatedAt) {
-    this.title = title;
-    this.content = content;
-    this.album = album;
-    this.userId = userId;
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
-    this.isCompleted = false;
-    this.isDeleted = false;
-  }
+    @Builder
+    private Posts(String title, String content, Album album, Long userId, LocalDateTime createdAt,
+        LocalDateTime updatedAt) {
+        this.title = title;
+        this.content = content;
+        this.album = album;
+        this.userId = userId;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.isCompleted = false;
+    }
 }

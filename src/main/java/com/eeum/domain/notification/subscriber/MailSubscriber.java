@@ -2,13 +2,13 @@ package com.eeum.domain.notification.subscriber;
 
 import com.eeum.domain.notification.dto.request.MailRequest;
 import com.eeum.domain.notification.service.MailService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @RequiredArgsConstructor
@@ -25,7 +25,7 @@ public class MailSubscriber implements MessageListener {
             MailRequest mailRequest = objectMapper.readValue(jsonBody, MailRequest.class);
             mailService.sendHtmlMail(mailRequest);
             log.info("[MailSubscriber] 메일 전송 완료 - to={}", mailRequest.to());
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("[MailSubscriber] 메시지 역직렬화 실패", e);
         } catch (Exception e) {
             log.error("[MailSubscriber] 메일 전송 실패", e);

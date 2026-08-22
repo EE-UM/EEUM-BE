@@ -25,10 +25,10 @@ public class SpamFilterService {
     public static final int DEFAULT_SCORE = 0;
     public static final int SCORE_ADD_UNIT = 1;
     public static final String SYSTEM_MESSAGE = """
-                You are a spam classifier.
-                If the text contains profanity, hate, harassment, sexual content, violence, spam, or ads → set flag = 1.
-                If safe → set flag = 0.
-            """;
+            You are a spam classifier.
+            If the text contains profanity, hate, harassment, sexual content, violence, spam, or ads → set flag = 1.
+            If safe → set flag = 0.
+        """;
 
     private final ChatClient chatClient;
 
@@ -49,47 +49,50 @@ public class SpamFilterService {
 
         List<String> findWords = forbiddenWordsRepository.findIn(tokens);
         if (!findWords.isEmpty()) {
-            score += SCORE_ADD_UNIT;
+            score += 2;
         }
 
         if (spamPostAiFilter(content)) {
             score += SCORE_ADD_UNIT;
         }
 
+        System.out.println(score);
         determineByScore(postId, score);
     }
 
     private void determineByScore(Long postId, int score) {
         Posts posts = postsRepository.findById(postId)
-                .orElseThrow();
+            .orElseThrow();
 
         if (score == 1) {
-            messageService.sendDiscordWebhookMessage(DiscordWebhookResponse.of(SpamMessageFormatter.formatSpamMessageLevel1(
+            messageService.sendDiscordWebhookMessage(
+                DiscordWebhookResponse.of(SpamMessageFormatter.formatSpamMessageLevel1(
                     String.valueOf(posts.getUserId()),
                     String.valueOf(posts.getId()),
                     String.valueOf(score),
                     posts.getContent()
-            )), DiscordWebhookType.SPAM);
+                )), DiscordWebhookType.SPAM);
         }
 
-        if (score == 2) {
-            posts.softDelete();
-            messageService.sendDiscordWebhookMessage(DiscordWebhookResponse.of(SpamMessageFormatter.formatSpamMessageLevel2(
+        if (score >= 2) {
+            postsRepository.delete(posts);
+            messageService.sendDiscordWebhookMessage(
+                DiscordWebhookResponse.of(SpamMessageFormatter.formatSpamMessageLevel2(
                     String.valueOf(posts.getUserId()),
                     String.valueOf(posts.getId()),
                     String.valueOf(score),
                     posts.getContent()
-            )), DiscordWebhookType.SPAM);
+                )), DiscordWebhookType.SPAM);
         }
     }
 
     private boolean spamPostAiFilter(String content) {
         SpamResultResponse result = chatClient.prompt()
-                .advisors(AdvisorParams.ENABLE_NATIVE_STRUCTURED_OUTPUT)
-                .system(SYSTEM_MESSAGE)
-                .user(content)
-                .call()
-                .entity(SpamResultResponse.class);
+            .advisors(AdvisorParams.ENABLE_NATIVE_STRUCTURED_OUTPUT)
+            .system(SYSTEM_MESSAGE)
+            .user(content)
+            .call()
+            .entity(SpamResultResponse.class);
 
         return result.label() == 1;
     }
