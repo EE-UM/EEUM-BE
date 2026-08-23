@@ -59,6 +59,8 @@ public class ReportFacade {
     public CommentReportResponse reportComment(Long reporterUserId,
         CommentReportRequest commentReportRequest) {
         String commentContent = reportService.commentReport(reporterUserId, commentReportRequest);
+        userService.block(reporterUserId,
+            BlockUserRequest.of(commentReportRequest.reportedUserId()));
 
         sendDiscordNotification(String.valueOf(reporterUserId),
             String.valueOf(commentReportRequest.reportedUserId()),
