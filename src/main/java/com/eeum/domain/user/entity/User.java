@@ -53,6 +53,10 @@ public class User implements UserPrincipalInfo {
         this.email = email;
     }
 
+    public void updateStatus(Status status) {
+        this.status = status;
+    }
+
     public static User of(String nickname, String username, String email, String role,
         String provider, String providerId, boolean isRegistered) {
         LocalDateTime now = LocalDateTime.now();
@@ -69,7 +73,7 @@ public class User implements UserPrincipalInfo {
             .build();
     }
 
-    @Builder
+    @Builder(access = AccessLevel.PRIVATE)
     public User(String nickname, String username, String email, String role, String provider,
         String providerId, boolean isRegistered, String fcmToken, LocalDateTime createdAt,
         LocalDateTime updatedAt) {

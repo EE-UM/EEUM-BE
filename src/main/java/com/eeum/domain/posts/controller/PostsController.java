@@ -55,18 +55,24 @@ public class PostsController implements PostsApi {
 
   @GetMapping("/ing/infinite-scroll")
   public ApiResponse<List<PostsReadInfiniteScrollResponse>> readAllInfiniteScrollIng(
+      @CurrentUser UserPrincipal userPrincipal,
       @RequestParam(value = "pageSize", defaultValue = "5") Long pageSize,
       @RequestParam(value = "lastPostId", required = false) Long lastPostId
   ) {
-    return ApiResponse.success(postsService.readAllInfiniteScrollIng(pageSize, lastPostId));
+    Long currentUserId = userPrincipal != null ? userPrincipal.getId() : null;
+    return ApiResponse.success(
+        postsService.readAllInfiniteScrollIng(pageSize, lastPostId, currentUserId));
   }
 
   @GetMapping("/done/infinite-scroll")
   public ApiResponse<List<PostsReadInfiniteScrollResponse>> readAllInfiniteScrollDone(
+      @CurrentUser UserPrincipal userPrincipal,
       @RequestParam(value = "pageSize", defaultValue = "5") Long pageSize,
       @RequestParam(value = "lastPostId", required = false) Long lastPostId
   ) {
-    return ApiResponse.success(postsService.readAllInfiniteScrollDone(pageSize, lastPostId));
+    Long currentUserId = userPrincipal != null ? userPrincipal.getId() : null;
+    return ApiResponse.success(
+        postsService.readAllInfiniteScrollDone(pageSize, lastPostId, currentUserId));
   }
 
   @DeleteMapping("/{postId}")

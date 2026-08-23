@@ -11,20 +11,29 @@ import org.springframework.data.repository.query.Param;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query(
-            value = "select c.* from comments c where c.user_id = :userId and c.id = :commentId and c.is_deleted = false",
+            value = "select c.* from comments c where c.user_id = :userId and c.id = :commentId and c.deleted is null",
             nativeQuery = true
     )
     Optional<Comment> findByIdAndUserId(Long userId, Long commentId);
 
     @Query(
-            value = "select c.* from comments c where c.post_id = :postId and c.is_deleted = false order by c.created_at asc",
+            value = "select c.* from comments c " +
+                    "where c.post_id = :postId " +
+                    "and c.deleted is null " +
+                    "and not exists (" +
+                    "select 1 from block b " +
+                    "where b.blocker_user_id = :currentUserId " +
+                    "and b.blocked_user_id = c.user_id " +
+                    "and b.deleted is null" +
+                    ") " +
+                    "order by c.created_at asc",
             nativeQuery = true
     )
-    List<Comment> findAllByPostsId(Long postId);
+    List<Comment> findAllByPostsId(@Param("postId") Long postId, @Param("currentUserId") Long currentUserId);
 
     @Modifying
     @Query(
-            value = "update comments set is_deleted = true where id = :commentId",
+            value = "update comments set deleted = current_timestamp(6) where id = :commentId",
             nativeQuery = true
     )
     void softDelete(@Param("commentId") Long commentId);

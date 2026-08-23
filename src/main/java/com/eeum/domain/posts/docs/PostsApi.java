@@ -32,12 +32,14 @@ public interface PostsApi {
 
     @Operation(summary = "진행중인 플레이리스트(게시글) 조회", description = "진행 상태인 플레이리스트(게시글)을 무한 스크롤 방식으로 조회합니다.")
     ApiResponse<List<PostsReadInfiniteScrollResponse>> readAllInfiniteScrollIng(
+            @CurrentUser UserPrincipal userPrincipal,
             @RequestParam("pageSize") Long pageSize,
             @RequestParam(value = "lastPostId", required = false) Long lastPostId
     );
 
     @Operation(summary = "완료된 플레이리스트(게시글) 조회", description = "완료된 플레이리스트(게시글)을 무한 스크롤 방식으로 조회합니다.")
     ApiResponse<List<PostsReadInfiniteScrollResponse>> readAllInfiniteScrollDone(
+            @CurrentUser UserPrincipal userPrincipal,
             @RequestParam("pageSize") Long pageSize,
             @RequestParam(value = "lastPostId", required = false) Long lastPostId
     );

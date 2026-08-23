@@ -13,6 +13,8 @@ import com.eeum.domain.posts.entity.Album;
 import com.eeum.domain.posts.entity.CompletionType;
 import com.eeum.domain.posts.entity.Posts;
 import com.eeum.domain.posts.repository.PostsRepository;
+import com.eeum.domain.user.entity.User;
+import com.eeum.domain.user.repository.UserRepository;
 import com.eeum.global.securitycore.token.UserPrincipal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,6 +51,9 @@ class CommentServiceTest {
     private PostsRepository postsRepository;
 
     @Mock
+    private UserRepository userRepository;
+
+    @Mock
     private CommentProducer commentProducer;
 
     private static final Long POST_ID = 1L;
@@ -79,14 +84,19 @@ class CommentServiceTest {
         CommentCount commentCount = CommentCount.of(POST_ID, 1L, 5L);
         Posts post = createPost("포스트앨범", "포스트아티스트", false);
 
+        User user = User.of("닉네임", "testUser", "test@test.com", "ROLE_USER", "provider",
+                "providerId", true);
+
         given(commentCountRepository.findByPostId(POST_ID)).willReturn(Optional.of(commentCount));
         given(postsRepository.findById(POST_ID)).willReturn(Optional.of(post));
         given(commentRepository.save(any(Comment.class))).willAnswer(inv -> inv.getArgument(0));
+        given(userRepository.findById(USER_ID)).willReturn(Optional.of(user));
 
         CommentResponse response = commentService.create(userPrincipal, request);
 
         assertThat(response).isNotNull();
         assertThat(response.content()).isEqualTo("댓글 내용");
+        assertThat(response.nickname()).isEqualTo("닉네임");
         verify(commentRepository).save(any(Comment.class));
     }
 
@@ -170,12 +180,18 @@ class CommentServiceTest {
                 com.eeum.domain.comment.entity.Album.of("앨범", "노래", "아티스트", "url", "url2");
         Comment comment1 = Comment.of("댓글1", POST_ID, USER_ID, "user1", commentAlbum);
         Comment comment2 = Comment.of("댓글2", POST_ID, USER_ID, "user1", commentAlbum);
-        given(commentRepository.findAllByPostsId(POST_ID)).willReturn(List.of(comment1, comment2));
+        given(commentRepository.findAllByPostsId(POST_ID, USER_ID)).willReturn(List.of(comment1, comment2));
 
-        List<CommentResponse> result = commentService.readAllCommentsOfPost(POST_ID);
+        User user = org.mockito.Mockito.mock(User.class);
+        given(user.getId()).willReturn(USER_ID);
+        given(user.getNickname()).willReturn("닉네임");
+        given(userRepository.findAllById(List.of(USER_ID))).willReturn(List.of(user));
+
+        List<CommentResponse> result = commentService.readAllCommentsOfPost(POST_ID, USER_ID);
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0).content()).isEqualTo("댓글1");
+        assertThat(result.get(0).nickname()).isEqualTo("닉네임");
         assertThat(result.get(1).content()).isEqualTo("댓글2");
     }
 
