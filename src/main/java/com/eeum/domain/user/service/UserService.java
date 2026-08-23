@@ -17,6 +17,7 @@ import com.eeum.domain.user.dto.response.LoginResponse;
 import com.eeum.domain.user.dto.response.UnblockUserResponse;
 import com.eeum.domain.user.dto.response.UpdateProfileResponse;
 import com.eeum.domain.user.entity.Block;
+import com.eeum.domain.user.entity.Status;
 import com.eeum.domain.user.entity.User;
 import com.eeum.domain.user.repository.BlockRepository;
 import com.eeum.domain.user.repository.UserRepository;
@@ -109,6 +110,12 @@ public class UserService {
         validateInvalidToken(providerId);
 
         User user = findOrCreateUser(provider.name(), providerId, idTokenRequest.idToken());
+        if (user.getStatus() == Status.BANNED || user.getStatus() == Status.SUSPENDED) {
+            throw new IllegalStateException("제한된 계정입니다.");
+        }
+        if (user.getStatus() == Status.DELETED) {
+            user.updateStatus(Status.ACTIVE);
+        }
 
         String accessToken = jwtUtil.createJwt("access", user.getId(), providerId, "USER",
             user.getEmail());
@@ -118,9 +125,21 @@ public class UserService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public LoginResponse testLogin() {
-        String accessToken = jwtUtil.createJwt("access", 195558282701148161L, "test", "USER",
+        User user = userRepository.findById(850040857869472723L)
+            .orElseThrow(() -> new RuntimeException());
+        if (user.getStatus() == Status.DELETED) {
+            user.updateStatus(Status.ACTIVE);
+        }
+        String accessToken = jwtUtil.createJwt("access", 850040857869472723L, "test", "USER",
             "test@naver.com");
         return LoginResponse.of(accessToken, false);
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public void closeAccount(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalStateException("이미 삭제된 계정입니다."));
+        user.updateStatus(Status.DELETED);
     }
 
     private User findOrCreateUserByDeviceLogin(String deviceId, String provider) {
