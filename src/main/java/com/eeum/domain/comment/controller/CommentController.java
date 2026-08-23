@@ -21,9 +21,11 @@ public class CommentController implements CommentApi {
 
     @GetMapping("/{postId}")
     public ApiResponse<List<CommentResponse>> readAllCommentsOfPost(
+            @CurrentUser UserPrincipal userPrincipal,
             @PathVariable("postId") Long postId
     ) {
-        List<CommentResponse> response = commentService.readAllCommentsOfPost(postId);
+        Long currentUserId = userPrincipal != null ? userPrincipal.getId() : null;
+        List<CommentResponse> response = commentService.readAllCommentsOfPost(postId, currentUserId);
         return ApiResponse.success(response);
     }
 

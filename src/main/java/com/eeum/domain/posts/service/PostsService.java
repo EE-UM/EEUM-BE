@@ -33,6 +33,8 @@ import com.eeum.domain.posts.repository.PostsQueryModel;
 import com.eeum.domain.posts.repository.PostsQueryModelRepository;
 import com.eeum.domain.posts.repository.PostsRandomShakeRepository;
 import com.eeum.domain.posts.repository.PostsRepository;
+import com.eeum.domain.user.entity.User;
+import com.eeum.domain.user.repository.UserRepository;
 import com.eeum.domain.view.service.ViewService;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Duration;
@@ -40,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -52,274 +55,299 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class PostsService {
 
-  private final PostsRepository postsRepository;
-  private final PostsQueryModelRepository postsQueryModelRepository;
-  private final CommentRepository commentRepository;
-  private final CommentCountRepository commentCountRepository;
-  private final LikeRepository likeRepository;
-  private final ViewService viewService;
-  private final PostsRandomShakeRepository postsRandomShakeRepository;
-  private final PostsCommentCountRepository postsCommentCountRepository;
+    private final PostsRepository postsRepository;
+    private final PostsQueryModelRepository postsQueryModelRepository;
+    private final CommentRepository commentRepository;
+    private final CommentCountRepository commentCountRepository;
+    private final LikeRepository likeRepository;
+    private final ViewService viewService;
+    private final PostsRandomShakeRepository postsRandomShakeRepository;
+    private final PostsCommentCountRepository postsCommentCountRepository;
+    private final UserRepository userRepository;
 
-  private final SpamFilterPublisher spamFilterPublisher;
+    private final SpamFilterPublisher spamFilterPublisher;
 
-  @Transactional(isolation = Isolation.READ_COMMITTED)
-  public CreatePostResponse createPost(Long userId, CreatePostRequest createPostRequest) {
-    validateInvalidAutoCompletion(createPostRequest);
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public CreatePostResponse createPost(Long userId, CreatePostRequest createPostRequest) {
+        validateInvalidAutoCompletion(createPostRequest);
 
-    Album album = Album.of(createPostRequest.albumName(), createPostRequest.songName(),
-        createPostRequest.artistName(), createPostRequest.artworkUrl(),
-        createPostRequest.appleMusicUrl());
-    Posts posts = Posts.of(createPostRequest.title(), createPostRequest.content(), album, userId);
-    posts.updateCompletionType(createPostRequest.completionType());
-    Posts savedPost = postsRepository.save(posts);
+        Album album = Album.of(createPostRequest.albumName(), createPostRequest.songName(),
+            createPostRequest.artistName(), createPostRequest.artworkUrl(),
+            createPostRequest.appleMusicUrl());
+        Posts posts = Posts.of(createPostRequest.title(), createPostRequest.content(), album,
+            userId);
+        posts.updateCompletionType(createPostRequest.completionType());
+        Posts savedPost = postsRepository.save(posts);
 
-    createPostCommentCount(savedPost, createPostRequest.commentCountLimit());
+        createPostCommentCount(savedPost, createPostRequest.commentCountLimit());
 
-    addRedisRandomPool(savedPost);
+        addRedisRandomPool(savedPost);
 
-    spamFilterPublisher.publish(SpamFilterRequest.of(posts.getId(), posts.getContent()));
+        spamFilterPublisher.publish(SpamFilterRequest.of(posts.getId(), posts.getContent()));
 
-    createPostsCommentCount(createPostRequest, posts);
+        createPostsCommentCount(createPostRequest, posts);
 
-    return CreatePostResponse.of(posts.getId(), userId);
-  }
-
-  @Transactional(isolation = Isolation.READ_COMMITTED)
-  public UpdatePostResponse updatePost(Long userId, UpdatePostRequest updatePostRequest) {
-    Posts posts = postsRepository.findByIdAndUserId(updatePostRequest.postId(), userId)
-        .orElseThrow(() -> new EntityNotFoundException("Can't find the post."));
-
-    Album album = Album.of(updatePostRequest.albumName(), updatePostRequest.songName(),
-        updatePostRequest.artistName(),
-        updatePostRequest.artworkUrl(), updatePostRequest.appleMusicUrl());
-
-    posts.update(updatePostRequest.title(), updatePostRequest.content(), album);
-
-    if (!posts.getIsCompleted()) {
-      addRedisRandomPool(posts);
-    } else {
-      postsRandomShakeRepository.removeCandidate(String.valueOf(posts.getId()));
+        return CreatePostResponse.of(posts.getId(), userId);
     }
 
-    return UpdatePostResponse.from(posts);
-  }
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public UpdatePostResponse updatePost(Long userId, UpdatePostRequest updatePostRequest) {
+        Posts posts = postsRepository.findByIdAndUserId(updatePostRequest.postId(), userId)
+            .orElseThrow(() -> new EntityNotFoundException("Can't find the post."));
 
-  @Transactional(isolation = Isolation.READ_COMMITTED)
-  public Long delete(Long userId, Long postId) {
-    Posts posts = postsRepository.findById(postId)
-        .orElseThrow(() -> new IllegalArgumentException("Can not find the post."));
-    if (!Objects.equals(posts.getUserId(), userId)) {
-      throw new IllegalArgumentException("Only the author can delete this post.");
+        Album album = Album.of(updatePostRequest.albumName(), updatePostRequest.songName(),
+            updatePostRequest.artistName(),
+            updatePostRequest.artworkUrl(), updatePostRequest.appleMusicUrl());
+
+        posts.update(updatePostRequest.title(), updatePostRequest.content(), album);
+
+        if (!posts.getIsCompleted()) {
+            addRedisRandomPool(posts);
+        } else {
+            postsRandomShakeRepository.removeCandidate(String.valueOf(posts.getId()));
+        }
+
+        return UpdatePostResponse.from(posts);
     }
 
-    postsRepository.deleteById(postId);
-    postsRandomShakeRepository.removeCandidate(String.valueOf(postId));
-    return postId;
-  }
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public Long delete(Long userId, Long postId) {
+        Posts posts = postsRepository.findById(postId)
+            .orElseThrow(() -> new IllegalArgumentException("Can not find the post."));
+        if (!Objects.equals(posts.getUserId(), userId)) {
+            throw new IllegalArgumentException("Only the author can delete this post.");
+        }
 
-  @Transactional(isolation = Isolation.READ_COMMITTED)
-  public ShowRandomStoryOnShakeResponse showRandomStoryOnShake() {
-    ShowRandomStoryOnShakeResponse showRandomStoryOnShakeResponse = postsRandomShakeRepository.pickRandom()
-        .orElseThrow(NoAvailablePostsException::new);
-    return showRandomStoryOnShakeResponse;
-  }
-
-  public GetMyPostsResponse getMyPosts(Long userId) {
-    List<Posts> posts = postsRepository.findByUserId(userId);
-
-    Long postCount = (long) posts.size();
-    List<GetMyPostResponse> getMyPostResponse = posts.stream().map(post -> {
-      PostsCommentCount postsCommentCount = postsCommentCountRepository.findByPostId(post.getId())
-          .orElseThrow(IllegalArgumentException::new);
-      GetMyPostResponse test = new GetMyPostResponse(post.getId(), post.getTitle(),
-          post.getAlbum().getArtworkUrl(), post.getIsCompleted(),
-          postsCommentCount.getCurrentCommentCount(), postsCommentCount.getTargetCommentCount());
-      return test;
-    }).toList();
-
-    return new GetMyPostsResponse(postCount, getMyPostResponse);
-  }
-
-  @Transactional(isolation = Isolation.READ_COMMITTED)
-  public PostsReadResponse read(Long userId, Long postId) {
-    if (userId != null) {
-      PostsQueryModel model = getPostsWithLikeStatusToQueryModel(userId, postId);
-
-      List<Comment> comments = commentRepository.findAllByPostsId(postId);
-      List<CommentResponse> commentResponse = comments.stream().map(CommentResponse::from).toList();
-
-      viewService.increase(postId, userId);
-      return PostsReadResponse.from(model, commentResponse);
+        postsRepository.deleteById(postId);
+        postsRandomShakeRepository.removeCandidate(String.valueOf(postId));
+        return postId;
     }
 
-    Posts post = postsRepository.findById(postId)
-        .orElseThrow(PostsNotFoundException::new);
-    PostsQueryModel model = PostsQueryModel.create(post, false);
-
-    List<Comment> comments = commentRepository.findAllByPostsId(postId);
-    List<CommentResponse> commentResponse = comments.stream().map(CommentResponse::from).toList();
-
-    return PostsReadResponse.from(model, commentResponse);
-  }
-
-  public List<PostsReadInfiniteScrollResponse> readAllInfiniteScrollIng(Long pageSize,
-      Long lastPostId) {
-    return readAllInfiniteScrollPostsIds(lastPostId, pageSize);
-  }
-
-  public List<PostsReadInfiniteScrollResponse> readAllInfiniteScrollDone(Long pageSize,
-      Long lastPostId) {
-    return readAllInfiniteScrollPostsIdsDone(lastPostId, pageSize);
-  }
-
-  @Transactional(isolation = Isolation.READ_COMMITTED)
-  public CompletePostResponse completePost(Long userId, Long postId) {
-    log.info("userId = {}", userId);
-    log.info("postId = {}", postId);
-    Posts posts = postsRepository.findByIdAndUserId(postId, userId)
-        .orElseThrow(
-            () -> new IllegalArgumentException("Can't find a post written by the userId."));
-
-    posts.updateIsCompleted();
-
-    return CompletePostResponse.of(posts.getId(), posts.getUserId(), posts.getIsCompleted());
-  }
-
-  public GetLikedPostsWithSizeResponse getLikedPosts(Long userId) {
-    List<Posts> posts = postsRepository.findPostsLikedByUserId(userId);
-    long postsCount = posts.size();
-    log.info("posts Size: {}", posts.size());
-
-    List<GetLikedPostsResponse> getLikedPostsResponses = posts.stream()
-        .map(GetLikedPostsResponse::from).toList();
-    return new GetLikedPostsWithSizeResponse(postsCount, getLikedPostsResponses);
-  }
-
-  public GetCommentedPostsWithSizeResponse getCommentedPosts(Long userId) {
-    List<Posts> posts = postsRepository.findPostsCommentedByUserId(userId);
-    long postsSize = posts.size();
-
-    List<GetCommentedPostsResponse> getCommentedPostsResponses = posts.stream()
-        .map(GetCommentedPostsResponse::from)
-        .toList();
-    return new GetCommentedPostsWithSizeResponse(postsSize, getCommentedPostsResponses);
-  }
-
-  private void createPostsCommentCount(CreatePostRequest createPostRequest, Posts posts) {
-    PostsCommentCount postsCommentCount = PostsCommentCount.of(posts.getId(),
-        createPostRequest.commentCountLimit());
-    postsCommentCountRepository.save(postsCommentCount);
-  }
-
-  private PostsQueryModel getPostsWithLikeStatusToQueryModel(Long userId, Long postId) {
-    Posts post = postsRepository.findById(postId)
-        .orElseThrow(PostsNotFoundException::new);
-    boolean isLiked = likeRepository.existsByPostIdAndUserId(postId, userId);
-    return PostsQueryModel.create(post, isLiked);
-  }
-
-  private void addRedisRandomPool(Posts savedPost) {
-    postsRandomShakeRepository.addCandidate(new ShowRandomStoryOnShakeResponse(
-        savedPost.getId(),
-        savedPost.getUserId(),
-        savedPost.getTitle(),
-        savedPost.getContent()
-    ));
-  }
-
-  private static void validateInvalidAutoCompletion(CreatePostRequest createPostRequest) {
-    if (createPostRequest.completionType().equals(CompletionType.AUTO_COMPLETION)
-        && createPostRequest.commentCountLimit() == null) {
-      throw new IllegalArgumentException(
-          "Comment count limit must not be null when the post is set to auto-complete.");
-    }
-  }
-
-  private void createPostCommentCount(Posts savedPost, Long commentCountLimit) {
-    CommentCount commentCount = CommentCount.of(savedPost.getId(), 0L,
-        commentCountLimit == null ? 0L : commentCountLimit);
-    commentCountRepository.save(commentCount);
-  }
-
-  private Optional<PostsQueryModel> fetch(Long postId) {
-    Posts post = postsRepository.findById(postId)
-        .orElseThrow(PostsNotFoundException::new);
-    PostsQueryModel model = PostsQueryModel.create(post, Boolean.FALSE);
-
-    postsQueryModelRepository.create(model, Duration.ofSeconds(60));
-    return Optional.of(model);
-  }
-
-  private List<PostsReadInfiniteScrollResponse> readAll(List<Long> postsIds) {
-    log.info("[PostsReadService.readAll] input postIds: {}", postsIds);
-    Map<Long, PostsQueryModel> postsQueryModelMap = postsQueryModelRepository.readAll(postsIds);
-    log.info("[PostsReadService.readAll] cached postsMap keys: {}", postsQueryModelMap.keySet());
-
-    List<PostsReadInfiniteScrollResponse> result = postsIds.stream()
-        .map(postId -> {
-          Long unpaddedId = postId;
-          PostsQueryModel model = postsQueryModelMap.containsKey(unpaddedId)
-              ? postsQueryModelMap.get(unpaddedId)
-              : fetch(postId).orElse(null);
-
-          if (model == null) {
-            log.warn("[readAll] model is null for postId={}", postId);
-          } else {
-            log.info("[readAll] found model for postId={}: {}", postId, model);
-          }
-          return model;
-        })
-        .filter(Objects::nonNull)
-        .map(postsQueryModel -> {
-          try {
-            PostsReadInfiniteScrollResponse dto = PostsReadInfiniteScrollResponse.from(
-                postsQueryModel);
-            log.info("[readAll] successfully converted DTO for postId={}",
-                postsQueryModel.getPostId());
-            return dto;
-          } catch (Exception e) {
-            log.error("[readAll] failed to convert DTO for postId={}", postsQueryModel.getPostId(),
-                e);
-            return null;
-          }
-        })
-        .toList();
-
-    log.info("[PostsReadService.readAll] final response size: {}", result.size());
-    return result;
-  }
-
-  private List<PostsReadInfiniteScrollResponse> readAllInfiniteScrollPostsIds(Long lastPostId,
-      Long pageSize) {
-    if (lastPostId == null) {
-      List<Posts> posts = postsRepository.findAllInfiniteScroll(pageSize);
-
-      return posts.stream()
-          .map(post -> PostsReadInfiniteScrollResponse.from(PostsQueryModel.create(post, false)))
-          .toList();
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public ShowRandomStoryOnShakeResponse showRandomStoryOnShake() {
+        ShowRandomStoryOnShakeResponse showRandomStoryOnShakeResponse = postsRandomShakeRepository.pickRandom()
+            .orElseThrow(NoAvailablePostsException::new);
+        return showRandomStoryOnShakeResponse;
     }
 
-    List<Posts> posts = postsRepository.findAllInfiniteScroll(pageSize, lastPostId);
-    return posts.stream()
-        .map(post -> PostsReadInfiniteScrollResponse.from(PostsQueryModel.create(post, false)))
-        .toList();
-  }
+    public GetMyPostsResponse getMyPosts(Long userId) {
+        List<Posts> posts = postsRepository.findByUserId(userId);
 
-  private List<PostsReadInfiniteScrollResponse> readAllInfiniteScrollPostsIdsDone(Long lastPostId,
-      Long pageSize) {
-    if (lastPostId == null) {
-      List<Posts> posts = postsRepository.findAllInfiniteScrollDone(pageSize);
+        Long postCount = (long) posts.size();
+        List<GetMyPostResponse> getMyPostResponse = posts.stream().map(post -> {
+            PostsCommentCount postsCommentCount = postsCommentCountRepository.findByPostId(
+                    post.getId())
+                .orElseThrow(IllegalArgumentException::new);
+            GetMyPostResponse test = new GetMyPostResponse(post.getId(), post.getTitle(),
+                post.getAlbum().getArtworkUrl(), post.getIsCompleted(),
+                postsCommentCount.getCurrentCommentCount(),
+                postsCommentCount.getTargetCommentCount());
+            return test;
+        }).toList();
 
-      return posts.stream()
-          .map(post -> PostsReadInfiniteScrollResponse.from(PostsQueryModel.create(post, false)))
-          .toList();
+        return new GetMyPostsResponse(postCount, getMyPostResponse);
     }
 
-    List<Posts> posts = postsRepository.findAllInfiniteScrollDone(pageSize, lastPostId);
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public PostsReadResponse read(Long userId, Long postId) {
+        if (userId != null) {
+            PostsQueryModel model = getPostsWithLikeStatusToQueryModel(userId, postId);
 
-    return posts.stream()
-        .map(post -> PostsReadInfiniteScrollResponse.from(PostsQueryModel.create(post, false)))
-        .toList();
-  }
+            List<Comment> comments = commentRepository.findAllByPostsId(postId, userId);
+            List<CommentResponse> commentResponse = toCommentResponses(comments);
+
+            viewService.increase(postId, userId);
+            return PostsReadResponse.from(model, commentResponse);
+        }
+
+        Posts post = postsRepository.findById(postId)
+            .orElseThrow(PostsNotFoundException::new);
+        String nickname = resolveNickname(post.getUserId());
+        PostsQueryModel model = PostsQueryModel.create(post, false, nickname);
+
+        List<Comment> comments = commentRepository.findAllByPostsId(postId, null);
+        List<CommentResponse> commentResponse = toCommentResponses(comments);
+
+        return PostsReadResponse.from(model, commentResponse);
+    }
+
+    public List<PostsReadInfiniteScrollResponse> readAllInfiniteScrollIng(Long pageSize,
+        Long lastPostId, Long currentUserId) {
+        return readAllInfiniteScrollPostsIds(lastPostId, pageSize, currentUserId);
+    }
+
+    public List<PostsReadInfiniteScrollResponse> readAllInfiniteScrollDone(Long pageSize,
+        Long lastPostId, Long currentUserId) {
+        return readAllInfiniteScrollPostsIdsDone(lastPostId, pageSize, currentUserId);
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public CompletePostResponse completePost(Long userId, Long postId) {
+        log.info("userId = {}", userId);
+        log.info("postId = {}", postId);
+        Posts posts = postsRepository.findByIdAndUserId(postId, userId)
+            .orElseThrow(
+                () -> new IllegalArgumentException("Can't find a post written by the userId."));
+
+        posts.updateIsCompleted();
+
+        return CompletePostResponse.of(posts.getId(), posts.getUserId(), posts.getIsCompleted());
+    }
+
+    public GetLikedPostsWithSizeResponse getLikedPosts(Long userId) {
+        List<Posts> posts = postsRepository.findPostsLikedByUserId(userId);
+        long postsCount = posts.size();
+        log.info("posts Size: {}", posts.size());
+
+        List<GetLikedPostsResponse> getLikedPostsResponses = posts.stream()
+            .map(GetLikedPostsResponse::from).toList();
+        return new GetLikedPostsWithSizeResponse(postsCount, getLikedPostsResponses);
+    }
+
+    public GetCommentedPostsWithSizeResponse getCommentedPosts(Long userId) {
+        List<Posts> posts = postsRepository.findPostsCommentedByUserId(userId);
+        long postsSize = posts.size();
+
+        List<GetCommentedPostsResponse> getCommentedPostsResponses = posts.stream()
+            .map(GetCommentedPostsResponse::from)
+            .toList();
+        return new GetCommentedPostsWithSizeResponse(postsSize, getCommentedPostsResponses);
+    }
+
+    private void createPostsCommentCount(CreatePostRequest createPostRequest, Posts posts) {
+        PostsCommentCount postsCommentCount = PostsCommentCount.of(posts.getId(),
+            createPostRequest.commentCountLimit());
+        postsCommentCountRepository.save(postsCommentCount);
+    }
+
+    private PostsQueryModel getPostsWithLikeStatusToQueryModel(Long userId, Long postId) {
+        Posts post = postsRepository.findById(postId)
+            .orElseThrow(PostsNotFoundException::new);
+        boolean isLiked = likeRepository.existsByPostIdAndUserId(postId, userId);
+        String nickname = resolveNickname(post.getUserId());
+        return PostsQueryModel.create(post, isLiked, nickname);
+    }
+
+    private String resolveNickname(Long userId) {
+        return userRepository.findById(userId).map(User::getNickname).orElse(null);
+    }
+
+    private Map<Long, String> resolveNicknames(List<Long> userIds) {
+        List<Long> distinctUserIds = userIds.stream().distinct().toList();
+        return userRepository.findAllById(distinctUserIds).stream()
+            .collect(Collectors.toMap(User::getId, User::getNickname));
+    }
+
+    private List<CommentResponse> toCommentResponses(List<Comment> comments) {
+        Map<Long, String> nicknameByUserId = resolveNicknames(
+            comments.stream().map(Comment::getUserId).toList());
+        return comments.stream()
+            .map(comment -> CommentResponse.from(comment, nicknameByUserId.get(comment.getUserId())))
+            .toList();
+    }
+
+    private List<PostsReadInfiniteScrollResponse> toInfiniteScrollResponses(List<Posts> posts) {
+        Map<Long, String> nicknameByUserId = resolveNicknames(
+            posts.stream().map(Posts::getUserId).toList());
+        return posts.stream()
+            .map(post -> PostsReadInfiniteScrollResponse.from(
+                PostsQueryModel.create(post, false, nicknameByUserId.get(post.getUserId()))))
+            .toList();
+    }
+
+    private void addRedisRandomPool(Posts savedPost) {
+        postsRandomShakeRepository.addCandidate(new ShowRandomStoryOnShakeResponse(
+            savedPost.getId(),
+            savedPost.getUserId(),
+            savedPost.getTitle(),
+            savedPost.getContent()
+        ));
+    }
+
+    private static void validateInvalidAutoCompletion(CreatePostRequest createPostRequest) {
+        if (createPostRequest.completionType().equals(CompletionType.AUTO_COMPLETION)
+            && createPostRequest.commentCountLimit() == null) {
+            throw new IllegalArgumentException(
+                "Comment count limit must not be null when the post is set to auto-complete.");
+        }
+    }
+
+    private void createPostCommentCount(Posts savedPost, Long commentCountLimit) {
+        CommentCount commentCount = CommentCount.of(savedPost.getId(), 0L,
+            commentCountLimit == null ? 0L : commentCountLimit);
+        commentCountRepository.save(commentCount);
+    }
+
+    private Optional<PostsQueryModel> fetch(Long postId) {
+        Posts post = postsRepository.findById(postId)
+            .orElseThrow(PostsNotFoundException::new);
+        String nickname = resolveNickname(post.getUserId());
+        PostsQueryModel model = PostsQueryModel.create(post, Boolean.FALSE, nickname);
+
+        postsQueryModelRepository.create(model, Duration.ofSeconds(60));
+        return Optional.of(model);
+    }
+
+    private List<PostsReadInfiniteScrollResponse> readAll(List<Long> postsIds) {
+        log.info("[PostsReadService.readAll] input postIds: {}", postsIds);
+        Map<Long, PostsQueryModel> postsQueryModelMap = postsQueryModelRepository.readAll(postsIds);
+        log.info("[PostsReadService.readAll] cached postsMap keys: {}",
+            postsQueryModelMap.keySet());
+
+        List<PostsReadInfiniteScrollResponse> result = postsIds.stream()
+            .map(postId -> {
+                Long unpaddedId = postId;
+                PostsQueryModel model = postsQueryModelMap.containsKey(unpaddedId)
+                    ? postsQueryModelMap.get(unpaddedId)
+                    : fetch(postId).orElse(null);
+
+                if (model == null) {
+                    log.warn("[readAll] model is null for postId={}", postId);
+                } else {
+                    log.info("[readAll] found model for postId={}: {}", postId, model);
+                }
+                return model;
+            })
+            .filter(Objects::nonNull)
+            .map(postsQueryModel -> {
+                try {
+                    PostsReadInfiniteScrollResponse dto = PostsReadInfiniteScrollResponse.from(
+                        postsQueryModel);
+                    log.info("[readAll] successfully converted DTO for postId={}",
+                        postsQueryModel.getPostId());
+                    return dto;
+                } catch (Exception e) {
+                    log.error("[readAll] failed to convert DTO for postId={}",
+                        postsQueryModel.getPostId(),
+                        e);
+                    return null;
+                }
+            })
+            .toList();
+
+        log.info("[PostsReadService.readAll] final response size: {}", result.size());
+        return result;
+    }
+
+    private List<PostsReadInfiniteScrollResponse> readAllInfiniteScrollPostsIds(Long lastPostId,
+        Long pageSize, Long userId) {
+        if (lastPostId == null) {
+            List<Posts> posts = postsRepository.findAllInfiniteScroll(pageSize, userId);
+            return toInfiniteScrollResponses(posts);
+        }
+
+        List<Posts> posts = postsRepository.findAllInfiniteScroll(pageSize, lastPostId, userId);
+        return toInfiniteScrollResponses(posts);
+    }
+
+    private List<PostsReadInfiniteScrollResponse> readAllInfiniteScrollPostsIdsDone(Long lastPostId,
+        Long pageSize, Long userId) {
+        if (lastPostId == null) {
+            List<Posts> posts = postsRepository.findAllInfiniteScrollDone(pageSize, userId);
+            return toInfiniteScrollResponses(posts);
+        }
+
+        List<Posts> posts = postsRepository.findAllInfiniteScrollDone(pageSize, lastPostId, userId);
+        return toInfiniteScrollResponses(posts);
+    }
 }

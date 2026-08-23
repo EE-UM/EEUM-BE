@@ -12,8 +12,12 @@ import com.eeum.domain.comment.repository.CommentCountRepository;
 import com.eeum.domain.comment.repository.CommentRepository;
 import com.eeum.domain.posts.entity.Posts;
 import com.eeum.domain.posts.repository.PostsRepository;
+import com.eeum.domain.user.entity.User;
+import com.eeum.domain.user.repository.UserRepository;
 import com.eeum.global.securitycore.token.UserPrincipal;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,6 +37,7 @@ public class CommentService {
   private final CommentRepository commentRepository;
   private final CommentCountRepository commentCountRepository;
   private final PostsRepository postsRepository;
+  private final UserRepository userRepository;
 
   private final CommentProducer commentProducer;
 
@@ -57,14 +62,27 @@ public class CommentService {
         }
       });
     }
-    return CommentResponse.from(comment);
+    String nickname = userRepository.findById(userPrincipal.getId())
+        .map(User::getNickname)
+        .orElse(null);
+    return CommentResponse.from(comment, nickname);
   }
 
-  public List<CommentResponse> readAllCommentsOfPost(Long postId) {
-    List<Comment> comments = commentRepository.findAllByPostsId(postId);
-    List<CommentResponse> commentResponseList = comments.stream().map(CommentResponse::from)
+  public List<CommentResponse> readAllCommentsOfPost(Long postId, Long currentUserId) {
+    List<Comment> comments = commentRepository.findAllByPostsId(postId, currentUserId);
+    Map<Long, String> nicknameByUserId = resolveNicknames(
+        comments.stream().map(Comment::getUserId).toList());
+
+    List<CommentResponse> commentResponseList = comments.stream()
+        .map(comment -> CommentResponse.from(comment, nicknameByUserId.get(comment.getUserId())))
         .toList();
     return commentResponseList;
+  }
+
+  private Map<Long, String> resolveNicknames(List<Long> userIds) {
+    List<Long> distinctUserIds = userIds.stream().distinct().toList();
+    return userRepository.findAllById(distinctUserIds).stream()
+        .collect(Collectors.toMap(User::getId, User::getNickname));
   }
 
   @Transactional(isolation = Isolation.READ_COMMITTED)

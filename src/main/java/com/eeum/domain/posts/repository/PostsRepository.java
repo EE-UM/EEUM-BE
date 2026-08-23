@@ -17,47 +17,80 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
         value = "select * " +
             "from posts p " +
             "where p.is_completed = false " +
+            "and p.deleted is null " +
+            "and not exists (" +
+            "select 1 from block b " +
+            "where b.blocker_user_id = :currentUserId " +
+            "and b.blocked_user_id = p.user_id " +
+            "and b.deleted is null " +
+            ") " +
             "order by p.created_at desc limit :limit",
         nativeQuery = true
     )
-    List<Posts> findAllInfiniteScroll(@Param("limit") Long limit);
+    List<Posts> findAllInfiniteScroll(@Param("limit") Long limit,
+        @Param("currentUserId") Long currentUserId);
 
     @Query(
         value = "select * " +
             "from posts p " +
             "where p.id < :lastPostId " +
             "and p.is_completed = false " +
+            "and p.deleted is null " +
+            "and not exists (" +
+            "select 1 from block b " +
+            "where b.blocker_user_id = :currentUserId " +
+            "and b.blocked_user_id = p.user_id " +
+            "and b.deleted is null " +
+            ") " +
             "order by p.id, p.created_at desc limit :limit",
         nativeQuery = true
     )
     List<Posts> findAllInfiniteScroll(@Param("limit") Long limit,
-        @Param("lastPostId") Long lastPostId);
+        @Param("lastPostId") Long lastPostId,
+        @Param("currentUserId") Long currentUserId);
 
     @Query(
         value = "select * " +
             "from posts p " +
             "where p.is_completed = true " +
+            "and p.deleted is null " +
+            "and not exists (" +
+            "select 1 from block b " +
+            "where b.blocker_user_id = :currentUserId " +
+            "and b.blocked_user_id = p.user_id " +
+            "and b.deleted is null " +
+            ") " +
             "order by p.created_at desc limit :limit",
         nativeQuery = true
     )
-    List<Posts> findAllInfiniteScrollDone(@Param("limit") Long limit);
+    List<Posts> findAllInfiniteScrollDone(@Param("limit") Long limit,
+        @Param("currentUserId") Long currentUserId);
 
     @Query(
         value = "select * " +
             "from posts p " +
             "where p.id < :lastPostId " +
             "and p.is_completed = true " +
+            "and p.deleted is null " +
+            "and not exists (" +
+            "select 1 from block b " +
+            "where b.blocker_user_id = :currentUserId " +
+            "and b.blocked_user_id = p.user_id " +
+            "and b.deleted is null " +
+            ") " +
             "order by p.id, p.created_at desc limit :limit",
         nativeQuery = true
     )
     List<Posts> findAllInfiniteScrollDone(@Param("limit") Long limit,
-        @Param("lastPostId") Long lastPostId);
+        @Param("lastPostId") Long lastPostId,
+        @Param("currentUserId") Long currentUserId);
 
     @Query(
         value = "select p.* " +
             "from posts p " +
             "left join likes l on p.id = l.post_id " +
             "where l.user_id = :userId " +
+            "and p.deleted is null " +
             "order by p.created_at desc",
         nativeQuery = true
     )
@@ -65,7 +98,7 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
 
     @Query(
         value = "select distinct p.* " +
-            "from (select * from posts where is_deleted = false) p " +
+            "from (select * from posts where deleted is null) p " +
             "inner join comments c on p.id = c.post_id " +
             "where c.user_id = :userId ",
         nativeQuery = true
@@ -74,7 +107,8 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
 
     @Query(
         value = "select * from posts p " +
-            "where p.is_completed = false",
+            "where p.is_completed = false " +
+            "and p.deleted is null",
         nativeQuery = true
     )
     List<Posts> findAllActivePosts();

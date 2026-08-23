@@ -17,6 +17,7 @@ public interface CommentApi {
     @Operation(summary = "게시글 댓글 조회", description = "특정 게시글에 달린 모든 댓글을 조회합니다.")
     @GetMapping("/{postId}")
     ApiResponse<List<CommentResponse>> readAllCommentsOfPost(
+            @CurrentUser UserPrincipal userPrincipal,
             @PathVariable("postId") Long postId
     );
 

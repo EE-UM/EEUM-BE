@@ -10,6 +10,7 @@ public record CommentResponse(
         Long postId,
         Long userId,
         String username,
+        String nickname,
         String albumName,
         String songName,
         String artistName,
@@ -20,9 +21,9 @@ public record CommentResponse(
         LocalDateTime modifiedAt
 ) {
 
-    public static CommentResponse from(Comment comment) {
+    public static CommentResponse from(Comment comment, String nickname) {
         return new CommentResponse(comment.getId(), comment.getContent(), comment.getPostId(),
-                comment.getUserId(), comment.getUsername(),
+                comment.getUserId(), comment.getUsername(), nickname,
                 comment.getAlbum().getAlbumName(), comment.getAlbum().getSongName(),
                 comment.getAlbum().getArtistName(), comment.getAlbum().getArtworkUrl(),comment.getAlbum().getAppleMusicUrl(),
                 false, comment.getCreatedAt(), comment.getModifiedAt());

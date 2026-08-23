@@ -11,6 +11,7 @@ public class PostsQueryModel {
     private String title;
     private String content;
     private Long userId;
+    private String nickname;
     private String songName;
     private String artistName;
     private String artworkUrl;
@@ -21,12 +22,13 @@ public class PostsQueryModel {
     private boolean isLiked;
 
 
-    public static PostsQueryModel create(Posts posts, boolean isLiked) {
+    public static PostsQueryModel create(Posts posts, boolean isLiked, String nickname) {
         PostsQueryModel postsQueryModel = new PostsQueryModel();
         postsQueryModel.postId = posts.getId();
         postsQueryModel.title = posts.getTitle();
         postsQueryModel.content = posts.getContent();
         postsQueryModel.userId = posts.getUserId();
+        postsQueryModel.nickname = nickname;
         postsQueryModel.songName = posts.getAlbum().getSongName();
         postsQueryModel.artistName = posts.getAlbum().getArtistName();
         postsQueryModel.artworkUrl = posts.getAlbum().getArtworkUrl();
@@ -43,6 +45,7 @@ public class PostsQueryModel {
             String title,
             String content,
             Long userId,
+            String nickname,
             String songName,
             String artistName,
             String artworkUrl,
@@ -55,6 +58,7 @@ public class PostsQueryModel {
         postsQueryModel.title = title;
         postsQueryModel.content = content;
         postsQueryModel.userId = userId;
+        postsQueryModel.nickname = nickname;
         postsQueryModel.songName = songName;
         postsQueryModel.artistName = artistName;
         postsQueryModel.artworkUrl = artworkUrl;
