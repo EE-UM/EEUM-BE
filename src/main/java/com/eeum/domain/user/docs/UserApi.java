@@ -11,14 +11,23 @@ import com.eeum.global.securitycore.token.UserPrincipal;
 import com.eeum.global.support.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "User", description = "User API")
 public interface UserApi {
 
+    @Operation(summary = "계정 삭제", description = "계정을 영구적으로 삭제합니다.")
+    @DeleteMapping("/close")
+    ApiResponse<Void> closeAccount(@CurrentUser UserPrincipal userPrincipal);
+
     @Operation(summary = "프로필 수정", description = "유저 프로필 수정")
     @PatchMapping("/profile")
-    ApiResponse<UpdateProfileResponse> updateProfile(@CurrentUser UserPrincipal userPrincipal, @RequestBody UpdateProfileRequest updateProfileRequest);
+    ApiResponse<UpdateProfileResponse> updateProfile(@CurrentUser UserPrincipal userPrincipal,
+        @RequestBody UpdateProfileRequest updateProfileRequest);
 
     @Operation(summary = "프로필 조회", description = "유저 프로필 조회")
     @GetMapping("/profile")
