@@ -1,4 +1,4 @@
-package com.eeum.domain.user.entity;
+package com.eeum.domain.block.entity;
 
 import io.hypersistence.utils.hibernate.id.Tsid;
 import jakarta.persistence.Entity;

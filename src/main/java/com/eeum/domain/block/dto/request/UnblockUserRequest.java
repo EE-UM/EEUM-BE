@@ -1,6 +1,6 @@
-package com.eeum.domain.user.dto.request;
+package com.eeum.domain.block.dto.request;
 
-import com.eeum.domain.user.entity.Block;
+import com.eeum.domain.block.entity.Block;
 import lombok.AccessLevel;
 import lombok.Builder;
 

@@ -3,6 +3,8 @@ package com.eeum.domain.report.application;
 import static com.eeum.domain.report.constant.ReportType.COMMENT;
 import static com.eeum.domain.report.constant.ReportType.POSTS;
 
+import com.eeum.domain.block.dto.request.BlockUserRequest;
+import com.eeum.domain.block.service.BlockService;
 import com.eeum.domain.common.constant.DiscordWebhookType;
 import com.eeum.domain.common.webhook.discord.DiscordWebhookResponse;
 import com.eeum.domain.common.webhook.discord.MessageService;
@@ -14,8 +16,6 @@ import com.eeum.domain.report.dto.request.PostsReportRequest;
 import com.eeum.domain.report.dto.response.CommentReportResponse;
 import com.eeum.domain.report.dto.response.PostsReportResponse;
 import com.eeum.domain.report.service.ReportService;
-import com.eeum.domain.user.dto.request.BlockUserRequest;
-import com.eeum.domain.user.service.UserService;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,14 +26,15 @@ public class ReportFacade {
 
     private final ReportService reportService;
     private final MessageService messageService;
-    private final UserService userService;
+    private final BlockService blockService;
 
     private final MailPublisher mailPublisher;
 
     public PostsReportResponse reportPosts(Long reporterUserId,
         PostsReportRequest postsReportRequest) {
         String postContent = reportService.postsReport(reporterUserId, postsReportRequest);
-        userService.block(reporterUserId, BlockUserRequest.of(postsReportRequest.reportedUserId()));
+        blockService.block(reporterUserId,
+            BlockUserRequest.of(postsReportRequest.reportedUserId()));
 
         sendDiscordNotification(String.valueOf(reporterUserId),
             String.valueOf(postsReportRequest.reportedUserId()),
@@ -59,7 +60,7 @@ public class ReportFacade {
     public CommentReportResponse reportComment(Long reporterUserId,
         CommentReportRequest commentReportRequest) {
         String commentContent = reportService.commentReport(reporterUserId, commentReportRequest);
-        userService.block(reporterUserId,
+        blockService.block(reporterUserId,
             BlockUserRequest.of(commentReportRequest.reportedUserId()));
 
         sendDiscordNotification(String.valueOf(reporterUserId),
