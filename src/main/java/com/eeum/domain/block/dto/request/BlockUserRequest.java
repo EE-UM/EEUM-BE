@@ -1,4 +1,4 @@
-package com.eeum.domain.user.dto.request;
+package com.eeum.domain.block.dto.request;
 
 import lombok.AccessLevel;
 import lombok.Builder;
