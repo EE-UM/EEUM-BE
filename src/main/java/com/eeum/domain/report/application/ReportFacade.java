@@ -33,7 +33,8 @@ public class ReportFacade {
     public PostsReportResponse reportPosts(Long reporterUserId,
         PostsReportRequest postsReportRequest) {
         String postContent = reportService.postsReport(reporterUserId, postsReportRequest);
-        blockService.block(reporterUserId, BlockUserRequest.of(postsReportRequest.reportedUserId()));
+        blockService.block(reporterUserId,
+            BlockUserRequest.of(postsReportRequest.reportedUserId()));
 
         sendDiscordNotification(String.valueOf(reporterUserId),
             String.valueOf(postsReportRequest.reportedUserId()),

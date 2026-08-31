@@ -36,6 +36,15 @@ public class UserController implements UserApi {
         return ApiResponse.success(null);
     }
 
+    @DeleteMapping("/close")
+    public ApiResponse<Void> closeAccount(
+        @CurrentUser UserPrincipal userPrincipal
+    ) {
+        userService.closeAccount(userPrincipal.getId());
+
+        return ApiResponse.success(null);
+    }
+
     @PatchMapping("/profile")
     public ApiResponse<UpdateProfileResponse> updateProfile(
         @CurrentUser UserPrincipal userPrincipal,
