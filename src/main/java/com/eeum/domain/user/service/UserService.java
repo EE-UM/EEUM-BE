@@ -144,7 +144,7 @@ public class UserService {
                     }
                 }
 
-                User newUser = User.of("", username, email, "USER", provider, providerId, false);
+                User newUser = User.of("", username, email, "USER", provider, providerId, true);
                 return userRepository.saveAndFlush(newUser);
             });
     }
