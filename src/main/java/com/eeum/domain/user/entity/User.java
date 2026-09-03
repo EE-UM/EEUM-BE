@@ -89,4 +89,8 @@ public class User implements UserPrincipalInfo {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
+
+    public void updateIsRegister(Boolean status) {
+        this.isRegistered = status;
+    }
 }
