@@ -82,10 +82,11 @@ public class UserService {
         validateInvalidToken(providerId);
 
         User user = findOrCreateUser(provider.name(), providerId, idTokenRequest.idToken());
-        if (user.getStatus() == Status.BANNED || user.getStatus() == Status.SUSPENDED) {
-            throw new IllegalStateException("제한된 계정입니다.");
-        }
         if (user.getStatus() == Status.DELETED) {
+            if (user.getStatus() == Status.BANNED || user.getStatus() == Status.SUSPENDED) {
+                throw new IllegalStateException("제한된 계정입니다.");
+            }
+
             user.updateStatus(Status.ACTIVE);
         }
 
@@ -110,8 +111,13 @@ public class UserService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void closeAccount(Long userId) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new IllegalStateException("이미 삭제된 계정입니다."));
+            .orElseThrow(() -> new IllegalStateException("존재하지 않는 계정입니다."));
+        if (user.getStatus() == Status.DELETED) {
+            throw new IllegalStateException("이미 삭제된 계정입니다.");
+        }
+
         user.updateStatus(Status.DELETED);
+        user.updateIsRegister(Boolean.FALSE);
     }
 
     private User findOrCreateUserByDeviceLogin(String deviceId, String provider) {
