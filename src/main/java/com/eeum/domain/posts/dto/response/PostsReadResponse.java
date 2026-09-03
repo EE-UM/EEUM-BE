@@ -7,32 +7,35 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record PostsReadResponse(
-        Long postId,
-        String title,
-        String content,
-        String nickname,
-        String songName,
-        String artistName,
-        String artworkUrl,
-        String appleMusicUrl,
-        LocalDateTime createdAt,
-        Boolean isLiked,
-        List<CommentResponse> comments
+    Long userId,
+    Long postId,
+    String title,
+    String content,
+    String nickname,
+    String songName,
+    String artistName,
+    String artworkUrl,
+    String appleMusicUrl,
+    LocalDateTime createdAt,
+    Boolean isLiked,
+    List<CommentResponse> comments
 ) {
 
-    public static PostsReadResponse from(PostsQueryModel postsQueryModel, List<CommentResponse> comments) {
+    public static PostsReadResponse from(PostsQueryModel postsQueryModel,
+        List<CommentResponse> comments) {
         return new PostsReadResponse(
-                postsQueryModel.getPostId(),
-                postsQueryModel.getTitle(),
-                postsQueryModel.getContent(),
-                postsQueryModel.getNickname(),
-                postsQueryModel.getSongName(),
-                postsQueryModel.getArtistName(),
-                postsQueryModel.getArtworkUrl(),
-                postsQueryModel.getAppleMusicUrl(),
-                postsQueryModel.getCreatedAt(),
-                postsQueryModel.isLiked(),
-                comments
+            postsQueryModel.getUserId(),
+            postsQueryModel.getPostId(),
+            postsQueryModel.getTitle(),
+            postsQueryModel.getContent(),
+            postsQueryModel.getNickname(),
+            postsQueryModel.getSongName(),
+            postsQueryModel.getArtistName(),
+            postsQueryModel.getArtworkUrl(),
+            postsQueryModel.getAppleMusicUrl(),
+            postsQueryModel.getCreatedAt(),
+            postsQueryModel.isLiked(),
+            comments
         );
     }
 }

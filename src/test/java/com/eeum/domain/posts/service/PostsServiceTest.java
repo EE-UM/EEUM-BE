@@ -1,5 +1,12 @@
 package com.eeum.domain.posts.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
 import com.eeum.domain.comment.repository.CommentCountRepository;
 import com.eeum.domain.comment.repository.CommentRepository;
 import com.eeum.domain.like.repository.LikeRepository;
@@ -7,32 +14,27 @@ import com.eeum.domain.notification.publisher.SpamFilterPublisher;
 import com.eeum.domain.posts.dto.request.CreatePostRequest;
 import com.eeum.domain.posts.dto.response.CompletePostResponse;
 import com.eeum.domain.posts.dto.response.CreatePostResponse;
+import com.eeum.domain.posts.dto.response.PostsReadResponse;
 import com.eeum.domain.posts.entity.Album;
 import com.eeum.domain.posts.entity.CompletionType;
 import com.eeum.domain.posts.entity.Posts;
-import com.eeum.domain.posts.entity.PostsCommentCount;
 import com.eeum.domain.posts.exception.NoAvailablePostsException;
 import com.eeum.domain.posts.repository.PostsCommentCountRepository;
 import com.eeum.domain.posts.repository.PostsIdListRepository;
 import com.eeum.domain.posts.repository.PostsQueryModelRepository;
 import com.eeum.domain.posts.repository.PostsRandomShakeRepository;
 import com.eeum.domain.posts.repository.PostsRepository;
+import com.eeum.domain.user.entity.User;
+import com.eeum.domain.user.repository.UserRepository;
 import com.eeum.domain.view.service.ViewService;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class PostsServiceTest {
@@ -68,6 +70,9 @@ class PostsServiceTest {
     private PostsCommentCountRepository postsCommentCountRepository;
 
     @Mock
+    private UserRepository userRepository;
+
+    @Mock
     private SpamFilterPublisher spamFilterPublisher;
 
     private static final Long USER_ID = 1L;
@@ -84,16 +89,40 @@ class PostsServiceTest {
     }
 
     @Test
+    @DisplayName("게시글을 조회하면 해당 게시글을 작성한 유저의 id 값이 포함된다.")
+    void readPostWithUserId() {
+        // given
+        long writerId = 1L;
+        Long viewrId = 2L;
+        Posts post = createPost(writerId, false);
+        User author = User.of("작성자닉네임", "authorUser", "author@test.com", "USER", "provider",
+            "provider_id", true);
+
+        // stub
+        given(postsRepository.findById(POST_ID)).willReturn(Optional.of(post));
+        given(likeRepository.existsByPostIdAndUserId(POST_ID, viewrId)).willReturn(false);
+        given(userRepository.findById(writerId)).willReturn(Optional.of(author));
+        given(commentRepository.findAllByPostsId(POST_ID, viewrId)).willReturn(List.of());
+
+        // when
+        PostsReadResponse response = postsService.read(viewrId, POST_ID);
+
+        // then
+        assertThat(response.userId()).isEqualTo(writerId);
+        assertThat(response.nickname()).isEqualTo("작성자닉네임");
+    }
+
+    @Test
     @DisplayName("AUTO_COMPLETION 타입에 commentCountLimit 이 null 이면 createPost 시 예외 발생")
     void createPost_autoCompletionWithoutLimit_throws() {
         CreatePostRequest request = new CreatePostRequest(
-                "제목", "내용", "앨범", "노래", "아티스트", "url", "url2",
-                CompletionType.AUTO_COMPLETION, null // limit 없음
+            "제목", "내용", "앨범", "노래", "아티스트", "url", "url2",
+            CompletionType.AUTO_COMPLETION, null // limit 없음
         );
 
         assertThatThrownBy(() -> postsService.createPost(USER_ID, request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Comment count limit");
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Comment count limit");
 
         verify(postsRepository, never()).save(any());
     }
@@ -102,8 +131,8 @@ class PostsServiceTest {
     @DisplayName("MANUAL_COMPLETION 타입으로 createPost 호출 시 게시물 저장 및 응답 반환")
     void createPost_manualCompletion_success() {
         CreatePostRequest request = new CreatePostRequest(
-                "제목", "내용", "앨범", "노래", "아티스트", "url", "url2",
-                CompletionType.MANUAL_COMPLETION, null
+            "제목", "내용", "앨범", "노래", "아티스트", "url", "url2",
+            CompletionType.MANUAL_COMPLETION, null
         );
         Posts savedPost = createPost(USER_ID, false);
         given(postsRepository.save(any(Posts.class))).willReturn(savedPost);
@@ -122,8 +151,8 @@ class PostsServiceTest {
     @DisplayName("AUTO_COMPLETION 타입에 commentCountLimit 이 있으면 createPost 성공")
     void createPost_autoCompletion_withLimit_success() {
         CreatePostRequest request = new CreatePostRequest(
-                "제목", "내용", "앨범", "노래", "아티스트", "url", "url2",
-                CompletionType.AUTO_COMPLETION, 5L
+            "제목", "내용", "앨범", "노래", "아티스트", "url", "url2",
+            CompletionType.AUTO_COMPLETION, 5L
         );
         Posts savedPost = createPost(USER_ID, false);
         given(postsRepository.save(any(Posts.class))).willReturn(savedPost);
@@ -152,7 +181,7 @@ class PostsServiceTest {
         given(postsRepository.findByIdAndUserId(POST_ID, USER_ID)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> postsService.completePost(USER_ID, POST_ID))
-                .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -161,7 +190,7 @@ class PostsServiceTest {
         given(postsRandomShakeRepository.pickRandom()).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> postsService.showRandomStoryOnShake())
-                .isInstanceOf(NoAvailablePostsException.class);
+            .isInstanceOf(NoAvailablePostsException.class);
     }
 
     @Test
@@ -170,6 +199,6 @@ class PostsServiceTest {
         given(postsRepository.findById(POST_ID)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> postsService.delete(USER_ID, POST_ID))
-                .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
     }
 }
