@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,6 +40,9 @@ public class Block {
     private LocalDateTime updatedAt;
 
     public static Block of(Long blockerUserId, Long blockedUserId) {
+        if (Objects.equals(blockerUserId, blockedUserId)) {
+            throw new IllegalArgumentException("자신이 자신의 계정을 차단할 수 없습니다.");
+        }
         LocalDateTime now = LocalDateTime.now();
         return Block.builder()
             .blockerUserId(blockerUserId)

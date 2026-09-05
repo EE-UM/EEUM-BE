@@ -64,6 +64,9 @@ public class UserService {
         String accessToken = jwtUtil.createJwt("access", user.getId(), deviceIdRequest.deviceId(),
             "USER", "");
 
+        user.updateStatus(Status.ACTIVE);
+        user.updateIsRegister(Boolean.TRUE);
+
         return LoginResponse.of(accessToken, user.isRegistered());
     }
 
