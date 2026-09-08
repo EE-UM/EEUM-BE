@@ -2,6 +2,7 @@ package com.eeum.domain.user.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.eeum.domain.common.webhook.discord.MessageService;
 import com.eeum.domain.user.dto.request.IdTokenRequest;
 import com.eeum.domain.user.dto.response.LoginResponse;
 import com.eeum.domain.user.entity.User;
@@ -32,6 +33,9 @@ class UserServiceTest {
 
     @Mock
     private JWTUtil jwtUtil;
+
+    @Mock
+    private MessageService messageService;
 
     @Test
     void 계정을_생성하면_약관에_동의를_한다() {
