@@ -96,6 +96,11 @@ public class UserService {
         String accessToken = jwtUtil.createJwt("access", user.getId(), providerId, "USER",
             user.getEmail());
 
+        messageService.sendDiscordWebhookMessage(DiscordWebhookResponse.of(
+                MessageFormatter.formatSignUpMessageSocialLogin(user.getId(), user.getProvider(),
+                    environment)),
+            DiscordWebhookType.SIGNUP);
+
         return LoginResponse.of(accessToken, user.isRegistered());
     }
 
