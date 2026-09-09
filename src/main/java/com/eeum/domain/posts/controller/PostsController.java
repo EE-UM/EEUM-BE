@@ -34,97 +34,102 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/posts")
 public class PostsController implements PostsApi {
 
-  private final PostsService postsService;
+    private final PostsService postsService;
 
-  @PostMapping
-  public ApiResponse<CreatePostResponse> createPost(
-      @CurrentUser UserPrincipal userPrincipal,
-      @RequestBody @Valid CreatePostRequest createPostRequest
-  ) {
-    System.out.println(userPrincipal);
-    return ApiResponse.success(postsService.createPost(userPrincipal.getId(), createPostRequest));
-  }
-
-  @PatchMapping
-  public ApiResponse<UpdatePostResponse> updatePost(
-      @CurrentUser UserPrincipal userPrincipal,
-      @RequestBody UpdatePostRequest updatePostRequest
-  ) {
-    return ApiResponse.success(postsService.updatePost(userPrincipal.getId(), updatePostRequest));
-  }
-
-  @GetMapping("/ing/infinite-scroll")
-  public ApiResponse<List<PostsReadInfiniteScrollResponse>> readAllInfiniteScrollIng(
-      @CurrentUser UserPrincipal userPrincipal,
-      @RequestParam(value = "pageSize", defaultValue = "5") Long pageSize,
-      @RequestParam(value = "lastPostId", required = false) Long lastPostId
-  ) {
-    Long currentUserId = userPrincipal != null ? userPrincipal.getId() : null;
-    return ApiResponse.success(
-        postsService.readAllInfiniteScrollIng(pageSize, lastPostId, currentUserId));
-  }
-
-  @GetMapping("/done/infinite-scroll")
-  public ApiResponse<List<PostsReadInfiniteScrollResponse>> readAllInfiniteScrollDone(
-      @CurrentUser UserPrincipal userPrincipal,
-      @RequestParam(value = "pageSize", defaultValue = "5") Long pageSize,
-      @RequestParam(value = "lastPostId", required = false) Long lastPostId
-  ) {
-    Long currentUserId = userPrincipal != null ? userPrincipal.getId() : null;
-    return ApiResponse.success(
-        postsService.readAllInfiniteScrollDone(pageSize, lastPostId, currentUserId));
-  }
-
-  @DeleteMapping("/{postId}")
-  public ApiResponse<String> delete(
-      @CurrentUser UserPrincipal userPrincipal,
-      @PathVariable("postId") Long postId
-  ) {
-    return ApiResponse.success(String.valueOf(postsService.delete(userPrincipal.getId(), postId)));
-  }
-
-  @GetMapping("/random")
-  public ApiResponse<ShowRandomStoryOnShakeResponse> showRandomStoryOnShake() {
-    return ApiResponse.success(postsService.showRandomStoryOnShake());
-  }
-
-  @GetMapping("/{postId}")
-  public ApiResponse<PostsReadResponse> getPostById(
-      @CurrentUser UserPrincipal userPrincipal,
-      @PathVariable("postId") Long postId
-  ) {
-    if (userPrincipal != null) {
-      return ApiResponse.success(postsService.read(userPrincipal.getId(), postId));
+    @PostMapping
+    public ApiResponse<CreatePostResponse> createPost(
+        @CurrentUser UserPrincipal userPrincipal,
+        @RequestBody @Valid CreatePostRequest createPostRequest
+    ) {
+        System.out.println(userPrincipal);
+        return ApiResponse.success(
+            postsService.createPost(userPrincipal.getId(), createPostRequest));
     }
-    return ApiResponse.success(postsService.read(null, postId));
-  }
 
-  @GetMapping("/my")
-  public ApiResponse<GetMyPostsResponse> getMyPosts(
-      @CurrentUser UserPrincipal userPrincipal
-  ) {
-    return ApiResponse.success(postsService.getMyPosts(userPrincipal.getId()));
-  }
+    @PatchMapping
+    public ApiResponse<UpdatePostResponse> updatePost(
+        @CurrentUser UserPrincipal userPrincipal,
+        @RequestBody UpdatePostRequest updatePostRequest
+    ) {
+        return ApiResponse.success(
+            postsService.updatePost(userPrincipal.getId(), updatePostRequest));
+    }
 
-  @PatchMapping("/{postId}/complete")
-  public ApiResponse<CompletePostResponse> completePost(
-      @CurrentUser UserPrincipal userPrincipal,
-      @PathVariable("postId") Long postId
-  ) {
-    return ApiResponse.success(postsService.completePost(userPrincipal.getId(), postId));
-  }
+    @GetMapping("/ing/infinite-scroll")
+    public ApiResponse<List<PostsReadInfiniteScrollResponse>> readAllInfiniteScrollIng(
+        @CurrentUser UserPrincipal userPrincipal,
+        @RequestParam(value = "pageSize", defaultValue = "5") Long pageSize,
+        @RequestParam(value = "lastPostId", required = false) Long lastPostId
+    ) {
+        Long currentUserId = userPrincipal != null ? userPrincipal.getId() : null;
+        return ApiResponse.success(
+            postsService.readAllInfiniteScrollIng(pageSize, lastPostId, currentUserId));
+    }
 
-  @GetMapping("/liked")
-  public ApiResponse<GetLikedPostsWithSizeResponse> getLikedPosts(
-      @CurrentUser UserPrincipal userPrincipal
-  ) {
-    return ApiResponse.success(postsService.getLikedPosts(userPrincipal.getId()));
-  }
+    @GetMapping("/done/infinite-scroll")
+    public ApiResponse<List<PostsReadInfiniteScrollResponse>> readAllInfiniteScrollDone(
+        @CurrentUser UserPrincipal userPrincipal,
+        @RequestParam(value = "pageSize", defaultValue = "5") Long pageSize,
+        @RequestParam(value = "lastPostId", required = false) Long lastPostId
+    ) {
+        Long currentUserId = userPrincipal != null ? userPrincipal.getId() : null;
+        return ApiResponse.success(
+            postsService.readAllInfiniteScrollDone(pageSize, lastPostId, currentUserId));
+    }
 
-  @GetMapping("/commented")
-  public ApiResponse<GetCommentedPostsWithSizeResponse> getCommentedPosts(
-      @CurrentUser UserPrincipal userPrincipal
-  ) {
-    return ApiResponse.success(postsService.getCommentedPosts(userPrincipal.getId()));
-  }
+    @DeleteMapping("/{postId}")
+    public ApiResponse<String> delete(
+        @CurrentUser UserPrincipal userPrincipal,
+        @PathVariable("postId") Long postId
+    ) {
+        return ApiResponse.success(
+            String.valueOf(postsService.delete(userPrincipal.getId(), postId)));
+    }
+
+    @GetMapping("/random")
+    public ApiResponse<ShowRandomStoryOnShakeResponse> showRandomStoryOnShake(
+        @CurrentUser UserPrincipal userPrincipal
+    ) {
+        return ApiResponse.success(postsService.showRandomStoryOnShake(userPrincipal.getId()));
+    }
+
+    @GetMapping("/{postId}")
+    public ApiResponse<PostsReadResponse> getPostById(
+        @CurrentUser UserPrincipal userPrincipal,
+        @PathVariable("postId") Long postId
+    ) {
+        if (userPrincipal != null) {
+            return ApiResponse.success(postsService.read(userPrincipal.getId(), postId));
+        }
+        return ApiResponse.success(postsService.read(null, postId));
+    }
+
+    @GetMapping("/my")
+    public ApiResponse<GetMyPostsResponse> getMyPosts(
+        @CurrentUser UserPrincipal userPrincipal
+    ) {
+        return ApiResponse.success(postsService.getMyPosts(userPrincipal.getId()));
+    }
+
+    @PatchMapping("/{postId}/complete")
+    public ApiResponse<CompletePostResponse> completePost(
+        @CurrentUser UserPrincipal userPrincipal,
+        @PathVariable("postId") Long postId
+    ) {
+        return ApiResponse.success(postsService.completePost(userPrincipal.getId(), postId));
+    }
+
+    @GetMapping("/liked")
+    public ApiResponse<GetLikedPostsWithSizeResponse> getLikedPosts(
+        @CurrentUser UserPrincipal userPrincipal
+    ) {
+        return ApiResponse.success(postsService.getLikedPosts(userPrincipal.getId()));
+    }
+
+    @GetMapping("/commented")
+    public ApiResponse<GetCommentedPostsWithSizeResponse> getCommentedPosts(
+        @CurrentUser UserPrincipal userPrincipal
+    ) {
+        return ApiResponse.success(postsService.getCommentedPosts(userPrincipal.getId()));
+    }
 }

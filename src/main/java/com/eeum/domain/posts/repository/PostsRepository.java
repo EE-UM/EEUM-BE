@@ -1,6 +1,7 @@
 package com.eeum.domain.posts.repository;
 
 import com.eeum.domain.posts.entity.Posts;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -112,4 +113,16 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
         nativeQuery = true
     )
     List<Posts> findAllActivePosts();
+
+    @Query(
+        value = """
+                  select * from posts p 
+                  where p.is_completed = false 
+                  and p.deleted is null and p.user_id not in (:excludedUserIds)
+                    order by rand() limit 1
+            """,
+        nativeQuery = true
+    )
+    Optional<Posts> findRandomActivePostExcludingUserIds(
+        @Param("excludedUserIds") Collection<Long> excludedUserIds);
 }

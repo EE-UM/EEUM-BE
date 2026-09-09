@@ -189,7 +189,7 @@ class PostsServiceTest {
     void showRandomStoryOnShake_throwsWhenNoPost() {
         given(postsRandomShakeRepository.pickRandom()).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> postsService.showRandomStoryOnShake())
+        assertThatThrownBy(() -> postsService.showRandomStoryOnShake(USER_ID))
             .isInstanceOf(NoAvailablePostsException.class);
     }
 

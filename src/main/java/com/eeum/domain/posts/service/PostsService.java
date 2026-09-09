@@ -1,5 +1,6 @@
 package com.eeum.domain.posts.service;
 
+import com.eeum.domain.block.service.BlockService;
 import com.eeum.domain.comment.dto.response.CommentResponse;
 import com.eeum.domain.comment.entity.Comment;
 import com.eeum.domain.comment.entity.CommentCount;
@@ -38,10 +39,12 @@ import com.eeum.domain.user.repository.UserRepository;
 import com.eeum.domain.view.service.ViewService;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class PostsService {
 
+    public static final int MAX_SHAKE_ATTEMPTS = 3;
     private final PostsRepository postsRepository;
     private final PostsQueryModelRepository postsQueryModelRepository;
     private final CommentRepository commentRepository;
@@ -64,6 +68,7 @@ public class PostsService {
     private final PostsRandomShakeRepository postsRandomShakeRepository;
     private final PostsCommentCountRepository postsCommentCountRepository;
     private final UserRepository userRepository;
+    private final BlockService blockService;
 
     private final SpamFilterPublisher spamFilterPublisher;
 
@@ -124,9 +129,13 @@ public class PostsService {
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    public ShowRandomStoryOnShakeResponse showRandomStoryOnShake() {
-        ShowRandomStoryOnShakeResponse showRandomStoryOnShakeResponse = postsRandomShakeRepository.pickRandom()
-            .orElseThrow(NoAvailablePostsException::new);
+    public ShowRandomStoryOnShakeResponse showRandomStoryOnShake(Long userId) {
+        Set<Long> blockedUserIds = blockService.getBlockedUserIds(userId);
+
+        ShowRandomStoryOnShakeResponse showRandomStoryOnShakeResponse = postsRandomShakeRepository.pickRandomExcludingInOneShot(
+                blockedUserIds,
+                MAX_SHAKE_ATTEMPTS)
+            .orElseGet(() -> pickRandomFromDatabase(blockedUserIds));
         return showRandomStoryOnShakeResponse;
     }
 
@@ -242,7 +251,8 @@ public class PostsService {
         Map<Long, String> nicknameByUserId = resolveNicknames(
             comments.stream().map(Comment::getUserId).toList());
         return comments.stream()
-            .map(comment -> CommentResponse.from(comment, nicknameByUserId.get(comment.getUserId())))
+            .map(
+                comment -> CommentResponse.from(comment, nicknameByUserId.get(comment.getUserId())))
             .toList();
     }
 
@@ -349,5 +359,16 @@ public class PostsService {
 
         List<Posts> posts = postsRepository.findAllInfiniteScrollDone(pageSize, lastPostId, userId);
         return toInfiniteScrollResponses(posts);
+    }
+
+    private ShowRandomStoryOnShakeResponse pickRandomFromDatabase(Set<Long> blockedUserIds) {
+        Collection<Long> excludedIds = blockedUserIds.isEmpty()
+            ? List.of(0L)
+            : blockedUserIds;
+
+        return postsRepository.findRandomActivePostExcludingUserIds(excludedIds)
+            .map(post -> new ShowRandomStoryOnShakeResponse(
+                post.getId(), post.getUserId(), post.getTitle(), post.getContent()
+            )).orElseThrow(NoAvailablePostsException::new);
     }
 }
