@@ -59,6 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostsService {
 
     public static final int MAX_SHAKE_ATTEMPTS = 3;
+    public static final long DEFAULT_MANNUAL_COMPLETION_COUNT = 100L;
     private final PostsRepository postsRepository;
     private final PostsQueryModelRepository postsQueryModelRepository;
     private final CommentRepository commentRepository;
@@ -284,7 +285,7 @@ public class PostsService {
 
     private void createPostCommentCount(Posts savedPost, Long commentCountLimit) {
         CommentCount commentCount = CommentCount.of(savedPost.getId(), 0L,
-            commentCountLimit == null ? 0L : commentCountLimit);
+            commentCountLimit == null ? DEFAULT_MANNUAL_COMPLETION_COUNT : commentCountLimit);
         commentCountRepository.save(commentCount);
     }
 
