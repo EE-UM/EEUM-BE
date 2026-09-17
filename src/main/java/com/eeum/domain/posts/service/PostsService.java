@@ -226,7 +226,8 @@ public class PostsService {
 
     private void createPostsCommentCount(CreatePostRequest createPostRequest, Posts posts) {
         PostsCommentCount postsCommentCount = PostsCommentCount.of(posts.getId(),
-            createPostRequest.commentCountLimit());
+            createPostRequest.commentCountLimit() == null ? DEFAULT_MANNUAL_COMPLETION_COUNT
+                : createPostRequest.commentCountLimit());
         postsCommentCountRepository.save(postsCommentCount);
     }
 
