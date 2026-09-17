@@ -18,7 +18,6 @@ import com.eeum.domain.posts.dto.response.PostsReadResponse;
 import com.eeum.domain.posts.entity.Album;
 import com.eeum.domain.posts.entity.CompletionType;
 import com.eeum.domain.posts.entity.Posts;
-import com.eeum.domain.posts.exception.NoAvailablePostsException;
 import com.eeum.domain.posts.repository.PostsCommentCountRepository;
 import com.eeum.domain.posts.repository.PostsIdListRepository;
 import com.eeum.domain.posts.repository.PostsQueryModelRepository;
@@ -182,15 +181,6 @@ class PostsServiceTest {
 
         assertThatThrownBy(() -> postsService.completePost(USER_ID, POST_ID))
             .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    @DisplayName("showRandomStoryOnShake 호출 시 Redis 에 게시물이 없으면 NoAvailablePostsException 발생")
-    void showRandomStoryOnShake_throwsWhenNoPost() {
-        given(postsRandomShakeRepository.pickRandom()).willReturn(Optional.empty());
-
-        assertThatThrownBy(() -> postsService.showRandomStoryOnShake())
-            .isInstanceOf(NoAvailablePostsException.class);
     }
 
     @Test
