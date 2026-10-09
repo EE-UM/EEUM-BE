@@ -2,9 +2,10 @@ package com.eeum.domain.notification.fcm.dto.request;
 
 import com.eeum.domain.notification.fcm.entity.Platform;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record DeviceTokenRegisterRequest(
-    @NotBlank
+    @NotNull
     Platform platform,
     @NotBlank
     String fcmToken
