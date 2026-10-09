@@ -25,9 +25,11 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Create application.yml
+        env:
+          APPLICATION_YML: ${{ secrets.APPLICATION_DEV_YML }}
         run: |
           mkdir -p ./src/main/resources
-          echo "${{ secrets.APPLICATION_DEV_YML }}" > src/main/resources/application-dev.yml
+          printf '%s\n' "$APPLICATION_YML" > src/main/resources/application-dev.yml
 
       - name: Build module
         run: ./gradlew clean build
