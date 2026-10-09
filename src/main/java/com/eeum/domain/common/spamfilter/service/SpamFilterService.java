@@ -8,15 +8,13 @@ import com.eeum.domain.common.webhook.discord.MessageService;
 import com.eeum.domain.common.webhook.discord.message.SpamMessageFormatter;
 import com.eeum.domain.posts.entity.Posts;
 import com.eeum.domain.posts.repository.PostsRepository;
+import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.openkoreantext.processor.OpenKoreanTextProcessorJava;
-import org.openkoreantext.processor.tokenizer.KoreanTokenizer.KoreanToken;
 import org.springframework.ai.chat.client.AdvisorParams;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import scala.collection.Seq;
 
 @Service
 @RequiredArgsConstructor
@@ -98,9 +96,7 @@ public class SpamFilterService {
     }
 
     private static List<String> getParsedTokens(String content) {
-        CharSequence normalize = OpenKoreanTextProcessorJava.normalize(content);
-        Seq<KoreanToken> tokenSeq = OpenKoreanTextProcessorJava.tokenize(normalize);
-        List<String> tokens = OpenKoreanTextProcessorJava.tokensToJavaStringList(tokenSeq);
+        List<String> tokens = Arrays.stream(content.split("")).toList();
         return tokens;
     }
 }

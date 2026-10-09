@@ -5,6 +5,7 @@ import com.eeum.domain.comment.dto.response.CommentResponse;
 import com.eeum.domain.comment.entity.Album;
 import com.eeum.domain.comment.entity.Comment;
 import com.eeum.domain.comment.entity.CommentCount;
+import com.eeum.domain.comment.event.FirstCommentCreatedEvent;
 import com.eeum.domain.comment.exception.AlreadyFinishedPostException;
 import com.eeum.domain.comment.exception.DuplicateMusicException;
 import com.eeum.domain.comment.producer.CommentProducer;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +42,7 @@ public class CommentService {
     private final UserRepository userRepository;
 
     private final CommentProducer commentProducer;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public CommentResponse create(UserPrincipal userPrincipal, CommentCreateRequest request) {
@@ -52,6 +55,12 @@ public class CommentService {
         Comment comment = createComment(userPrincipal, request);
         commentRepository.save(comment);
         commentCount.increaseOrThrow();
+
+        if (isFirstCommentByOther(commentCount, postForValidate, userPrincipal.getId())) {
+            eventPublisher.publishEvent(new FirstCommentCreatedEvent(
+                postForValidate.getId(), postForValidate.getUserId(), postForValidate.getTitle()
+            ));
+        }
 
         if (commentCount.hitLimit()) {
             postForValidate.updateIsCompleted();
@@ -67,6 +76,10 @@ public class CommentService {
             .map(User::getNickname)
             .orElse(null);
         return CommentResponse.from(comment, nickname);
+    }
+
+    private boolean isFirstCommentByOther(CommentCount commentCount, Posts post, Long commenterId) {
+        return commentCount.getCommentCount() == 1L && !post.getUserId().equals(commenterId);
     }
 
     public List<CommentResponse> readAllCommentsOfPost(Long postId, Long currentUserId) {

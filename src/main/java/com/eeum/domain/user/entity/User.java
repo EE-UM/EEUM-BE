@@ -39,8 +39,6 @@ public class User implements UserPrincipalInfo {
 
     private boolean isRegistered;
 
-    private String fcmToken;
-
     @Enumerated(EnumType.STRING)
     private Status status;
 
@@ -75,7 +73,7 @@ public class User implements UserPrincipalInfo {
 
     @Builder(access = AccessLevel.PRIVATE)
     public User(String nickname, String username, String email, String role, String provider,
-        String providerId, boolean isRegistered, String fcmToken, LocalDateTime createdAt,
+        String providerId, boolean isRegistered, LocalDateTime createdAt,
         LocalDateTime updatedAt) {
         this.nickname = nickname;
         this.username = username;
@@ -84,7 +82,6 @@ public class User implements UserPrincipalInfo {
         this.provider = provider;
         this.providerId = providerId;
         this.isRegistered = isRegistered;
-        this.fcmToken = fcmToken;
         this.status = Status.ACTIVE;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
