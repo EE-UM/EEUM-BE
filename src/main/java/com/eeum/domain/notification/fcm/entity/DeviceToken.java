@@ -33,6 +33,11 @@ public class DeviceToken {
 
     private Long userId;
 
+    public void changeOwner(Long userId, Platform platform) {
+        this.userId = userId;
+        this.platform = platform;
+    }
+
     public static DeviceToken of(Platform platform, String fcmToken, Long userId) {
         return DeviceToken.builder()
             .platform(platform)
