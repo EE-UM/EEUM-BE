@@ -34,7 +34,7 @@ public class DeviceTokenController implements DeviceTokenApi {
     @DeleteMapping
     public ApiResponse<Object> unregister(
         @CurrentUser UserPrincipal userPrincipal,
-        @RequestBody DeviceTokenDeleteRequest request
+        @RequestBody @Valid DeviceTokenDeleteRequest request
     ) {
         deviceTokenService.unregister(userPrincipal.getId(), request);
         return ApiResponse.success();

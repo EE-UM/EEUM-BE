@@ -1,5 +1,12 @@
 package com.eeum.domain.comment.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
 import com.eeum.domain.comment.dto.request.CommentCreateRequest;
 import com.eeum.domain.comment.dto.response.CommentResponse;
 import com.eeum.domain.comment.entity.Comment;
@@ -16,24 +23,17 @@ import com.eeum.domain.posts.repository.PostsRepository;
 import com.eeum.domain.user.entity.User;
 import com.eeum.domain.user.repository.UserRepository;
 import com.eeum.global.securitycore.token.UserPrincipal;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
@@ -56,12 +56,15 @@ class CommentServiceTest {
     @Mock
     private CommentProducer commentProducer;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     private static final Long POST_ID = 1L;
     private static final Long USER_ID = 10L;
 
     private UserPrincipal createUserPrincipal() {
         return new UserPrincipal(USER_ID, "test@test.com", "testUser", "ROLE_USER",
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
     }
 
     private Posts createPost(String albumName, String artistName, boolean isCompleted) {
@@ -79,13 +82,13 @@ class CommentServiceTest {
     void create_success() {
         UserPrincipal userPrincipal = createUserPrincipal();
         CommentCreateRequest request = new CommentCreateRequest(
-                "댓글 내용", "다른앨범", "다른노래", "다른아티스트", "url", "url2", POST_ID);
+            "댓글 내용", "다른앨범", "다른노래", "다른아티스트", "url", "url2", POST_ID);
 
         CommentCount commentCount = CommentCount.of(POST_ID, 1L, 5L);
         Posts post = createPost("포스트앨범", "포스트아티스트", false);
 
         User user = User.of("닉네임", "testUser", "test@test.com", "ROLE_USER", "provider",
-                "providerId", true);
+            "providerId", true);
 
         given(commentCountRepository.findByPostId(POST_ID)).willReturn(Optional.of(commentCount));
         given(postsRepository.findById(POST_ID)).willReturn(Optional.of(post));
@@ -105,12 +108,12 @@ class CommentServiceTest {
     void create_throwsWhenCommentCountNotFound() {
         UserPrincipal userPrincipal = createUserPrincipal();
         CommentCreateRequest request = new CommentCreateRequest(
-                "내용", "앨범", "노래", "아티스트", "url", "url2", POST_ID);
+            "내용", "앨범", "노래", "아티스트", "url", "url2", POST_ID);
 
         given(commentCountRepository.findByPostId(POST_ID)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> commentService.create(userPrincipal, request))
-                .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -118,7 +121,7 @@ class CommentServiceTest {
     void create_throwsWhenCommentLimitReached() {
         UserPrincipal userPrincipal = createUserPrincipal();
         CommentCreateRequest request = new CommentCreateRequest(
-                "내용", "앨범", "노래", "아티스트", "url", "url2", POST_ID);
+            "내용", "앨범", "노래", "아티스트", "url", "url2", POST_ID);
 
         CommentCount commentCount = CommentCount.of(POST_ID, 5L, 5L); // 한도 도달
         Posts post = createPost("포스트앨범", "포스트아티스트", false);
@@ -127,8 +130,8 @@ class CommentServiceTest {
         given(postsRepository.findById(POST_ID)).willReturn(Optional.of(post));
 
         assertThatThrownBy(() -> commentService.create(userPrincipal, request))
-                .isInstanceOf(AlreadyFinishedPostException.class)
-                .hasMessageContaining("comment_limit_reached");
+            .isInstanceOf(AlreadyFinishedPostException.class)
+            .hasMessageContaining("comment_limit_reached");
 
         verify(commentRepository, never()).save(any());
     }
@@ -138,7 +141,7 @@ class CommentServiceTest {
     void create_throwsWhenPostAlreadyCompleted() {
         UserPrincipal userPrincipal = createUserPrincipal();
         CommentCreateRequest request = new CommentCreateRequest(
-                "내용", "앨범", "노래", "아티스트", "url", "url2", POST_ID);
+            "내용", "앨범", "노래", "아티스트", "url", "url2", POST_ID);
 
         CommentCount commentCount = CommentCount.of(POST_ID, 2L, 5L);
         Posts completedPost = createPost("포스트앨범", "포스트아티스트", true); // isCompleted=true
@@ -147,8 +150,8 @@ class CommentServiceTest {
         given(postsRepository.findById(POST_ID)).willReturn(Optional.of(completedPost));
 
         assertThatThrownBy(() -> commentService.create(userPrincipal, request))
-                .isInstanceOf(AlreadyFinishedPostException.class)
-                .hasMessageContaining("post_completed");
+            .isInstanceOf(AlreadyFinishedPostException.class)
+            .hasMessageContaining("post_completed");
 
         verify(commentRepository, never()).save(any());
     }
@@ -159,7 +162,7 @@ class CommentServiceTest {
         UserPrincipal userPrincipal = createUserPrincipal();
         // 게시물과 같은 albumName + artistName
         CommentCreateRequest request = new CommentCreateRequest(
-                "내용", "같은앨범", "노래", "같은아티스트", "url", "url2", POST_ID);
+            "내용", "같은앨범", "노래", "같은아티스트", "url", "url2", POST_ID);
 
         CommentCount commentCount = CommentCount.of(POST_ID, 1L, 5L);
         Posts post = createPost("같은앨범", "같은아티스트", false);
@@ -168,7 +171,7 @@ class CommentServiceTest {
         given(postsRepository.findById(POST_ID)).willReturn(Optional.of(post));
 
         assertThatThrownBy(() -> commentService.create(userPrincipal, request))
-                .isInstanceOf(DuplicateMusicException.class);
+            .isInstanceOf(DuplicateMusicException.class);
 
         verify(commentRepository, never()).save(any());
     }
@@ -177,10 +180,11 @@ class CommentServiceTest {
     @DisplayName("게시물의 모든 댓글 조회 시 CommentResponse 목록 반환")
     void readAllCommentsOfPost_returnsResponses() {
         com.eeum.domain.comment.entity.Album commentAlbum =
-                com.eeum.domain.comment.entity.Album.of("앨범", "노래", "아티스트", "url", "url2");
+            com.eeum.domain.comment.entity.Album.of("앨범", "노래", "아티스트", "url", "url2");
         Comment comment1 = Comment.of("댓글1", POST_ID, USER_ID, "user1", commentAlbum);
         Comment comment2 = Comment.of("댓글2", POST_ID, USER_ID, "user1", commentAlbum);
-        given(commentRepository.findAllByPostsId(POST_ID, USER_ID)).willReturn(List.of(comment1, comment2));
+        given(commentRepository.findAllByPostsId(POST_ID, USER_ID)).willReturn(
+            List.of(comment1, comment2));
 
         User user = org.mockito.Mockito.mock(User.class);
         given(user.getId()).willReturn(USER_ID);
@@ -200,11 +204,12 @@ class CommentServiceTest {
     void delete_softDeletesAndDecreases() {
         Long commentId = 99L;
         com.eeum.domain.comment.entity.Album album =
-                com.eeum.domain.comment.entity.Album.of("앨범", "노래", "아티스트", "url", "url2");
+            com.eeum.domain.comment.entity.Album.of("앨범", "노래", "아티스트", "url", "url2");
         Comment comment = Comment.of("내용", POST_ID, USER_ID, "user", album);
         CommentCount commentCount = CommentCount.of(POST_ID, 3L, 5L);
 
-        given(commentRepository.findByIdAndUserId(USER_ID, commentId)).willReturn(Optional.of(comment));
+        given(commentRepository.findByIdAndUserId(USER_ID, commentId)).willReturn(
+            Optional.of(comment));
         given(commentCountRepository.findById(POST_ID)).willReturn(Optional.of(commentCount));
 
         commentService.delete(USER_ID, commentId);

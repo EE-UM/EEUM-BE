@@ -1,21 +1,21 @@
 package com.eeum.domain.comment.dto.request;
 
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 public record CommentCreateRequest(
     String content,
-    @NotNull
+    @NotBlank
     String albumName,
-    @NotNull
+    @NotBlank
     String songName,
-    @NotNull
+    @NotBlank
     String artistName,
-    @NotNull
+    @NotBlank
     String artworkUrl,
-    @NotNull
+    @NotBlank
     String appleMusicUrl,
-    @NotNull
+    @NotBlank
     Long postId
 ) {
 
