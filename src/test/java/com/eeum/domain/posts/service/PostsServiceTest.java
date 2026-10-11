@@ -28,12 +28,15 @@ import com.eeum.domain.user.repository.UserRepository;
 import com.eeum.domain.view.service.ViewService;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @ExtendWith(MockitoExtension.class)
 class PostsServiceTest {
@@ -76,6 +79,16 @@ class PostsServiceTest {
 
     private static final Long USER_ID = 1L;
     private static final Long POST_ID = 100L;
+
+    @BeforeEach
+    void setUp() {
+        TransactionSynchronizationManager.initSynchronization();
+    }
+
+    @AfterEach
+    void tearDown() {
+        TransactionSynchronizationManager.clear();
+    }
 
     private Posts createPost(Long userId, boolean isCompleted) {
         Album album = Album.of("앨범", "노래", "아티스트", "http://art.url", "http://music.url");
@@ -142,7 +155,6 @@ class PostsServiceTest {
         verify(postsRepository).save(any(Posts.class));
         verify(commentCountRepository).save(any());
         verify(postsRandomShakeRepository).addCandidate(any());
-        verify(spamFilterPublisher).publish(any());
         verify(postsCommentCountRepository).save(any());
     }
 
