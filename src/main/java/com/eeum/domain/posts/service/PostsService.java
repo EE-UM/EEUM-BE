@@ -51,6 +51,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Slf4j
 @Service
@@ -89,7 +91,8 @@ public class PostsService {
 
         addRedisRandomPool(savedPost);
 
-        spamFilterPublisher.publish(SpamFilterRequest.of(posts.getId(), posts.getContent()));
+//        spamFilterPublisher.publish(SpamFilterRequest.of(posts.getId(), posts.getContent()));
+        publishSpamFilter(posts);
 
         createPostsCommentCount(createPostRequest, posts);
 
@@ -222,6 +225,17 @@ public class PostsService {
             .map(GetCommentedPostsResponse::from)
             .toList();
         return new GetCommentedPostsWithSizeResponse(postsSize, getCommentedPostsResponses);
+    }
+
+    private void publishSpamFilter(Posts posts) {
+        TransactionSynchronizationManager.registerSynchronization(
+            new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    spamFilterPublisher.publish(
+                        SpamFilterRequest.of(posts.getId(), posts.getContent()));
+                }
+            });
     }
 
     private void createPostsCommentCount(CreatePostRequest createPostRequest, Posts posts) {
