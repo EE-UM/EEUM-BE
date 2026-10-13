@@ -8,6 +8,10 @@
 
 ![img.png](img.png)
 
+## 푸시 알림 시퀀스 다이어그램
+
+![img_1.png](img_1.png)
+
 ## ADR(Architecture Decision Record)
 
 ### 1.

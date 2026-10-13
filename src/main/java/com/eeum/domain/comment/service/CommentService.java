@@ -56,11 +56,7 @@ public class CommentService {
         commentRepository.save(comment);
         commentCount.increaseOrThrow();
 
-        if (isFirstCommentByOther(commentCount, postForValidate, userPrincipal.getId())) {
-            eventPublisher.publishEvent(new FirstCommentCreatedEvent(
-                postForValidate.getId(), postForValidate.getUserId(), postForValidate.getTitle()
-            ));
-        }
+        publishPushAlarmEvent(userPrincipal, commentCount, postForValidate);
 
         if (commentCount.hitLimit()) {
             postForValidate.updateIsCompleted();
@@ -76,10 +72,6 @@ public class CommentService {
             .map(User::getNickname)
             .orElse(null);
         return CommentResponse.from(comment, nickname);
-    }
-
-    private boolean isFirstCommentByOther(CommentCount commentCount, Posts post, Long commenterId) {
-        return commentCount.getCommentCount() == 1L && !post.getUserId().equals(commenterId);
     }
 
     public List<CommentResponse> readAllCommentsOfPost(Long postId, Long currentUserId) {
@@ -105,6 +97,19 @@ public class CommentService {
 
             commentCount.decreaseSafely();
         });
+    }
+
+    private boolean isFirstCommentByOther(CommentCount commentCount, Posts post, Long commenterId) {
+        return commentCount.getCommentCount() == 1L && !post.getUserId().equals(commenterId);
+    }
+
+    private void publishPushAlarmEvent(UserPrincipal userPrincipal, CommentCount commentCount,
+        Posts postForValidate) {
+        if (isFirstCommentByOther(commentCount, postForValidate, userPrincipal.getId())) {
+            eventPublisher.publishEvent(new FirstCommentCreatedEvent(
+                postForValidate.getId(), postForValidate.getUserId(), postForValidate.getTitle()
+            ));
+        }
     }
 
     private Map<Long, String> resolveNicknames(List<Long> userIds) {
