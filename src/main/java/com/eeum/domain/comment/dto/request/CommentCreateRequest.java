@@ -15,7 +15,6 @@ public record CommentCreateRequest(
     String artworkUrl,
     @NotBlank
     String appleMusicUrl,
-    @NotBlank
     Long postId
 ) {
 
