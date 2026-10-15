@@ -1,6 +1,8 @@
 package com.eeum.domain.posts.repository;
 
 import com.eeum.domain.posts.dto.response.ShowRandomStoryOnShakeResponse;
+import com.eeum.global.redis.RedisFeature;
+import com.eeum.global.redis.RedisGuard;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
@@ -20,6 +22,7 @@ public class PostsRandomShakeRepository {
     private static final int DEFAULT_MAX_ATTEMPTS = 3;
 
     private final StringRedisTemplate redisTemplate;
+    private final RedisGuard redisGuard;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${app.redis-key-prefix}")
@@ -29,23 +32,28 @@ public class PostsRandomShakeRepository {
     private static final String KEY_DATA = "posts::random::data";
 
     public void addCandidate(ShowRandomStoryOnShakeResponse dto) {
-        try {
-            String pid = String.valueOf(dto.postId());
-            String json = objectMapper.writeValueAsString(dto);
+        String pid = String.valueOf(dto.postId());
+        String json = serialize(dto);
 
+        redisGuard.run(RedisFeature.SHAKE_POOL, () -> {
             redisTemplate.opsForSet().add(candidatesKey(), pid);
             redisTemplate.opsForHash().put(dataKey(), pid, json);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to add candidate", e);
-        }
+        });
     }
 
     public void removeCandidate(String postId) {
-        redisTemplate.opsForSet().remove(candidatesKey(), postId);
-        redisTemplate.opsForHash().delete(dataKey(), postId);
+        redisGuard.run(RedisFeature.SHAKE_POOL, () -> {
+            redisTemplate.opsForSet().remove(candidatesKey(), postId);
+            redisTemplate.opsForHash().delete(dataKey(), postId);
+        });
     }
 
     public Optional<ShowRandomStoryOnShakeResponse> pickRandom() {
+        return redisGuard.call(RedisFeature.SHAKE_POOL, this::pickRandomFromRedis,
+            Optional::empty);
+    }
+
+    private Optional<ShowRandomStoryOnShakeResponse> pickRandomFromRedis() {
         String postId = redisTemplate.opsForSet().randomMember(candidatesKey());
         if (postId == null) {
             return Optional.empty();
@@ -66,8 +74,10 @@ public class PostsRandomShakeRepository {
     }
 
     public void resetAndWarm(Iterable<ShowRandomStoryOnShakeResponse> candidates) {
-        redisTemplate.delete(candidatesKey());
-        redisTemplate.delete(dataKey());
+        redisGuard.run(RedisFeature.SHAKE_POOL, () -> {
+            redisTemplate.delete(candidatesKey());
+            redisTemplate.delete(dataKey());
+        });
 
         for (ShowRandomStoryOnShakeResponse dto : candidates) {
             addCandidate(dto);
@@ -76,7 +86,13 @@ public class PostsRandomShakeRepository {
 
     public Optional<ShowRandomStoryOnShakeResponse> pickRandomExcludingInOneShot(
         Set<Long> blockedUserIds, int candidateSize) {
+        return redisGuard.call(RedisFeature.SHAKE_POOL,
+            () -> pickRandomExcludingFromRedis(blockedUserIds, candidateSize),
+            Optional::empty);
+    }
 
+    private Optional<ShowRandomStoryOnShakeResponse> pickRandomExcludingFromRedis(
+        Set<Long> blockedUserIds, int candidateSize) {
         Set<String> postIds = redisTemplate.opsForSet()
             .distinctRandomMembers(candidatesKey(), candidateSize);
         if (postIds == null || postIds.isEmpty()) {
@@ -92,6 +108,14 @@ public class PostsRandomShakeRepository {
             .filter(Objects::nonNull)
             .filter(dto -> !blockedUserIds.contains(dto.writerId()))
             .findFirst();
+    }
+
+    private String serialize(ShowRandomStoryOnShakeResponse dto) {
+        try {
+            return objectMapper.writeValueAsString(dto);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to add candidate", e);
+        }
     }
 
     private ShowRandomStoryOnShakeResponse deserialize(String json) {

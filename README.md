@@ -12,11 +12,4 @@
 
 ![img_1.png](img_1.png)
 
-## ADR(Architecture Decision Record)
-
-### 1.
-
-- 상태
-- 맥락
-- 결정
-- 결과
+![img_2.png](img_2.png)

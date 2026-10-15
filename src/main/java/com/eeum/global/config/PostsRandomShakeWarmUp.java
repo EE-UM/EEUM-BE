@@ -23,6 +23,10 @@ public class PostsRandomShakeWarmUp implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
+        warmUp();
+    }
+
+    public void warmUp() {
         log.info("[Warm Up] Redis Random Pool Initialize Start");
 
         List<Posts> activePosts = postsRepository.findAllActivePosts();
