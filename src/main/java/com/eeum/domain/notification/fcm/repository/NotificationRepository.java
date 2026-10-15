@@ -49,12 +49,20 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     @Query(value = """
                 SELECT id FROM notification
-                WHERE (status = 'PENDING' AND created_at < :pendingBefore)
+                WHERE (status = 'PENDING' AND type <> 'ANNOUNCEMENT' AND created_at < :pendingBefore)
                 OR (status = 'SENDING' AND locked_until < :now)
-                ORDER BY id 
+                ORDER BY id
                 LIMIT :limit
         """, nativeQuery = true)
     List<Long> findDispatchTargetIds(@Param("pendingBefore") LocalDateTime pendingBefore,
         @Param("now") LocalDateTime now,
         @Param("limit") int limit);
+
+    @Query(value = """
+        SELECT id FROM notification
+        WHERE status = 'PENDING' AND type = 'ANNOUNCEMENT'
+        ORDER BY id
+        LIMIT :limit
+        """, nativeQuery = true)
+    List<Long> findPendingAnnouncementIds(@Param("limit") int limit);
 }
