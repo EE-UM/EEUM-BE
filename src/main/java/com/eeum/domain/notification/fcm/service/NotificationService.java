@@ -1,21 +1,18 @@
 package com.eeum.domain.notification.fcm.service;
 
 import com.eeum.domain.comment.event.FirstCommentCreatedEvent;
-import com.eeum.domain.notification.fcm.entity.DeviceToken;
 import com.eeum.domain.notification.fcm.entity.Notification;
 import com.eeum.domain.notification.fcm.entity.NotificationSetting;
 import com.eeum.domain.notification.fcm.entity.NotificationType;
 import com.eeum.domain.notification.fcm.entity.TargetType;
-import com.eeum.domain.notification.fcm.port.PushSender;
-import com.eeum.domain.notification.fcm.port.dto.response.PushResult;
-import com.eeum.domain.notification.fcm.repository.DeviceTokenRepository;
+import com.eeum.domain.notification.fcm.event.NotificationCreatedEvent;
 import com.eeum.domain.notification.fcm.repository.NotificationRepository;
 import com.eeum.domain.notification.fcm.repository.NotificationSettingRepository;
-import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -25,17 +22,15 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationSettingRepository notificationSettingRepository;
-    private final DeviceTokenRepository deviceTokenRepository;
-    private final PushSender pushSender;
+    private final ApplicationEventPublisher eventPublisher;
 
-    @Transactional
-    public void sendFirstComment(FirstCommentCreatedEvent event) {
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void createFirstComment(FirstCommentCreatedEvent event) {
         NotificationType type = NotificationType.FIRST_COMMENT;
         Long receiverId = event.postAuthorId();
 
-        if (notificationRepository.existsByTypeAndTargetTypeAndTargetId(
-            type, TargetType.POST, event.postId()
-        )) {
+        if (notificationRepository.existsByTypeAndTargetTypeAndTargetId(type, TargetType.POST,
+            event.postId())) {
             return;
         }
         if (!isEnabled(receiverId, type)) {
@@ -48,28 +43,7 @@ public class NotificationService {
             Notification.of(receiverId, type, title, body, TargetType.POST, event.postId())
         );
 
-        List<String> tokens = deviceTokenRepository.findAllByUserId(receiverId).stream()
-            .map(DeviceToken::getFcmToken)
-            .toList();
-        if (tokens.isEmpty()) {
-            notification.markFailed();
-            return;
-        }
-
-        Map<String, String> data = Map.of(
-            "type", type.name(),
-            "postId", String.valueOf(event.postId())
-        );
-        PushResult result = pushSender.send(tokens, title, body, data);
-
-        if (result.isAllFailed()) {
-            notification.markFailed();
-        } else {
-            notification.markSent();
-        }
-        if (!result.invalidTokens().isEmpty()) {
-            deviceTokenRepository.deleteAllByFcmTokenIn(result.invalidTokens());
-        }
+        eventPublisher.publishEvent(new NotificationCreatedEvent(notification.getId()));
     }
 
     private boolean isEnabled(Long userId, NotificationType type) {

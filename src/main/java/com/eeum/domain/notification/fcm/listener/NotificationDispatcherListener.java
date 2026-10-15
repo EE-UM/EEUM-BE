@@ -1,0 +1,29 @@
+package com.eeum.domain.notification.fcm.listener;
+
+import com.eeum.domain.notification.fcm.event.NotificationCreatedEvent;
+import com.eeum.domain.notification.fcm.service.NotificationDispatcher;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class NotificationDispatcherListener {
+
+    private final NotificationDispatcher notificationDispatcher;
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handle(NotificationCreatedEvent event) {
+        try {
+            notificationDispatcher.dispatch(event.notificationId());
+        } catch (Exception e) {
+            log.warn("알림 비동기 전송 실패 - notificationId: {}", event.notificationId(), e);
+        }
+    }
+
+}

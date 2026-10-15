@@ -19,7 +19,8 @@ import lombok.ToString;
         @Index(name = "idx_user_id_created_at", columnList = "userId, createdAt"),
         @Index(name = "idx_user_id_is_read", columnList = "userId, isRead"),
         @Index(name = "idx_target_type_target_id", columnList = "targetType, targetId"),
-        @Index(name = "idx_status_created_at", columnList = "status, createdAt ASC")
+        @Index(name = "idx_status_created_at", columnList = "status, createdAt ASC"),
+        @Index(name = "idx_status_locked_until", columnList = "status, lockedUntil")
     })
 @Getter
 @Entity
@@ -48,6 +49,8 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     private NotificationStatus status;
 
+    private LocalDateTime lockedUntil;
+
     private boolean isRead;
 
     private LocalDateTime sentAt;
@@ -62,15 +65,6 @@ public class Notification {
         }
         this.isRead = true;
         this.readAt = LocalDateTime.now();
-    }
-
-    public void markSent() {
-        this.status = NotificationStatus.SENT;
-        this.sentAt = LocalDateTime.now();
-    }
-
-    public void markFailed() {
-        this.status = NotificationStatus.FAILED;
     }
 
     public static Notification of(Long userId, NotificationType type, String title, String body,
