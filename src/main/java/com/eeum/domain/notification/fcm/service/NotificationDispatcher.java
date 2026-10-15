@@ -2,12 +2,14 @@ package com.eeum.domain.notification.fcm.service;
 
 import com.eeum.domain.notification.fcm.entity.DeviceToken;
 import com.eeum.domain.notification.fcm.entity.Notification;
+import com.eeum.domain.notification.fcm.entity.TargetType;
 import com.eeum.domain.notification.fcm.port.PushSender;
 import com.eeum.domain.notification.fcm.port.dto.response.PushResult;
 import com.eeum.domain.notification.fcm.repository.DeviceTokenRepository;
 import com.eeum.domain.notification.fcm.repository.NotificationRepository;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -63,9 +65,12 @@ public class NotificationDispatcher {
     }
 
     private Map<String, String> buildData(Notification notification) {
-        return Map.of(
-            "type", notification.getType().name(),
-            "postId", String.valueOf(notification.getTargetId())
-        );
+        HashMap<String, String> data = new HashMap<>();
+        data.put("type", notification.getType().name());
+        if (notification.getTargetType() == TargetType.POST) {
+            data.put("postId", String.valueOf(notification.getTargetId()));
+        }
+
+        return data;
     }
 }
