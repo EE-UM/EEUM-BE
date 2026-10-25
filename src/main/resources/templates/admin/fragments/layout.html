@@ -1,24 +1,25 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
+<head th:fragment="head(title)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>이음 관리자</title>
+    <title th:text="${title} + ' · 이음 관리자'">이음 관리자</title>
     <link rel="stylesheet" th:href="@{/admin/admin.css}">
 </head>
 <body>
-<header class="topbar">
-    <strong>이음 관리자</strong>
+<header class="topbar" th:fragment="topbar(active)">
+    <nav class="topbar-nav">
+        <strong>이음 관리자</strong>
+        <a th:href="@{/admin}" th:classappend="${active == 'dashboard'} ? 'active'">대시보드</a>
+    </nav>
     <div class="topbar-right">
-        <span class="muted" th:text="${admin.nickname} + ' (#' + ${admin.userId} + ')'">관리자</span>
+        <span class="muted" th:if="${admin != null}"
+              th:text="${admin.nickname} + ' (#' + ${admin.userId} + ')'">관리자</span>
         <form th:action="@{/admin/logout}" method="post">
             <button type="submit" class="button small">로그아웃</button>
         </form>
     </div>
 </header>
-<main class="content">
-    <p class="muted">대시보드와 게시글 관리는 다음 단계에서 추가됩니다.</p>
-</main>
 </body>
 </html>

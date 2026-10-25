@@ -56,6 +56,7 @@ iOS → nginx(rate limit) → MdcFilter(traceId) → JWTFilter → RateLimitInte
 ```
 com.eeum/
 ├── domain/
+│   ├── admin/         # 관리자 페이지(Thymeleaf, /admin/**) — 대시보드(AdminDashboardService: 가입 일별 집계는 KST 기준)
 │   ├── posts/         # 게시물 CRUD, 흔들기(Redis 랜덤 풀), Apple Music 검색
 │   │   ├── gateway/   #   MusicSearchGateway / AppleMusicSearchGateway, DeveloperTokenProvider(Caffeine 캐시)
 │   │   └── batch/     #   AppleMusicTokenGenerateJob — 분기별(1·4·7·10월 1일 03시 KST) 토큰 재발급

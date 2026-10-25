@@ -1,8 +1,10 @@
 package com.eeum.domain.admin.controller;
 
+import com.eeum.domain.admin.service.AdminDashboardService;
 import com.eeum.global.securitycore.admin.AdminPrincipal;
 import com.eeum.global.securitycore.admin.AdminSecurityConfig;
 import io.swagger.v3.oas.annotations.Hidden;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,8 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Hidden
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/admin")
 public class AdminController {
+
+    private final AdminDashboardService adminDashboardService;
 
     @GetMapping("/login")
     public String login(Model model) {
@@ -22,8 +27,9 @@ public class AdminController {
     }
 
     @GetMapping
-    public String index(@AuthenticationPrincipal AdminPrincipal admin, Model model) {
+    public String dashboard(@AuthenticationPrincipal AdminPrincipal admin, Model model) {
         model.addAttribute("admin", admin);
-        return "admin/index";
+        model.addAttribute("dashboard", adminDashboardService.getDashboard());
+        return "admin/dashboard";
     }
 }

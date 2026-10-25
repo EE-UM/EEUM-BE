@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eeum.domain.admin.controller.AdminController;
+import com.eeum.domain.admin.service.AdminDashboardService;
 import com.eeum.domain.user.repository.UserRepository;
 import com.eeum.global.securitycore.SecurityConfig;
 import com.eeum.global.securitycore.jwt.JWTUtil;
@@ -58,6 +59,9 @@ class AdminSecurityConfigTest {
 
     @MockitoBean
     private JWTUtil jwtUtil;
+
+    @MockitoBean
+    private AdminDashboardService adminDashboardService;
 
     @Autowired
     private WebApplicationContext context;
