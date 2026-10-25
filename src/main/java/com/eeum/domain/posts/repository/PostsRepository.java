@@ -14,14 +14,6 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
 
     List<Posts> findByUserId(Long userId);
 
-    long countByIsCompletedTrue();
-
-    @Query(value = """
-                SELECT COUNT(*) FROM posts
-                WHERE deleted IS NOT NULL AND delete_reason = :deleteReason
-        """, nativeQuery = true)
-    long countDeletedByReason(@Param("deleteReason") String deleteReason);
-
     Optional<Posts> findByIdAndUserId(Long postId, Long userId);
 
     @Query(

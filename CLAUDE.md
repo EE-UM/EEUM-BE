@@ -56,7 +56,8 @@ iOS → nginx(rate limit) → MdcFilter(traceId) → JWTFilter → RateLimitInte
 ```
 com.eeum/
 ├── domain/
-│   ├── admin/         # 관리자 페이지(Thymeleaf, /admin/**) — 대시보드(가입 일별 집계는 KST 기준), 게시글 관리
+│   ├── admin/         # 관리자 페이지(Thymeleaf, /admin/**, static/admin/admin.css 토큰 기반 흰 배경 디자인) — 대시보드, 게시글 관리
+│   │                  #   AdminStatsRepository(JDBC 집계) + KstPeriod: 저장 시간대(운영 UTC)와 무관하게 KST 날짜로 집계
 │   │                  #   AdminPostService: 삭제/복구는 PostsDeletionService + 같은 TX 에서 admin_audit_log 기록(사유 필수)
 │   │                  #   AdminPostQueryRepository: 삭제 글 포함 조회용 네이티브 쿼리, AdminControllerAdvice: 관리자 에러 페이지
 │   ├── posts/         # 게시물 CRUD, 흔들기(Redis 랜덤 풀), Apple Music 검색

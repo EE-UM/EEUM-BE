@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--/* 최근 30일 단일 계열 막대 차트. series: AdminDashboardResponse.DailySeries */-->
+<section class="card chart-card" th:fragment="bar(title, series, unit)">
+    <div class="chart-head">
+        <h2 th:text="${title}">제목</h2>
+        <span class="faint small">최근 30일</span>
+    </div>
+    <div class="chart-total">
+        <span th:text="${#numbers.formatInteger(series.total(), 1, 'COMMA')}">0</span><small th:text="${unit} + ' · 오늘 ' + ${series.days[series.days.size() - 1].count}">명</small>
+    </div>
+    <div class="chart" role="img"
+         th:attr="aria-label=${title} + ' 최근 30일 막대 차트, 합계 ' + ${series.total()} + ${unit}">
+        <div class="chart-y" aria-hidden="true">
+            <span class="top" th:text="${series.chartMax()}">10</span>
+            <span class="zero">0</span>
+        </div>
+        <div class="chart-plot">
+            <div class="chart-grid"></div>
+            <div class="chart-bars">
+                <div class="bar-slot" tabindex="0" th:each="day : ${series.days}"
+                     th:attr="data-tip=${#temporals.format(day.date, 'M/d')} + ' · ' + ${day.count} + ${unit}">
+                    <div class="bar" th:style="'height:' + ${series.barHeightPercent(day)} + '%'"></div>
+                </div>
+            </div>
+            <div class="chart-x" aria-hidden="true">
+                <span th:each="day, stat : ${series.days}"
+                      th:text="${(stat.size - 1 - stat.index) % 7 == 0} ? ${#temporals.format(day.date, 'M/d')} : ''"></span>
+            </div>
+        </div>
+    </div>
+    <details class="chart-table">
+        <summary>표로 보기</summary>
+        <table>
+            <tbody>
+            <tr th:each="day : ${series.days}">
+                <td th:text="${#temporals.format(day.date, 'yyyy-MM-dd')}">2026-01-01</td>
+                <td class="num" th:text="${day.count}">0</td>
+            </tr>
+            </tbody>
+        </table>
+    </details>
+</section>
+
+<!--/* 구성 비율 목록. shares: List<AdminDashboardResponse.Share> */-->
+<ul class="share-list" th:fragment="shares(shares)">
+    <li th:each="s : ${shares}">
+        <div class="share-row">
+            <span th:text="${s.label}">라벨</span>
+            <strong><span th:text="${#numbers.formatInteger(s.count, 1, 'COMMA')}">0</span><small th:text="${s.percent} + '%'">0%</small></strong>
+        </div>
+        <div class="share-track"><div class="share-fill" th:style="'width:' + ${s.percent} + '%'"></div></div>
+    </li>
+    <li th:if="${#lists.isEmpty(shares)}" class="empty-note">데이터가 없어요.</li>
+</ul>
+
+<!--/* 인기 게시글 목록. posts: List<RankedPost> */-->
+<ol class="rows" th:fragment="ranked(posts, unit)">
+    <li th:each="p, stat : ${posts}">
+        <span class="rank" th:text="${stat.count}">1</span>
+        <span class="grow">
+            <a class="title" th:href="@{/admin/posts/{id}(id=${p.postId})}" th:text="${p.title}">제목</a>
+            <span class="meta-line" th:text="(${p.nickname} ?: '-') + (${p.completed} ? ' · 완료' : ' · 진행 중')">닉네임</span>
+        </span>
+        <span class="value" th:text="${#numbers.formatInteger(p.value, 1, 'COMMA')} + ${unit}">0</span>
+    </li>
+    <li th:if="${#lists.isEmpty(posts)}" class="empty-note">아직 집계된 게시글이 없어요.</li>
+</ol>
+</body>
+</html>
