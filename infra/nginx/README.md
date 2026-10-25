@@ -62,6 +62,22 @@ ssh ubuntu@<host> 'mkdir -p /home/ubuntu/blue-green && echo blue > /home/ubuntu/
 
 `*.seed` 파일은 이 최초 세팅 시에만 쓰고, 이후에는 `deploy-blue-green.sh`가 매 배포마다 실제 활성 포트로 덮어쓰므로 손대지 마세요.
 
+## 관리자 페이지 (`/admin`)
+
+관리자 페이지(Thymeleaf, 카카오 로그인 + 세션 + CSRF)는 IP 화이트리스트 없이 HTTPS로만 노출합니다.
+
+| 경로 (443) | 백엔드 | `X-Forwarded-Prefix` |
+|---|---|---|
+| `/admin/**` | `prod_backend` | (빈 값) |
+| `/prod/admin/**` | `prod_backend` (접두어 제거) | `/prod` |
+| `/dev/admin/**` | `dev_backend` (접두어 제거) | `/dev` |
+
+- **80번 포트**의 `/admin`, `/dev/admin`, `/prod/admin`은 같은 경로의 `https://`로 301 리다이렉트합니다. 세션 쿠키가 평문으로 오가지 않게 하기 위함입니다.
+- 앱은 `/admin/*` 요청에 한해 `ForwardedHeaderFilter`로 `X-Forwarded-Proto/Host/Port/Prefix/For`를 **신뢰**합니다 (`AdminWebConfig`). 이 값으로 카카오 콜백 주소(https + `/dev`), 링크·리다이렉트의 접두어, 감사 로그 IP가 결정되므로 **admin location은 이 헤더를 모두 덮어써야 합니다.** 클라이언트가 보낸 값이 섞이지 않도록 `X-Forwarded-For`도 append(`$proxy_add_x_forwarded_for`)하지 않고 `$remote_addr`로 덮어쓰고, `Forwarded` 헤더는 비웁니다. 새 admin location을 추가할 때도 같은 헤더 세트를 유지하세요.
+- 기존 API location의 헤더는 바꾸지 않았습니다.
+- 카카오 개발자 콘솔에는 사용하는 콜백 주소를 모두 등록해야 합니다: `https://eeum.site/admin/login/oauth2/code/kakao-admin`, `https://eeum.site/dev/admin/login/oauth2/code/kakao-admin` (`/prod/admin`으로도 접속한다면 그 주소도).
+- 컨테이너 호스트 포트(8080~8083)가 외부에 열려 있으면 nginx를 우회할 수 있으므로 보안그룹에서 막혀 있어야 합니다.
+
 ## 알려진 이슈 / 정리 필요 항목
 
 - `/etc/nginx/sites-available/eeum`, `/etc/nginx/sites-available/eeum.save`는 실제로 로드되지 않는 죽은 복사본입니다 (`sites-enabled/eeum`이 심볼릭 링크가 아니라 별도 파일이기 때문). 혼동 방지를 위해 서버에서 삭제 권장:

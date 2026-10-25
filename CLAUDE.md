@@ -140,6 +140,9 @@ com.eeum/
   `kakao-admin` 등록) + 세션 + CSRF이며, `AdminOidcUserService`가 `admin.allowed-kakao-ids`에 있는 카카오 `sub`이면서 `users`에
   가입된 계정만 `ROLE_ADMIN`(`AdminPrincipal`, `users.id` 포함)으로 인증합니다. `admin.kakao.client-id`가 비어 있으면 `/admin/**`
   전체를 거부합니다. 앱 API 체인(`SecurityConfig`, `@Order(2)`)은 그대로 JWT·무상태이고, `LoggingFilter`는 `/admin` 본문을 읽지 않습니다.
+  nginx 뒤 동작은 `AdminWebConfig`가 담당합니다: `/admin/*`에만 `ForwardedHeaderFilter`(https 콜백, `/dev` 접두어, 감사 로그 IP —
+  nginx admin location이 `X-Forwarded-*`를 모두 덮어씀), 세션 쿠키 이름 `EEUM_ADMIN_SESSION_<PROFILE>`(dev/prod가 같은 도메인),
+  local 외 `Secure`, `SameSite=Lax`(카카오 콜백에 쿠키가 실려야 함). 상세는 `infra/nginx/README.md`의 관리자 페이지 절.
 - **`@CurrentUser`** — 시큐리티 컨텍스트에서 `UserPrincipalInfo` 주입.
 - **`@RequireLogin`** — 메서드 실행 전 인증 강제 (게스트 차단 등).
 - **`ApiResponse<T>`** — 모든 응답의 공통 JSON 래퍼. 예외는 `CoreApiException(ErrorType)`으로 던지고

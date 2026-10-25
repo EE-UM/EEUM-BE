@@ -3,7 +3,6 @@ package com.eeum.global.securitycore.admin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.server.servlet.CookieSameSiteSupplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -78,12 +77,6 @@ public class AdminSecurityConfig {
     @Bean
     public HttpSessionEventPublisher httpSessionEventPublisher() {
         return new HttpSessionEventPublisher();
-    }
-
-    @Bean
-    public CookieSameSiteSupplier adminSessionCookieSameSiteSupplier() {
-        // 카카오 → 콜백 리다이렉트(cross-site top-level GET)에 세션 쿠키가 실려야 하므로 Strict 가 아닌 Lax
-        return CookieSameSiteSupplier.ofLax().whenHasName("JSESSIONID");
     }
 
     private ClientRegistration kakaoRegistration() {
