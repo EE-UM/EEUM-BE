@@ -117,8 +117,11 @@ com.eeum/
 - **소프트 삭제** — 게시물/댓글 등은 Hibernate `@SoftDelete(columnName = "deleted", strategy = TIMESTAMP)`를
   사용합니다. `repository.delete()`가 자동으로 soft delete가 되고, 조회 시 삭제된 행은 자동으로 제외됩니다 (수동 `isDeleted` 필터
   불필요).
+- **게시글 삭제/복구** — 직접 `postsRepository.delete()`를 호출하지 말고 `PostsDeletionService.softDelete(postId, deletedBy,
+  DeleteReason)` / `restore(postId)`를 사용합니다. 조건부 UPDATE로 `deleted`·`deleted_by`·`delete_reason`(`USER/REPORT/SPAM/ADMIN`)을
+  기록하고, 커밋 이후 랜덤 풀·`posts::%s` 캐시를 정리(복구 시 미완료 글만 풀에 재등록)합니다.
 - **Flyway 마이그레이션** — `ddl-auto: validate`이므로 엔티티 변경 시 반드시 다음 번호의 `V{n}__설명.sql`을 추가해야 합니다 (현재
-  V10까지). 기존 마이그레이션 파일은 수정하지 마세요.
+  V13까지). 기존 마이그레이션 파일은 수정하지 마세요.
 - **알림 발송 (아웃박스 + claim)** — 알림 행은 원인 트랜잭션(예: 댓글 작성)에서 `PENDING`으로 함께 저장하고, 전송은 커밋 후
   `NotificationDispatcher.dispatch(id)` 한 곳에서만 합니다. 전송 전 `NotificationRepository.claim`(조건부 UPDATE
   `PENDING → SENDING`, `locked_until` lease 30초)이 1을 반환한 쪽만 전송하므로 비동기 워커와 스케줄러가 겹쳐도 중복되지 않습니다.

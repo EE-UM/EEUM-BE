@@ -6,8 +6,10 @@ import com.eeum.domain.common.spamfilter.repository.ForbiddenWordsRepository;
 import com.eeum.domain.common.webhook.discord.DiscordWebhookResponse;
 import com.eeum.domain.common.webhook.discord.MessageService;
 import com.eeum.domain.common.webhook.discord.message.SpamMessageFormatter;
+import com.eeum.domain.posts.entity.DeleteReason;
 import com.eeum.domain.posts.entity.Posts;
 import com.eeum.domain.posts.repository.PostsRepository;
+import com.eeum.domain.posts.service.PostsDeletionService;
 import java.util.Arrays;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,7 @@ public class SpamFilterService {
 
     private final ForbiddenWordsRepository forbiddenWordsRepository;
     private final PostsRepository postsRepository;
+    private final PostsDeletionService postsDeletionService;
 
     private final MessageService messageService;
 
@@ -73,7 +76,7 @@ public class SpamFilterService {
         }
 
         if (score >= 2) {
-            postsRepository.delete(posts);
+            postsDeletionService.softDelete(posts.getId(), null, DeleteReason.SPAM);
             messageService.sendDiscordWebhookMessage(
                 DiscordWebhookResponse.of(SpamMessageFormatter.formatSpamMessageLevel2(
                     String.valueOf(posts.getUserId()),

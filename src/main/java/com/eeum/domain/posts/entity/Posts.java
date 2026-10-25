@@ -55,6 +55,11 @@ public class Posts {
     @Enumerated(EnumType.STRING)
     private CompletionType completionType;
 
+    private Long deletedBy;
+
+    @Enumerated(EnumType.STRING)
+    private DeleteReason deleteReason;
+
     public void update(String title, String content, Album album) {
         this.title = title;
         this.content = content;

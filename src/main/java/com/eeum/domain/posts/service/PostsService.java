@@ -25,6 +25,7 @@ import com.eeum.domain.posts.dto.response.ShowRandomStoryOnShakeResponse;
 import com.eeum.domain.posts.dto.response.UpdatePostResponse;
 import com.eeum.domain.posts.entity.Album;
 import com.eeum.domain.posts.entity.CompletionType;
+import com.eeum.domain.posts.entity.DeleteReason;
 import com.eeum.domain.posts.entity.Posts;
 import com.eeum.domain.posts.entity.PostsCommentCount;
 import com.eeum.domain.posts.exception.NoAvailablePostsException;
@@ -72,6 +73,7 @@ public class PostsService {
     private final PostsCommentCountRepository postsCommentCountRepository;
     private final UserRepository userRepository;
     private final BlockService blockService;
+    private final PostsDeletionService postsDeletionService;
 
     private final SpamFilterPublisher spamFilterPublisher;
 
@@ -127,8 +129,7 @@ public class PostsService {
             throw new IllegalArgumentException("Only the author can delete this post.");
         }
 
-        postsRepository.deleteById(postId);
-        postsRandomShakeRepository.removeCandidate(String.valueOf(postId));
+        postsDeletionService.softDelete(postId, userId, DeleteReason.USER);
         return postId;
     }
 

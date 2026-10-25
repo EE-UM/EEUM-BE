@@ -2,8 +2,10 @@ package com.eeum.domain.report.service;
 
 import com.eeum.domain.comment.entity.Comment;
 import com.eeum.domain.comment.repository.CommentRepository;
+import com.eeum.domain.posts.entity.DeleteReason;
 import com.eeum.domain.posts.entity.Posts;
 import com.eeum.domain.posts.repository.PostsRepository;
+import com.eeum.domain.posts.service.PostsDeletionService;
 import com.eeum.domain.report.dto.request.CommentReportRequest;
 import com.eeum.domain.report.dto.request.PostsReportRequest;
 import com.eeum.domain.report.entity.CommentReport;
@@ -25,6 +27,7 @@ public class ReportService {
     private final PostsReportRepository postsReportRepository;
     private final PostsRepository postsRepository;
     private final CommentRepository commentRepository;
+    private final PostsDeletionService postsDeletionService;
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public String postsReport(Long reporterUserId, PostsReportRequest postsReportRequest) {
@@ -37,7 +40,7 @@ public class ReportService {
             postsReportRequest.reportReason());
 
         postsReportRepository.save(postsReport);
-        postsRepository.delete(posts);
+        postsDeletionService.softDelete(posts.getId(), reporterUserId, DeleteReason.REPORT);
 
         return posts.getContent();
     }
