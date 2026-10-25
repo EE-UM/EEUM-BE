@@ -56,7 +56,9 @@ iOS → nginx(rate limit) → MdcFilter(traceId) → JWTFilter → RateLimitInte
 ```
 com.eeum/
 ├── domain/
-│   ├── admin/         # 관리자 페이지(Thymeleaf, /admin/**) — 대시보드(AdminDashboardService: 가입 일별 집계는 KST 기준)
+│   ├── admin/         # 관리자 페이지(Thymeleaf, /admin/**) — 대시보드(가입 일별 집계는 KST 기준), 게시글 관리
+│   │                  #   AdminPostService: 삭제/복구는 PostsDeletionService + 같은 TX 에서 admin_audit_log 기록(사유 필수)
+│   │                  #   AdminPostQueryRepository: 삭제 글 포함 조회용 네이티브 쿼리, AdminControllerAdvice: 관리자 에러 페이지
 │   ├── posts/         # 게시물 CRUD, 흔들기(Redis 랜덤 풀), Apple Music 검색
 │   │   ├── gateway/   #   MusicSearchGateway / AppleMusicSearchGateway, DeveloperTokenProvider(Caffeine 캐시)
 │   │   └── batch/     #   AppleMusicTokenGenerateJob — 분기별(1·4·7·10월 1일 03시 KST) 토큰 재발급
@@ -122,7 +124,7 @@ com.eeum/
   DeleteReason)` / `restore(postId)`를 사용합니다. 조건부 UPDATE로 `deleted`·`deleted_by`·`delete_reason`(`USER/REPORT/SPAM/ADMIN`)을
   기록하고, 커밋 이후 랜덤 풀·`posts::%s` 캐시를 정리(복구 시 미완료 글만 풀에 재등록)합니다.
 - **Flyway 마이그레이션** — `ddl-auto: validate`이므로 엔티티 변경 시 반드시 다음 번호의 `V{n}__설명.sql`을 추가해야 합니다 (현재
-  V13까지). 기존 마이그레이션 파일은 수정하지 마세요.
+  V14까지). 기존 마이그레이션 파일은 수정하지 마세요.
 - **알림 발송 (아웃박스 + claim)** — 알림 행은 원인 트랜잭션(예: 댓글 작성)에서 `PENDING`으로 함께 저장하고, 전송은 커밋 후
   `NotificationDispatcher.dispatch(id)` 한 곳에서만 합니다. 전송 전 `NotificationRepository.claim`(조건부 UPDATE
   `PENDING → SENDING`, `locked_until` lease 30초)이 1을 반환한 쪽만 전송하므로 비동기 워커와 스케줄러가 겹쳐도 중복되지 않습니다.

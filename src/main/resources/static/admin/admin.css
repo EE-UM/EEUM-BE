@@ -16,6 +16,9 @@
     --hover-band: rgba(42, 120, 214, 0.08);
     --tooltip-bg: #1d2125;
     --tooltip-text: #ffffff;
+    --success-bg: #e7f6ec;
+    --success-text: #1a7f37;
+    --badge-bg: #e8f0fd;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -35,6 +38,9 @@
         --hover-band: rgba(57, 135, 229, 0.12);
         --tooltip-bg: #e6e8eb;
         --tooltip-text: #14161a;
+        --success-bg: #1d3325;
+        --success-text: #6fdd8b;
+        --badge-bg: #1f2b40;
     }
 }
 
@@ -369,4 +375,230 @@ th {
 .num {
     text-align: right;
     font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 게시글 관리 ---------- */
+
+.small {
+    font-size: 12px;
+}
+
+.mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+.alert.success {
+    background: var(--success-bg);
+    color: var(--success-text);
+    border-color: transparent;
+}
+
+.button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #ffffff;
+}
+
+.button.danger {
+    background: var(--danger-text);
+    border-color: var(--danger-text);
+    color: var(--surface);
+}
+
+.button.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.button.disabled {
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+input, select, textarea {
+    font: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+}
+
+textarea {
+    width: 100%;
+    resize: vertical;
+    margin: 6px 0 10px;
+}
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 8px;
+    margin: 16px 0 8px;
+}
+
+.filters label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+}
+
+.filters .grow {
+    flex: 1 1 200px;
+}
+
+.filters input {
+    width: 100%;
+}
+
+.table-card {
+    padding: 0;
+    overflow-x: auto;
+    margin-bottom: 16px;
+}
+
+.table-card h2 {
+    padding: 16px 16px 0;
+}
+
+.table-card > p {
+    padding: 0 16px 16px;
+    margin: 8px 0 0;
+}
+
+.table-card table {
+    margin-top: 0;
+}
+
+.table-card h2 + table {
+    margin-top: 8px;
+}
+
+.table-card th:first-child,
+.table-card td:first-child {
+    padding-left: 16px;
+}
+
+.table-card th:last-child,
+.table-card td:last-child {
+    padding-right: 16px;
+}
+
+td {
+    vertical-align: top;
+}
+
+.title-cell {
+    max-width: 360px;
+}
+
+.title-cell a {
+    color: var(--text);
+    font-weight: 500;
+}
+
+.ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+}
+
+.row-deleted td {
+    color: var(--muted);
+}
+
+.empty {
+    text-align: center;
+    padding: 24px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    background: var(--badge-bg);
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.badge.done {
+    background: var(--success-bg);
+    color: var(--success-text);
+}
+
+.badge.danger {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+}
+
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+}
+
+.detail-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.detail-header h1 {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 16px;
+    margin: 16px 0;
+}
+
+@media (max-width: 760px) {
+    .detail-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.detail-grid h2 {
+    margin-bottom: 8px;
+}
+
+.post-content {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.meta {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 6px 16px;
+    margin: 16px 0 0;
+    font-size: 14px;
+}
+
+.meta dt {
+    color: var(--muted);
+}
+
+.meta dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.action-card form {
+    margin: 0;
 }

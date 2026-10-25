@@ -1,6 +1,10 @@
 package com.eeum.global.securitycore.admin;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -11,6 +15,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.eeum.domain.admin.controller.AdminController;
+import com.eeum.domain.admin.controller.AdminPostController;
+import com.eeum.domain.admin.service.AdminPostService;
 import com.eeum.domain.admin.service.AdminDashboardService;
 import com.eeum.domain.user.repository.UserRepository;
 import com.eeum.global.securitycore.SecurityConfig;
@@ -40,7 +46,8 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
     AdminSecurityConfig.class,
     AdminOidcUserService.class,
     SecurityConfig.class,
-    AdminController.class
+    AdminController.class,
+    AdminPostController.class
 })
 @TestPropertySource(properties = {
     "admin.kakao.client-id=test-client-id",
@@ -62,6 +69,9 @@ class AdminSecurityConfigTest {
 
     @MockitoBean
     private AdminDashboardService adminDashboardService;
+
+    @MockitoBean
+    private AdminPostService adminPostService;
 
     @Autowired
     private WebApplicationContext context;
@@ -148,5 +158,22 @@ class AdminSecurityConfigTest {
             .andReturn();
 
         assertThat(result.getRequest().getSession(false)).isNull();
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 POST 는 CSRF 토큰이 없으면 403 이고 서비스가 호출되지 않는다")
+    void postDelete_requiresCsrf() throws Exception {
+        mockMvc.perform(post("/admin/posts/100/delete").param("reason", "스팸")
+                .with(authentication(adminAuthentication())))
+            .andExpect(status().isForbidden());
+
+        verify(adminPostService, never()).delete(any(), any(), any(), any());
+
+        mockMvc.perform(post("/admin/posts/100/delete").param("reason", "스팸")
+                .with(authentication(adminAuthentication())).with(csrf()))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/admin/posts/100"));
+
+        verify(adminPostService).delete(eq(100L), eq(42L), eq("스팸"), any());
     }
 }

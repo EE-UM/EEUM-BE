@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('게시글 상세')}"></head>
+<body>
+<header th:replace="~{admin/fragments/layout :: topbar('posts')}"></header>
+<main class="content" th:with="p=${detail.post}">
+    <p><a class="muted" th:href="@{/admin/posts}">← 게시글 목록</a></p>
+
+    <p class="alert success" th:if="${message}" th:text="${message}">완료</p>
+    <p class="alert error" th:if="${error}" th:text="${error}">오류</p>
+
+    <div class="detail-header">
+        <h1 th:text="${p.title}">제목</h1>
+        <span class="badge" th:classappend="${p.removed} ? 'danger' : (${p.isCompleted} ? 'done' : '')"
+              th:text="${p.statusLabel}">진행 중</span>
+    </div>
+
+    <div class="detail-grid">
+        <section class="card">
+            <h2>본문</h2>
+            <p class="post-content" th:text="${p.content}">내용</p>
+
+            <dl class="meta">
+                <dt>게시글 ID</dt>
+                <dd class="mono" th:text="${p.id}">1</dd>
+                <dt>작성자</dt>
+                <dd>
+                    <span th:text="${p.nickname} ?: '-'">닉네임</span>
+                    <a class="muted mono small" th:href="@{/admin/posts(userId=${p.userId})}"
+                       th:text="'#' + ${p.userId}">#1</a>
+                </dd>
+                <dt>음악</dt>
+                <dd th:if="${p.songName == null}">-</dd>
+                <dd th:unless="${p.songName == null}">
+                    <span th:text="${p.songName} + ' · ' + (${p.artistName} ?: '-')">노래 · 아티스트</span>
+                    <span class="muted" th:if="${p.albumName}" th:text="'(' + ${p.albumName} + ')'">(앨범)</span>
+                    <a th:if="${p.appleMusicUrl != null and #strings.startsWith(p.appleMusicUrl, 'https://')}"
+                       th:href="${p.appleMusicUrl}" target="_blank"
+                       rel="noopener noreferrer">Apple Music</a>
+                </dd>
+                <dt>댓글</dt>
+                <dd th:text="(${p.commentCount} ?: 0) + ' / ' + (${p.commentCountLimit} ?: '-')">0 / 100</dd>
+                <dt>마감 방식</dt>
+                <dd th:text="${p.completionType == 'AUTO_COMPLETION'} ? '댓글 수 도달 시 자동 완료' : '작성자 수동 마감'">수동</dd>
+                <dt>작성일(KST)</dt>
+                <dd th:text="${@adminTime.format(p.createdAt)}">-</dd>
+                <dt>수정일(KST)</dt>
+                <dd th:text="${@adminTime.format(p.updatedAt)}">-</dd>
+                <th:block th:if="${p.removed}">
+                    <dt>삭제일(KST)</dt>
+                    <dd th:text="${@adminTime.format(p.deleted)}">-</dd>
+                    <dt>삭제 사유</dt>
+                    <dd>
+                        <span th:text="${p.deleteReasonLabel}">신고</span>
+                        <span class="muted mono small" th:if="${p.deletedBy}"
+                              th:text="'(처리자 #' + ${p.deletedBy} + ')'">(#1)</span>
+                    </dd>
+                </th:block>
+            </dl>
+        </section>
+
+        <section class="card action-card">
+            <th:block th:unless="${p.removed}">
+                <h2>관리자 삭제</h2>
+                <p class="muted small">삭제하면 앱 목록과 흔들기 후보에서 즉시 제외됩니다. 언제든 복구할 수 있습니다.</p>
+                <form th:action="@{/admin/posts/{id}/delete(id=${p.id})}" method="post"
+                      onsubmit="return confirm('이 게시글을 삭제할까요?');">
+                    <label for="delete-reason" class="muted small">사유 (필수, 감사 로그에 기록)</label>
+                    <textarea id="delete-reason" name="reason" rows="3" maxlength="500" required></textarea>
+                    <button type="submit" class="button danger">삭제</button>
+                </form>
+            </th:block>
+            <th:block th:if="${p.removed}">
+                <h2>복구</h2>
+                <p class="muted small" th:if="${p.deleteReason == 'USER'}">작성자가 직접 삭제한 글입니다. 복구 전에 확인해 주세요.</p>
+                <p class="muted small">완료되지 않은 글은 흔들기 후보에도 다시 등록됩니다.</p>
+                <form th:action="@{/admin/posts/{id}/restore(id=${p.id})}" method="post"
+                      onsubmit="return confirm('이 게시글을 복구할까요?');">
+                    <label for="restore-reason" class="muted small">사유 (필수, 감사 로그에 기록)</label>
+                    <textarea id="restore-reason" name="reason" rows="3" maxlength="500" required></textarea>
+                    <button type="submit" class="button primary">복구</button>
+                </form>
+            </th:block>
+        </section>
+    </div>
+
+    <section class="card table-card">
+        <h2 th:text="'신고 이력 (' + ${#lists.size(detail.reports)} + ')'">신고 이력</h2>
+        <table th:unless="${#lists.isEmpty(detail.reports)}">
+            <thead>
+            <tr>
+                <th>신고일(KST)</th>
+                <th>신고자</th>
+                <th>사유</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="r : ${detail.reports}">
+                <td class="nowrap" th:text="${@adminTime.format(r.createdAt)}">-</td>
+                <td class="mono" th:text="'#' + ${r.reporterUserId}">#1</td>
+                <td th:text="${r.reportReason}">사유</td>
+            </tr>
+            </tbody>
+        </table>
+        <p class="muted" th:if="${#lists.isEmpty(detail.reports)}">신고 이력이 없습니다.</p>
+    </section>
+
+    <section class="card table-card">
+        <h2>관리자 조치 이력</h2>
+        <table th:unless="${#lists.isEmpty(detail.auditLogs)}">
+            <thead>
+            <tr>
+                <th>일시(KST)</th>
+                <th>조치</th>
+                <th>관리자</th>
+                <th>사유</th>
+                <th>IP</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="log : ${detail.auditLogs}">
+                <td class="nowrap" th:text="${@adminTime.format(log.createdAt)}">-</td>
+                <td th:text="${log.action.name() == 'POST_DELETE'} ? '삭제' : '복구'">삭제</td>
+                <td class="mono" th:text="'#' + ${log.adminUserId}">#1</td>
+                <td th:text="${log.reason}">사유</td>
+                <td class="mono small" th:text="${log.ip} ?: '-'">-</td>
+            </tr>
+            </tbody>
+        </table>
+        <p class="muted" th:if="${#lists.isEmpty(detail.auditLogs)}">조치 이력이 없습니다.</p>
+    </section>
+</main>
+</body>
+</html>

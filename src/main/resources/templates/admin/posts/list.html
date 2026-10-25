@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('게시글 관리')}"></head>
+<body>
+<header th:replace="~{admin/fragments/layout :: topbar('posts')}"></header>
+<main class="content">
+    <h1>게시글 관리</h1>
+
+    <form class="filters" th:action="@{/admin/posts}" method="get">
+        <label>
+            <span class="muted">상태</span>
+            <select name="status">
+                <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}"
+                        th:selected="${s == condition.status}">전체</option>
+            </select>
+        </label>
+        <label class="grow">
+            <span class="muted">제목·내용</span>
+            <input type="search" name="keyword" th:value="${condition.keyword}" placeholder="검색어">
+        </label>
+        <label>
+            <span class="muted">작성자 ID</span>
+            <input type="text" name="userId" inputmode="numeric" pattern="[0-9]*"
+                   th:value="${condition.userId}" placeholder="users.id">
+        </label>
+        <button type="submit" class="button primary">검색</button>
+        <a class="button" th:href="@{/admin/posts}">초기화</a>
+    </form>
+
+    <p class="muted" th:text="'총 ' + ${#numbers.formatInteger(posts.totalElements, 1, 'COMMA')} + '건'">총 0건</p>
+
+    <div class="card table-card">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>제목</th>
+                <th>작성자</th>
+                <th>상태</th>
+                <th class="num">댓글</th>
+                <th>작성일(KST)</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${posts.empty}">
+                <td colspan="6" class="empty muted">조건에 맞는 게시글이 없습니다.</td>
+            </tr>
+            <tr th:each="p : ${posts.content}" th:classappend="${p.removed} ? 'row-deleted'">
+                <td class="mono" th:text="${p.id}">1</td>
+                <td class="title-cell">
+                    <a th:href="@{/admin/posts/{id}(id=${p.id})}" th:text="${p.title}">제목</a>
+                    <div class="muted ellipsis" th:text="${p.content}">내용</div>
+                </td>
+                <td>
+                    <div th:text="${p.nickname} ?: '-'">닉네임</div>
+                    <div class="muted mono small" th:text="${p.userId}">1</div>
+                </td>
+                <td>
+                    <span class="badge" th:classappend="${p.removed} ? 'danger' : (${p.isCompleted} ? 'done' : '')"
+                          th:text="${p.statusLabel}">진행 중</span>
+                    <div class="muted small" th:if="${p.removed}" th:text="${p.deleteReasonLabel}">신고</div>
+                </td>
+                <td class="num" th:text="${p.commentCount} ?: 0">0</td>
+                <td class="nowrap" th:text="${@adminTime.format(p.createdAt)}">2026-01-01 00:00</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <nav class="pagination" th:if="${posts.totalPages > 1}"
+         th:with="current=${posts.number}, last=${posts.totalPages - 1},
+                  from=${T(java.lang.Math).max(0, posts.number - 2)},
+                  to=${T(java.lang.Math).min(posts.totalPages - 1, posts.number + 2)}">
+        <a class="button small" th:classappend="${current == 0} ? 'disabled'"
+           th:href="@{/admin/posts(status=${condition.status}, keyword=${condition.keyword}, userId=${condition.userId}, page=${current - 1})}">이전</a>
+        <a class="button small" th:each="i : ${#numbers.sequence(from, to)}"
+           th:classappend="${i == current} ? 'active'"
+           th:href="@{/admin/posts(status=${condition.status}, keyword=${condition.keyword}, userId=${condition.userId}, page=${i})}"
+           th:text="${i + 1}">1</a>
+        <a class="button small" th:classappend="${current == last} ? 'disabled'"
+           th:href="@{/admin/posts(status=${condition.status}, keyword=${condition.keyword}, userId=${condition.userId}, page=${current + 1})}">다음</a>
+    </nav>
+</main>
+</body>
+</html>
