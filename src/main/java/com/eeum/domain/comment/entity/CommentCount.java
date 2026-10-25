@@ -41,6 +41,13 @@ public class CommentCount {
         }
     }
 
+    /**
+     * 목표 댓글 수의 절반 (올림).
+     */
+    public long halfOfLimit() {
+        return (commentCountLimit + 1) / 2;
+    }
+
     public boolean hitLimit() {
         return commentCount.equals(commentCountLimit);
     }

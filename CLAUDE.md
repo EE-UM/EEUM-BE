@@ -65,7 +65,7 @@ com.eeum/
 │   │   └── batch/     #   AppleMusicTokenGenerateJob — 분기별(1·4·7·10월 1일 03시 KST) 토큰 재발급
 │   ├── user/          # OIDC 로그인(카카오/애플), 게스트 로그인, JWT, 약관, 계정 삭제
 │   ├── comment/       # 음악 첨부 댓글(음악 필수), 댓글 수 제한 도달 시 게시물 완료 처리
-│   │   ├── event/     #   FirstCommentCreatedEvent (첫 댓글 → 푸시 알림)
+│   │   ├── event/     #   FirstCommentCreatedEvent / HalfCommentReachedEvent / CommentLimitReachedEvent (첫 댓글·절반·목표 달성 → 푸시 알림)
 │   │   └── producer/  #   CommentProducer — 게시물 완료를 Redis 채널로 발행
 │   ├── block/         # 사용자 차단 (자기 자신 차단 불가), Redis 쿼리 모델 캐시
 │   ├── like/          # 좋아요 토글, Redis 분산 락 + 카운터
@@ -79,7 +79,7 @@ com.eeum/
 │   │       ├── port/      # PushSender 인터페이스 / FcmPushSender 구현 (500개 단위 전송, 무효 토큰 반환)
 │   │       ├── service/   # NotificationService(알림 행 저장), NotificationDispatcher(claim → FCM 전송 → 상태 변경)
 │   │       ├── event/     # NotificationCreatedEvent (알림 행 생성 → 커밋 후 전송)
-│   │       ├── listener/  # FirstCommentNotificationListener(동기 저장), NotificationDispatcherListener(커밋 후 @Async 전송)
+│   │       ├── listener/  # CommentNotificationListener(동기 저장), NotificationDispatcherListener(커밋 후 @Async 전송)
 │   │       └── batch/     # NotificationDispatchRetryJob — 1분마다 유실된 PENDING / lease 만료 SENDING 재발송
 │   └── common/
 │       ├── spamfilter/       # ForbiddenWords 검사 + Claude AI 분류
@@ -106,7 +106,7 @@ com.eeum/
 | `notification:spamfilter`  | `PostsService` (커밋 이후 `afterCommit`) | `SpamFilterSubscriber`             | 금칙어(+2) + Claude 판정(+1) → 1점: Discord 경고, 2점 이상: 게시물 삭제 + Discord |
 | `notification:mail`        | `MailPublisher`                      | `MailSubscriber`                   | 메일 발송                                                             |
 | `notification:playlist`    | `CommentProducer` (게시물 완료 시)         | `PostsCompletedSubscriber`         | 현재는 로그만 남김                                                        |
-| `FirstCommentCreatedEvent` | `CommentService`                     | `FirstCommentNotificationListener` | 동기 `@EventListener` — 댓글 TX 안에서 알림 행을 PENDING으로 저장                   |
+| `FirstCommentCreatedEvent` 외 2종 | `CommentService`               | `CommentNotificationListener`      | 동기 `@EventListener` — 댓글 TX 안에서 알림 행을 PENDING으로 저장 (작성자 본인 댓글 제외, 게시글·유형별 1회) |
 | `NotificationCreatedEvent` | `NotificationService`                | `NotificationDispatcherListener`   | 커밋 후 `@Async`로 `NotificationDispatcher.dispatch(id)` 호출               |
 | (스케줄러, 1분 주기)              | —                                    | `NotificationDispatchRetryJob`     | 생성 1분 지난 PENDING, lease 만료 SENDING을 `dispatch(id)`로 재발송            |
 
