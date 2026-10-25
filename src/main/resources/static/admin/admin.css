@@ -1,0 +1,132 @@
+:root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --text: #1d2125;
+    --muted: #6b7280;
+    --border: #e2e5e9;
+    --accent: #2f6fed;
+    --danger-bg: #fdecec;
+    --danger-text: #b42318;
+    --kakao: #fee500;
+    --kakao-text: #191919;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #14161a;
+        --surface: #1d2025;
+        --text: #e6e8eb;
+        --muted: #9aa1ab;
+        --border: #2e333a;
+        --accent: #6c9cff;
+        --danger-bg: #3a1f1f;
+        --danger-text: #ff9b91;
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+body.center {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+h1 {
+    font-size: 22px;
+    margin: 0 0 8px;
+}
+
+.muted {
+    color: var(--muted);
+}
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.login {
+    width: 100%;
+    max-width: 360px;
+}
+
+.alert {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.alert.error {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+    border-color: transparent;
+}
+
+.button {
+    display: inline-block;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    padding: 10px 14px;
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.button.small {
+    padding: 4px 10px;
+    font-size: 13px;
+}
+
+.button.kakao {
+    display: block;
+    text-align: center;
+    margin-top: 16px;
+    background: var(--kakao);
+    color: var(--kakao-text);
+    border-color: var(--kakao);
+    font-weight: 600;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.topbar-right form {
+    margin: 0;
+}
+
+.content {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 16px;
+}

@@ -133,6 +133,10 @@ com.eeum/
 - **Redis 워밍업** — 서버 시작 시 `PostsRandomShakeWarmUp`이 활성 게시물을 랜덤 풀에 로드.
 - **게시물 완료** — 댓글 수가 `commentCountLimit`에 도달하면 완료 처리. 수동 마감 게시물의 기본 제한은 100.
 - **Swagger 인터페이스 분리** — 각 도메인의 `docs/*Api.java` 인터페이스에 `@Operation`을 두고 컨트롤러가 구현.
+- **관리자 페이지 인증** — `/admin/**`는 `AdminSecurityConfig`의 별도 체인(`@Order(1)`)이 처리합니다. 카카오 OIDC 로그인(웹,
+  `kakao-admin` 등록) + 세션 + CSRF이며, `AdminOidcUserService`가 `admin.allowed-kakao-ids`에 있는 카카오 `sub`이면서 `users`에
+  가입된 계정만 `ROLE_ADMIN`(`AdminPrincipal`, `users.id` 포함)으로 인증합니다. `admin.kakao.client-id`가 비어 있으면 `/admin/**`
+  전체를 거부합니다. 앱 API 체인(`SecurityConfig`, `@Order(2)`)은 그대로 JWT·무상태이고, `LoggingFilter`는 `/admin` 본문을 읽지 않습니다.
 - **`@CurrentUser`** — 시큐리티 컨텍스트에서 `UserPrincipalInfo` 주입.
 - **`@RequireLogin`** — 메서드 실행 전 인증 강제 (게스트 차단 등).
 - **`ApiResponse<T>`** — 모든 응답의 공통 JSON 래퍼. 예외는 `CoreApiException(ErrorType)`으로 던지고
@@ -161,7 +165,7 @@ com.eeum/
 
 - **모든 `application*.yml`은 `.gitignore` 대상**이며 시크릿을 포함합니다. 내용을 커밋하거나 출력·공유하지 마세요. 새 설정 키를 추가하면 사용자에게
   dev/prod yml(GitHub Secrets `APPLICATION_DEV_YML` 등)에도 추가해야 한다고 알려주세요.
-- 주요 커스텀 키: `rate-limit.*`, `outbound-rate-limit.*`, `gateway.max-attempts`, `apple-music.*`,
+- 주요 커스텀 키: `admin.kakao.client-id`, `admin.kakao.client-secret`, `admin.allowed-kakao-ids`, `rate-limit.*`, `outbound-rate-limit.*`, `gateway.max-attempts`, `apple-music.*`,
   `firebase.credentials`, `app.redis-key-prefix`, `discord.*`.
 
 ## CI/CD & 인프라

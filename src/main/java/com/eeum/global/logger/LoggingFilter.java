@@ -24,7 +24,9 @@ public class LoggingFilter implements Filter {
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
-    if (request instanceof HttpServletRequest httpServletRequest) {
+    // 관리자 페이지는 폼 POST 를 쓰므로 본문을 먼저 읽으면 getParameter()(_csrf 등)가 비어 버린다. 본문 로깅에서 제외한다.
+    if (request instanceof HttpServletRequest httpServletRequest
+        && !httpServletRequest.getRequestURI().startsWith("/admin")) {
       CachedBodyHttpServletRequest wrappedRequest = new CachedBodyHttpServletRequest(
           httpServletRequest);
 
