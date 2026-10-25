@@ -5,7 +5,9 @@ import com.eeum.domain.comment.dto.response.CommentResponse;
 import com.eeum.domain.comment.entity.Album;
 import com.eeum.domain.comment.entity.Comment;
 import com.eeum.domain.comment.entity.CommentCount;
+import com.eeum.domain.comment.event.CommentLimitReachedEvent;
 import com.eeum.domain.comment.event.FirstCommentCreatedEvent;
+import com.eeum.domain.comment.event.HalfCommentReachedEvent;
 import com.eeum.domain.comment.exception.AlreadyFinishedPostException;
 import com.eeum.domain.comment.exception.DuplicateMusicException;
 import com.eeum.domain.comment.producer.CommentProducer;
@@ -99,16 +101,29 @@ public class CommentService {
         });
     }
 
-    private boolean isFirstCommentByOther(CommentCount commentCount, Posts post, Long commenterId) {
-        return commentCount.getCommentCount() == 1L && !post.getUserId().equals(commenterId);
-    }
-
+    /**
+     * 작성자가 아닌 사용자의 댓글로 첫 댓글·절반·목표 달성 시점에 도달하면 알림 이벤트를 발행한다.
+     * 절반은 목표치의 올림이며, 첫 댓글(1개)이나 목표 달성과 겹치는 작은 목표치에서는 보내지 않는다.
+     * 목표치가 1이면 목표 달성 알림만 보낸다.
+     */
     private void publishPushAlarmEvent(UserPrincipal userPrincipal, CommentCount commentCount,
-        Posts postForValidate) {
-        if (isFirstCommentByOther(commentCount, postForValidate, userPrincipal.getId())) {
+        Posts post) {
+        if (post.getUserId().equals(userPrincipal.getId())) {
+            return;
+        }
+        long count = commentCount.getCommentCount();
+        long half = commentCount.halfOfLimit();
+        if (count == 1L && !commentCount.hitLimit()) {
             eventPublisher.publishEvent(new FirstCommentCreatedEvent(
-                postForValidate.getId(), postForValidate.getUserId(), postForValidate.getTitle()
-            ));
+                post.getId(), post.getUserId(), post.getTitle()));
+        }
+        if (count == half && half > 1L && !commentCount.hitLimit()) {
+            eventPublisher.publishEvent(new HalfCommentReachedEvent(
+                post.getId(), post.getUserId(), post.getTitle()));
+        }
+        if (commentCount.hitLimit()) {
+            eventPublisher.publishEvent(new CommentLimitReachedEvent(
+                post.getId(), post.getUserId(), post.getTitle()));
         }
     }
 

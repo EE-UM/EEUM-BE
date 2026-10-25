@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -11,6 +12,9 @@ import com.eeum.domain.comment.dto.request.CommentCreateRequest;
 import com.eeum.domain.comment.dto.response.CommentResponse;
 import com.eeum.domain.comment.entity.Comment;
 import com.eeum.domain.comment.entity.CommentCount;
+import com.eeum.domain.comment.event.CommentLimitReachedEvent;
+import com.eeum.domain.comment.event.FirstCommentCreatedEvent;
+import com.eeum.domain.comment.event.HalfCommentReachedEvent;
 import com.eeum.domain.comment.exception.AlreadyFinishedPostException;
 import com.eeum.domain.comment.exception.DuplicateMusicException;
 import com.eeum.domain.comment.producer.CommentProducer;
@@ -29,11 +33,15 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
@@ -61,6 +69,7 @@ class CommentServiceTest {
 
     private static final Long POST_ID = 1L;
     private static final Long USER_ID = 10L;
+    private static final Long OTHER_USER_ID = 20L;
 
     private UserPrincipal createUserPrincipal() {
         return new UserPrincipal(USER_ID, "test@test.com", "testUser", "ROLE_USER",
@@ -227,5 +236,75 @@ class CommentServiceTest {
         commentService.delete(USER_ID, commentId);
 
         verify(commentRepository, never()).softDelete(any());
+    }
+
+    @ParameterizedTest(name = "목표 {1}개 중 {0}번째 댓글 -> {2}")
+    @CsvSource({
+        "1, 5, FIRST",
+        "2, 5, NONE",
+        "3, 5, HALF",
+        "5, 10, HALF",
+        "5, 5, COMPLETED",
+        "1, 2, FIRST",
+        "2, 2, COMPLETED",
+        "2, 3, HALF",
+        "1, 1, COMPLETED",
+        "50, 100, HALF"
+    })
+    @DisplayName("다른 사용자의 댓글로 첫 댓글·절반(올림)·목표 달성 시점에 도달하면 해당 알림 이벤트 하나만 발행한다")
+    void create_publishesMilestoneEvent(long countAfter, long limit, String expected) {
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            given(commentCountRepository.findByPostId(POST_ID)).willReturn(
+                Optional.of(CommentCount.of(POST_ID, countAfter - 1, limit)));
+            given(postsRepository.findById(POST_ID)).willReturn(
+                Optional.of(createPost("포스트앨범", "포스트아티스트", false)));
+
+            commentService.create(createOtherUserPrincipal(), otherMusicRequest());
+
+            ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+            verify(eventPublisher, atMostOnce()).publishEvent(captor.capture());
+            Class<?> expectedType = switch (expected) {
+                case "FIRST" -> FirstCommentCreatedEvent.class;
+                case "HALF" -> HalfCommentReachedEvent.class;
+                case "COMPLETED" -> CommentLimitReachedEvent.class;
+                default -> null;
+            };
+            if (expectedType == null) {
+                assertThat(captor.getAllValues()).isEmpty();
+            } else {
+                assertThat(captor.getAllValues()).singleElement().isInstanceOf(expectedType);
+            }
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    @DisplayName("게시글 작성자 본인의 댓글로는 목표에 도달해도 알림 이벤트를 발행하지 않는다")
+    void create_doesNotPublishForAuthorComment() {
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            given(commentCountRepository.findByPostId(POST_ID)).willReturn(
+                Optional.of(CommentCount.of(POST_ID, 4L, 5L)));
+            given(postsRepository.findById(POST_ID)).willReturn(
+                Optional.of(createPost("포스트앨범", "포스트아티스트", false)));
+
+            commentService.create(createUserPrincipal(), otherMusicRequest());
+
+            verify(eventPublisher, never()).publishEvent(any(Object.class));
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    private UserPrincipal createOtherUserPrincipal() {
+        return new UserPrincipal(OTHER_USER_ID, "other@test.com", "otherUser", "ROLE_USER",
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
+    }
+
+    private static CommentCreateRequest otherMusicRequest() {
+        return new CommentCreateRequest(
+            "댓글 내용", "다른앨범", "다른노래", "다른아티스트", "url", "url2", POST_ID);
     }
 }
