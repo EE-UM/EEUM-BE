@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('로그인')}"></head>
+<body class="center">
+<main class="card login">
+    <span class="wordmark">eeum</span>
+    <p class="muted">관리자 페이지</p>
+
+    <p class="alert error" th:if="${param.error}">허용되지 않은 계정이거나 로그인에 실패했습니다.</p>
+    <p class="alert" th:if="${param.logout}">로그아웃되었습니다.</p>
+
+    <a class="button kakao" th:href="@{${kakaoLoginUrl}}">카카오로 로그인</a>
+    <p class="faint small">허용된 카카오 계정으로만 로그인할 수 있어요.</p>
+</main>
+</body>
+</html>

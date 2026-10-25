@@ -56,6 +56,10 @@ iOS → nginx(rate limit) → MdcFilter(traceId) → JWTFilter → RateLimitInte
 ```
 com.eeum/
 ├── domain/
+│   ├── admin/         # 관리자 페이지(Thymeleaf, /admin/**, static/admin/admin.css 토큰 기반 흰 배경 디자인) — 대시보드, 게시글 관리
+│   │                  #   AdminStatsRepository(JDBC 집계) + KstPeriod: 저장 시간대(운영 UTC)와 무관하게 KST 날짜로 집계
+│   │                  #   AdminPostService: 삭제/복구는 PostsDeletionService + 같은 TX 에서 admin_audit_log 기록(사유 필수)
+│   │                  #   AdminPostQueryRepository: 삭제 글 포함 조회용 네이티브 쿼리, AdminControllerAdvice: 관리자 에러 페이지
 │   ├── posts/         # 게시물 CRUD, 흔들기(Redis 랜덤 풀), Apple Music 검색
 │   │   ├── gateway/   #   MusicSearchGateway / AppleMusicSearchGateway, DeveloperTokenProvider(Caffeine 캐시)
 │   │   └── batch/     #   AppleMusicTokenGenerateJob — 분기별(1·4·7·10월 1일 03시 KST) 토큰 재발급
@@ -117,8 +121,11 @@ com.eeum/
 - **소프트 삭제** — 게시물/댓글 등은 Hibernate `@SoftDelete(columnName = "deleted", strategy = TIMESTAMP)`를
   사용합니다. `repository.delete()`가 자동으로 soft delete가 되고, 조회 시 삭제된 행은 자동으로 제외됩니다 (수동 `isDeleted` 필터
   불필요).
+- **게시글 삭제/복구** — 직접 `postsRepository.delete()`를 호출하지 말고 `PostsDeletionService.softDelete(postId, deletedBy,
+  DeleteReason)` / `restore(postId)`를 사용합니다. 조건부 UPDATE로 `deleted`·`deleted_by`·`delete_reason`(`USER/REPORT/SPAM/ADMIN`)을
+  기록하고, 커밋 이후 랜덤 풀·`posts::%s` 캐시를 정리(복구 시 미완료 글만 풀에 재등록)합니다.
 - **Flyway 마이그레이션** — `ddl-auto: validate`이므로 엔티티 변경 시 반드시 다음 번호의 `V{n}__설명.sql`을 추가해야 합니다 (현재
-  V10까지). 기존 마이그레이션 파일은 수정하지 마세요.
+  V14까지). 기존 마이그레이션 파일은 수정하지 마세요.
 - **알림 발송 (아웃박스 + claim)** — 알림 행은 원인 트랜잭션(예: 댓글 작성)에서 `PENDING`으로 함께 저장하고, 전송은 커밋 후
   `NotificationDispatcher.dispatch(id)` 한 곳에서만 합니다. 전송 전 `NotificationRepository.claim`(조건부 UPDATE
   `PENDING → SENDING`, `locked_until` lease 30초)이 1을 반환한 쪽만 전송하므로 비동기 워커와 스케줄러가 겹쳐도 중복되지 않습니다.
@@ -130,6 +137,13 @@ com.eeum/
 - **Redis 워밍업** — 서버 시작 시 `PostsRandomShakeWarmUp`이 활성 게시물을 랜덤 풀에 로드.
 - **게시물 완료** — 댓글 수가 `commentCountLimit`에 도달하면 완료 처리. 수동 마감 게시물의 기본 제한은 100.
 - **Swagger 인터페이스 분리** — 각 도메인의 `docs/*Api.java` 인터페이스에 `@Operation`을 두고 컨트롤러가 구현.
+- **관리자 페이지 인증** — `/admin/**`는 `AdminSecurityConfig`의 별도 체인(`@Order(1)`)이 처리합니다. 카카오 OIDC 로그인(웹,
+  `kakao-admin` 등록) + 세션 + CSRF이며, `AdminOidcUserService`가 `admin.allowed-kakao-ids`에 있는 카카오 `sub`이면서 `users`에
+  가입된 계정만 `ROLE_ADMIN`(`AdminPrincipal`, `users.id` 포함)으로 인증합니다. `admin.kakao.client-id`가 비어 있으면 `/admin/**`
+  전체를 거부합니다. 앱 API 체인(`SecurityConfig`, `@Order(2)`)은 그대로 JWT·무상태이고, `LoggingFilter`는 `/admin` 본문을 읽지 않습니다.
+  nginx 뒤 동작은 `AdminWebConfig`가 담당합니다: `/admin/*`에만 `ForwardedHeaderFilter`(https 콜백, `/dev` 접두어, 감사 로그 IP —
+  nginx admin location이 `X-Forwarded-*`를 모두 덮어씀), 세션 쿠키 이름 `EEUM_ADMIN_SESSION_<PROFILE>`(dev/prod가 같은 도메인),
+  local 외 `Secure`, `SameSite=Lax`(카카오 콜백에 쿠키가 실려야 함). 상세는 `infra/nginx/README.md`의 관리자 페이지 절.
 - **`@CurrentUser`** — 시큐리티 컨텍스트에서 `UserPrincipalInfo` 주입.
 - **`@RequireLogin`** — 메서드 실행 전 인증 강제 (게스트 차단 등).
 - **`ApiResponse<T>`** — 모든 응답의 공통 JSON 래퍼. 예외는 `CoreApiException(ErrorType)`으로 던지고
@@ -158,7 +172,7 @@ com.eeum/
 
 - **모든 `application*.yml`은 `.gitignore` 대상**이며 시크릿을 포함합니다. 내용을 커밋하거나 출력·공유하지 마세요. 새 설정 키를 추가하면 사용자에게
   dev/prod yml(GitHub Secrets `APPLICATION_DEV_YML` 등)에도 추가해야 한다고 알려주세요.
-- 주요 커스텀 키: `rate-limit.*`, `outbound-rate-limit.*`, `gateway.max-attempts`, `apple-music.*`,
+- 주요 커스텀 키: `admin.kakao.client-id`, `admin.kakao.client-secret`, `admin.allowed-kakao-ids`, `rate-limit.*`, `outbound-rate-limit.*`, `gateway.max-attempts`, `apple-music.*`,
   `firebase.credentials`, `app.redis-key-prefix`, `discord.*`.
 
 ## CI/CD & 인프라

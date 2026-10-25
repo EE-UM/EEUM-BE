@@ -17,6 +17,7 @@ import com.eeum.domain.posts.dto.response.CreatePostResponse;
 import com.eeum.domain.posts.dto.response.PostsReadResponse;
 import com.eeum.domain.posts.entity.Album;
 import com.eeum.domain.posts.entity.CompletionType;
+import com.eeum.domain.posts.entity.DeleteReason;
 import com.eeum.domain.posts.entity.Posts;
 import com.eeum.domain.posts.repository.PostsCommentCountRepository;
 import com.eeum.domain.posts.repository.PostsIdListRepository;
@@ -76,6 +77,9 @@ class PostsServiceTest {
 
     @Mock
     private SpamFilterPublisher spamFilterPublisher;
+
+    @Mock
+    private PostsDeletionService postsDeletionService;
 
     private static final Long USER_ID = 1L;
     private static final Long POST_ID = 100L;
@@ -202,5 +206,27 @@ class PostsServiceTest {
 
         assertThatThrownBy(() -> postsService.delete(USER_ID, POST_ID))
             .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("작성자가 delete 호출 시 USER 사유로 soft delete 된다")
+    void delete_byAuthor_softDeletesWithUserReason() {
+        given(postsRepository.findById(POST_ID)).willReturn(Optional.of(createPost(USER_ID, false)));
+
+        Long deletedId = postsService.delete(USER_ID, POST_ID);
+
+        assertThat(deletedId).isEqualTo(POST_ID);
+        verify(postsDeletionService).softDelete(POST_ID, USER_ID, DeleteReason.USER);
+    }
+
+    @Test
+    @DisplayName("작성자가 아닌 유저가 delete 호출 시 예외가 발생하고 삭제되지 않는다")
+    void delete_byOtherUser_throws() {
+        given(postsRepository.findById(POST_ID)).willReturn(Optional.of(createPost(2L, false)));
+
+        assertThatThrownBy(() -> postsService.delete(USER_ID, POST_ID))
+            .isInstanceOf(IllegalArgumentException.class);
+
+        verify(postsDeletionService, never()).softDelete(any(), any(), any());
     }
 }

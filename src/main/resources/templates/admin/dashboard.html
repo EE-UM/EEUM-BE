@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragments/layout :: head('대시보드')}"></head>
+<body>
+<header th:replace="~{admin/fragments/layout :: topbar('dashboard')}"></header>
+<main class="content" th:with="d=${dashboard}">
+
+    <div class="hello">
+        <h1 th:text="(${admin != null} ? ${admin.nickname} + '님, ' : '') + '오늘의 이음이에요'">오늘의 이음이에요</h1>
+        <p class="muted" th:text="${d.todayLabel()} + ' 기준 · 한국 시간'">10월 25일 일요일</p>
+    </div>
+
+    <!-- 오늘 -->
+    <section class="section">
+        <div class="section-head"><h2>오늘</h2></div>
+        <div class="metric-grid">
+            <div class="metric" th:each="m : ${d.todayMetrics}">
+                <div class="metric-label" th:text="${m.label}">신규 가입</div>
+                <div class="metric-value" th:text="${#numbers.formatInteger(m.today, 1, 'COMMA')}">0</div>
+                <div class="metric-delta" th:text="${m.deltaText()}">어제와 같아요</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 전체 -->
+    <section class="section">
+        <div class="section-head"><h2>전체 현황</h2></div>
+        <div class="card">
+            <dl class="stat-list" th:with="t=${d.totals}">
+                <div>
+                    <dt>회원</dt>
+                    <dd th:text="${#numbers.formatInteger(t.users, 1, 'COMMA')}">0</dd>
+                </div>
+                <div>
+                    <dt>게시글</dt>
+                    <dd><span th:text="${#numbers.formatInteger(t.activePosts, 1, 'COMMA')}">0</span><small>삭제 제외</small></dd>
+                </div>
+                <div>
+                    <dt>진행 중</dt>
+                    <dd th:text="${#numbers.formatInteger(t.inProgressPosts, 1, 'COMMA')}">0</dd>
+                </div>
+                <div>
+                    <dt>완료</dt>
+                    <dd th:text="${#numbers.formatInteger(t.completedPosts, 1, 'COMMA')}">0</dd>
+                </div>
+                <div>
+                    <dt>삭제된 게시글</dt>
+                    <dd th:text="${#numbers.formatInteger(t.deletedPosts, 1, 'COMMA')}">0</dd>
+                </div>
+                <div>
+                    <dt>댓글</dt>
+                    <dd th:text="${#numbers.formatInteger(t.comments, 1, 'COMMA')}">0</dd>
+                </div>
+                <div>
+                    <dt>좋아요</dt>
+                    <dd th:text="${#numbers.formatInteger(t.likes, 1, 'COMMA')}">0</dd>
+                </div>
+                <div>
+                    <dt>조회수</dt>
+                    <dd th:text="${#numbers.formatInteger(t.views, 1, 'COMMA')}">0</dd>
+                </div>
+                <div>
+                    <dt>차단</dt>
+                    <dd th:text="${#numbers.formatInteger(t.blocks, 1, 'COMMA')}">0</dd>
+                </div>
+            </dl>
+        </div>
+    </section>
+
+    <!-- 추이 -->
+    <section class="section">
+        <div class="section-head"><h2>추이</h2></div>
+        <div class="grid grid-3">
+            <section th:replace="~{admin/fragments/charts :: bar('신규 가입', ${d.signUps}, '명')}"></section>
+            <section th:replace="~{admin/fragments/charts :: bar('새 게시글', ${d.posts}, '개')}"></section>
+            <section th:replace="~{admin/fragments/charts :: bar('새 댓글', ${d.comments}, '개')}"></section>
+        </div>
+    </section>
+
+    <!-- 구성 -->
+    <section class="section">
+        <div class="section-head"><h2>구성</h2></div>
+        <div class="grid grid-2">
+            <section class="card">
+                <h2>회원</h2>
+                <div class="sub-title">가입 경로</div>
+                <ul th:replace="~{admin/fragments/charts :: shares(${d.usersByProvider})}"></ul>
+                <div class="sub-title">계정 상태</div>
+                <ul th:replace="~{admin/fragments/charts :: shares(${d.usersByStatus})}"></ul>
+            </section>
+            <section class="card">
+                <h2>게시글</h2>
+                <div class="sub-title">상태 · 삭제 사유</div>
+                <ul th:replace="~{admin/fragments/charts :: shares(${d.postsByState})}"></ul>
+                <div class="sub-title">마감 방식 (삭제 제외)</div>
+                <ul th:replace="~{admin/fragments/charts :: shares(${d.completionTypes})}"></ul>
+            </section>
+        </div>
+    </section>
+
+    <!-- 인기 게시글 · 신고 -->
+    <section class="section">
+        <div class="grid grid-2">
+            <section class="card">
+                <input type="radio" class="rank-tab" name="rank" id="rank-comments" checked>
+                <input type="radio" class="rank-tab" name="rank" id="rank-likes">
+                <input type="radio" class="rank-tab" name="rank" id="rank-views">
+                <div class="rank-head">
+                    <h2>인기 게시글</h2>
+                    <div class="segmented">
+                        <label for="rank-comments">댓글</label>
+                        <label for="rank-likes">좋아요</label>
+                        <label for="rank-views">조회</label>
+                    </div>
+                </div>
+                <div class="rank-panel comments">
+                    <ol th:replace="~{admin/fragments/charts :: ranked(${d.topByComments}, '개')}"></ol>
+                </div>
+                <div class="rank-panel likes">
+                    <ol th:replace="~{admin/fragments/charts :: ranked(${d.topByLikes}, '개')}"></ol>
+                </div>
+                <div class="rank-panel views">
+                    <ol th:replace="~{admin/fragments/charts :: ranked(${d.topByViews}, '회')}"></ol>
+                </div>
+            </section>
+
+            <section class="card" th:with="r=${d.reports}">
+                <div class="rank-head">
+                    <h2>최근 신고</h2>
+                    <span class="faint small"
+                          th:text="'누적 게시글 ' + ${r.totalPostReports} + ' · 댓글 ' + ${r.totalCommentReports}">누적</span>
+                </div>
+                <ul class="rows" style="margin-top: 12px">
+                    <li th:each="rep : ${r.recent}">
+                        <span class="badge" th:classappend="${rep.postReport} ? 'ink'"
+                              th:text="${rep.postReport} ? '게시글' : '댓글'">게시글</span>
+                        <span class="grow">
+                            <a class="title" th:if="${rep.postId != null}"
+                               th:href="@{/admin/posts/{id}(id=${rep.postId})}"
+                               th:text="${rep.content} ?: '(삭제되어 내용을 찾을 수 없음)'">내용</a>
+                            <span class="title" th:unless="${rep.postId != null}"
+                                  th:text="${rep.content} ?: '(내용을 찾을 수 없음)'">내용</span>
+                            <span class="meta-line" th:text="'사유: ' + (${rep.reason} ?: '-')">사유</span>
+                        </span>
+                        <span class="faint small nowrap" th:text="${@adminTime.format(rep.createdAt)}">시각</span>
+                    </li>
+                    <li th:if="${#lists.isEmpty(r.recent)}" class="empty-note">신고가 없어요.</li>
+                </ul>
+            </section>
+        </div>
+    </section>
+
+    <!-- 운영 -->
+    <section class="section" th:with="o=${d.operations}">
+        <div class="section-head"><h2>운영 상태</h2></div>
+        <div class="grid grid-3">
+            <section class="card">
+                <h2>푸시 알림</h2>
+                <div class="chart-total">
+                    <span th:text="${#numbers.formatInteger(o.deviceTokens, 1, 'COMMA')}">0</span><small>등록 기기</small>
+                </div>
+                <div class="sub-title">최근 7일 발송</div>
+                <ul th:replace="~{admin/fragments/charts :: shares(${o.notificationsLast7Days})}"></ul>
+            </section>
+
+            <section class="card">
+                <h2>Redis 기능 스위치</h2>
+                <p class="muted small" th:text="${o.allRedisSwitchesOn()} ? '모든 기능이 Redis 를 사용 중이에요.' : '일부 기능이 MySQL 대체 경로로 동작 중이에요.'">상태</p>
+                <ul class="rows">
+                    <li th:each="sw : ${o.redisSwitches}">
+                        <span class="grow">
+                            <span class="title"><span class="status-dot" th:classappend="${sw.enabled} ? '' : 'off'"></span><span th:text="${sw.feature}">SHAKE_POOL</span></span>
+                            <span class="meta-line" th:text="'변경 ' + ${@adminTime.format(sw.updatedAt)}">변경</span>
+                        </span>
+                        <span class="badge" th:classappend="${sw.enabled} ? 'done' : 'danger'"
+                              th:text="${sw.enabled} ? 'Redis' : 'MySQL 대체'">Redis</span>
+                    </li>
+                    <li th:if="${#lists.isEmpty(o.redisSwitches)}" class="empty-note">스위치 정보가 없어요.</li>
+                </ul>
+            </section>
+
+            <section class="card">
+                <h2>배치 작업</h2>
+                <p class="muted small"
+                   th:text="'최근 24시간 실패 ' + ${o.failedBatchJobsLast24Hours} + '건 · 처리 건이 있는 실행만 기록돼요.'">상태</p>
+                <ul class="rows">
+                    <li th:each="job : ${o.batchJobs}">
+                        <span class="grow">
+                            <span class="title"><span class="status-dot" th:classappend="${job.failed} ? 'off' : ''"></span><span th:text="${job.jobName}">Job</span></span>
+                            <span class="meta-line"
+                                  th:text="${@adminTime.format(job.startedAt)} + ' · 처리 ' + ${job.processedCount} + ' · 실패 ' + ${job.failedCount}">시각</span>
+                            <span class="meta-line" th:if="${job.errorMessage}" th:text="${job.errorMessage}">오류</span>
+                        </span>
+                        <span class="badge" th:classappend="${job.failed} ? 'danger' : 'done'"
+                              th:text="${job.failed} ? '실패' : '성공'">성공</span>
+                    </li>
+                    <li th:if="${#lists.isEmpty(o.batchJobs)}" class="empty-note">기록된 실행이 없어요.</li>
+                </ul>
+            </section>
+        </div>
+    </section>
+
+    <!-- 관리자 조치 -->
+    <section class="section">
+        <div class="card">
+            <h2>최근 관리자 조치</h2>
+            <ul class="rows">
+                <li th:each="a : ${d.recentAdminActions}">
+                    <span class="badge" th:text="${a.actionLabel()}">게시글 삭제</span>
+                    <span class="grow">
+                        <a class="title" th:href="@{/admin/posts/{id}(id=${a.targetId})}" th:text="${a.reason}">사유</a>
+                        <span class="meta-line" th:text="(${a.adminNickname} ?: '관리자') + ' #' + ${a.adminUserId} + ' · 게시글 ' + ${a.targetId}">관리자</span>
+                    </span>
+                    <span class="faint small nowrap" th:text="${@adminTime.format(a.createdAt)}">시각</span>
+                </li>
+                <li th:if="${#lists.isEmpty(d.recentAdminActions)}" class="empty-note">아직 조치 이력이 없어요.</li>
+            </ul>
+        </div>
+    </section>
+</main>
+</body>
+</html>

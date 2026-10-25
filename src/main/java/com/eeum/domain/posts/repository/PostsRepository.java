@@ -1,10 +1,12 @@
 package com.eeum.domain.posts.repository;
 
 import com.eeum.domain.posts.entity.Posts;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -125,4 +127,23 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
     )
     Optional<Posts> findRandomActivePostExcludingUserIds(
         @Param("excludedUserIds") Collection<Long> excludedUserIds);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(value = """
+                UPDATE posts
+                SET deleted = :now, deleted_by = :deletedBy, delete_reason = :deleteReason
+                WHERE id = :id AND deleted IS NULL
+        """, nativeQuery = true)
+    int softDelete(@Param("id") Long id,
+        @Param("deletedBy") Long deletedBy,
+        @Param("deleteReason") String deleteReason,
+        @Param("now") LocalDateTime now);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(value = """
+                UPDATE posts
+                SET deleted = NULL, deleted_by = NULL, delete_reason = NULL
+                WHERE id = :id AND deleted IS NOT NULL
+        """, nativeQuery = true)
+    int restore(@Param("id") Long id);
 }

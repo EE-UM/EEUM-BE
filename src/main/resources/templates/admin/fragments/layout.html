@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title th:text="${title} + ' · eeum admin'">eeum admin</title>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <link rel="stylesheet" th:href="@{/admin/admin.css}">
+</head>
+<body>
+<header class="topbar" th:fragment="topbar(active)">
+    <nav class="topbar-nav">
+        <a class="wordmark" th:href="@{/admin}">eeum<small>admin</small></a>
+        <a th:href="@{/admin}" th:classappend="${active == 'dashboard'} ? 'active'">대시보드</a>
+        <a th:href="@{/admin/posts}" th:classappend="${active == 'posts'} ? 'active'">게시글</a>
+    </nav>
+    <div class="topbar-right">
+        <span class="muted small" th:if="${admin != null}"
+              th:text="${admin.nickname} + ' · #' + ${admin.userId}">관리자</span>
+        <form th:action="@{/admin/logout}" method="post">
+            <button type="submit" class="button small">로그아웃</button>
+        </form>
+    </div>
+</header>
+</body>
+</html>
