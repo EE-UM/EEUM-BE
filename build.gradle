@@ -46,8 +46,8 @@ dependencies {
     implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
 
     //Swagger, RestDocs
-    implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.3.0'
-    testImplementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-api', version: '2.3.0'
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '3.0.0'
+    testImplementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-api', version: '3.0.0'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
