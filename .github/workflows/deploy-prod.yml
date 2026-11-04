@@ -2,7 +2,7 @@ name: Production Server - CI/CD for EEUM
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
 
 permissions:
   contents: read
@@ -52,6 +52,8 @@ jobs:
 
     steps:
       - name: Blue-Green Deploy
+        env:
+          OOM_DISCORD_WEBHOOK_URL: ${{ secrets.OOM_DISCORD_WEBHOOK_URL }}
         run: /home/ubuntu/scripts/deploy-blue-green.sh prod ${{ secrets.DOCKERHUB_USERNAME }}/eeum:prod
 
       - name: Remove dangling images

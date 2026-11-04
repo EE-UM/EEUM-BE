@@ -53,7 +53,9 @@ docker run -d \
     --name ${CONTAINER_NAME} \
     -p ${NEW_PORT}:8080 \
     -e SPRING_PROFILES_ACTIVE=${PROFILE} \
-    -e JAVA_TOOL_OPTIONS="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/logs -XX:+ExitOnOutOfMemoryError" \
+    -e CONTAINER_NAME=${CONTAINER_NAME} \
+    -e OOM_DISCORD_WEBHOOK_URL="${OOM_DISCORD_WEBHOOK_URL}" \
+    -e JAVA_TOOL_OPTIONS="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/logs -XX:+ExitOnOutOfMemoryError -XX:OnOutOfMemoryError=/oom-notify.sh" \
     -v /home/ubuntu/heapdump/${ENV}:/logs \
     --restart unless-stopped \
     ${LOG_OPTS} \
