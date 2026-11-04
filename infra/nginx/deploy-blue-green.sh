@@ -48,10 +48,13 @@ echo "[1/5] Starting ${NEW_ENV} container on port ${NEW_PORT}..."
 docker pull ${IMAGE}
 docker stop ${CONTAINER_NAME} 2>/dev/null || true
 docker rm ${CONTAINER_NAME} 2>/dev/null || true
+mkdir -p /home/ubuntu/heapdump/${ENV}
 docker run -d \
     --name ${CONTAINER_NAME} \
     -p ${NEW_PORT}:8080 \
     -e SPRING_PROFILES_ACTIVE=${PROFILE} \
+    -e JAVA_TOOL_OPTIONS="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/logs -XX:+ExitOnOutOfMemoryError" \
+    -v /home/ubuntu/heapdump/${ENV}:/logs \
     --restart unless-stopped \
     ${LOG_OPTS} \
     ${IMAGE}
