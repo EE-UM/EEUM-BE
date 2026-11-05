@@ -68,8 +68,7 @@ com.eeum/
 │   │   ├── event/     #   FirstCommentCreatedEvent / HalfCommentReachedEvent / CommentLimitReachedEvent (첫 댓글·절반·목표 달성 → 푸시 알림)
 │   │   └── producer/  #   CommentProducer — 게시물 완료를 Redis 채널로 발행
 │   ├── block/         # 사용자 차단 (자기 자신 차단 불가), Redis 쿼리 모델 캐시
-│   ├── like/          # 좋아요 토글, Redis 분산 락 + 카운터
-│   ├── view/          # Redis 조회수 카운터, 10회마다 MySQL 백업
+│   ├── like/          # 좋아요 토글 (중복은 likes(post_id, user_id) 유니크 키로 방지) + MySQL 카운터
 │   ├── report/        # 신고 처리(ReportFacade), Discord 웹훅 알림
 │   ├── notification/
 │   │   ├── publisher/  # SpamFilterPublisher, MailPublisher (Redis Pub/Sub)
@@ -131,8 +130,7 @@ com.eeum/
   `PENDING → SENDING`, `locked_until` lease 30초)이 1을 반환한 쪽만 전송하므로 비동기 워커와 스케줄러가 겹쳐도 중복되지 않습니다.
   `dispatch`는 트랜잭션 없이 호출되며 claim/markSent/markFailed가 각각 짧은 트랜잭션(Repository의 `@Transactional`)으로 커밋됩니다.
   새 알림 종류는 행 저장 후 `NotificationCreatedEvent(id)`만 발행하면 됩니다.
-- **Redis 키** — `도메인::식별자::...` 형식 (예: `posts::%s`, `view::post::%s::view_count`,
-  `lock-like::postId::%d::userId::%d`). 랜덤 풀·차단 캐시 등 일부 키는 `app.redis-key-prefix`(`local-`/dev/prod)
+- **Redis 키** — `도메인::식별자::...` 형식 (예: `posts::%s`, `block::%s`). 랜덤 풀·차단 캐시 등 일부 키는 `app.redis-key-prefix`(`local-`/dev/prod)
   로 네임스페이스를 분리합니다.
 - **Redis 워밍업** — 서버 시작 시 `PostsRandomShakeWarmUp`이 활성 게시물을 랜덤 풀에 로드.
 - **게시물 완료** — 댓글 수가 `commentCountLimit`에 도달하면 완료 처리. 수동 마감 게시물의 기본 제한은 100.

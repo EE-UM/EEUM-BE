@@ -37,7 +37,6 @@ import com.eeum.domain.posts.repository.PostsRandomShakeRepository;
 import com.eeum.domain.posts.repository.PostsRepository;
 import com.eeum.domain.user.entity.User;
 import com.eeum.domain.user.repository.UserRepository;
-import com.eeum.domain.view.service.ViewService;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.Duration;
 import java.util.Collection;
@@ -68,7 +67,6 @@ public class PostsService {
     private final CommentRepository commentRepository;
     private final CommentCountRepository commentCountRepository;
     private final LikeRepository likeRepository;
-    private final ViewService viewService;
     private final PostsRandomShakeRepository postsRandomShakeRepository;
     private final PostsCommentCountRepository postsCommentCountRepository;
     private final UserRepository userRepository;
@@ -170,7 +168,6 @@ public class PostsService {
             List<Comment> comments = commentRepository.findAllByPostsId(postId, userId);
             List<CommentResponse> commentResponse = toCommentResponses(comments);
 
-            viewService.increase(postId, userId);
             return PostsReadResponse.from(model, commentResponse);
         }
 
