@@ -60,6 +60,8 @@ com.eeum/
 │   │                  #   AdminStatsRepository(JDBC 집계) + KstPeriod: 저장 시간대(운영 UTC)와 무관하게 KST 날짜로 집계
 │   │                  #   AdminPostService: 삭제/복구는 PostsDeletionService + 같은 TX 에서 admin_audit_log 기록(사유 필수)
 │   │                  #   AdminPostQueryRepository: 삭제 글 포함 조회용 네이티브 쿼리, AdminControllerAdvice: 관리자 에러 페이지
+│   ├── web/           # eeum.site 공개 웹(Thymeleaf, 비로그인 읽기 전용) — `/` 랜덤 사연으로 리다이렉트, `/p/{postId}` 게시글(OG 태그)
+│   │                  #   dev(/dev 접두어) 대응을 위해 리다이렉트·정적 리소스는 상대 경로(`base`) 사용, 작성자 식별 정보 비노출
 │   ├── posts/         # 게시물 CRUD, 흔들기(Redis 랜덤 풀), Apple Music 검색
 │   │   ├── gateway/   #   MusicSearchGateway / AppleMusicSearchGateway, DeveloperTokenProvider(Caffeine 캐시)
 │   │   └── batch/     #   AppleMusicTokenGenerateJob — 분기별(1·4·7·10월 1일 03시 KST) 토큰 재발급

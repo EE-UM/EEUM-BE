@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="assets">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#F5F4F0">
+    <link rel="icon" type="image/png" th:href="|${base}web/img/favicon.png|">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <link rel="stylesheet" th:href="|${base}web/web.css|">
+</head>
+<body>
+<header class="topbar" th:fragment="topbar">
+    <a class="topbar-logo" th:href="${base}" aria-label="이음 홈">
+        <img th:src="|${base}web/img/logo.png|" width="40" height="26" alt="이음">
+    </a>
+    <a class="shuffle" th:href="${base}">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        다른 사연 듣기
+    </a>
+</header>
+</body>
+</html>

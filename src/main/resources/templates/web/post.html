@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{web/fragments/layout :: assets}"></th:block>
+    <title th:text="|${post.title} · 이음|">이음</title>
+    <meta name="description" th:content="${post.description}">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="이음">
+    <meta property="og:title" th:content="${post.title}">
+    <meta property="og:description" th:content="${post.description}">
+    <meta property="og:image" th:if="${post.artworkUrl}" th:content="${post.artworkUrl}">
+    <meta name="twitter:card" content="summary">
+</head>
+<body>
+<th:block th:replace="~{web/fragments/layout :: topbar}"></th:block>
+
+<main class="page">
+    <section class="hero">
+        <img class="hero-art" th:if="${post.artworkUrl}" th:src="${post.artworkUrl}"
+             th:alt="|${post.songName} 앨범 커버|">
+        <button type="button" class="play play-lg" th:if="${post.previewUrl}"
+                th:attr="data-src=${post.previewUrl}" aria-label="음악 재생">
+            <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+            <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>
+        </button>
+    </section>
+
+    <div class="track">
+        <span class="track-song" th:text="${post.songName}">곡 제목</span>
+        <span class="track-artist" th:text="${post.artistName}">아티스트</span>
+    </div>
+
+    <h1 class="post-title" th:text="${post.title}">사연 제목</h1>
+    <p class="post-content" th:text="${post.content}">사연 본문</p>
+
+    <button type="button" class="view-toggle" data-view-toggle th:unless="${#lists.isEmpty(post.comments)}">
+        <img class="when-grid" th:src="|${base}web/img/list.png|" width="20" height="20" alt="">
+        <img class="when-list" th:src="|${base}web/img/musicbox.png|" width="20" height="20" alt="">
+        <span class="when-grid">글보기</span>
+        <span class="when-list">커버보기</span>
+    </button>
+
+    <section class="comments" data-mode="grid" aria-label="노래 댓글">
+        <div class="comments-empty" th:if="${#lists.isEmpty(post.comments)}">
+            <p>아직 도착한 노래가 없어요.</p>
+            <p>이 사연에 어울리는 노래를 이음 앱에서 남겨 주세요.</p>
+        </div>
+
+        <div class="comment-grid">
+            <article class="comment-card" th:each="comment : ${post.comments}">
+                <div class="comment-cover">
+                    <img th:if="${comment.artworkUrl}" th:src="${comment.artworkUrl}" alt="" loading="lazy">
+                    <button type="button" class="play play-md" th:if="${comment.previewUrl}"
+                            th:attr="data-src=${comment.previewUrl}" aria-label="음악 재생">
+                        <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+                        <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>
+                    </button>
+                </div>
+                <p class="comment-song" th:if="${comment.songName}" th:text="${comment.songName}">곡</p>
+                <p class="comment-artist" th:if="${comment.artistName}" th:text="${comment.artistName}">아티스트</p>
+            </article>
+        </div>
+
+        <ul class="comment-list">
+            <li class="comment-item" th:each="comment : ${post.comments}">
+                <div class="comment-track">
+                    <img th:src="|${base}web/img/musicnote.png|" width="12" height="14" alt="">
+                    <div class="pill">
+                        <span class="pill-song" th:text="${comment.songName} ?: '제목 없음'">곡</span>
+                        <span class="pill-artist" th:text="${comment.artistName} ?: '아티스트 미상'">아티스트</span>
+                        <button type="button" class="play play-sm" th:if="${comment.previewUrl}"
+                                th:attr="data-src=${comment.previewUrl}" aria-label="음악 재생">
+                            <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+                            <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <p class="comment-content" th:if="${comment.content}" th:text="${comment.content}">댓글</p>
+            </li>
+        </ul>
+    </section>
+</main>
+
+<footer class="bottom-bar">
+    <p>사연에 어울리는 노래로 답하려면 <strong>이음</strong> 앱을 이용해 주세요.</p>
+</footer>
+
+<audio id="player" preload="none"></audio>
+<script th:src="|${base}web/web.js|" defer></script>
+</body>
+</html>
