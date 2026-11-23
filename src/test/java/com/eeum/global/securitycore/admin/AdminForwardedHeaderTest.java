@@ -104,9 +104,9 @@ class AdminForwardedHeaderTest {
     }
 
     @Test
-    @DisplayName("ForwardedHeaderFilter 는 /admin/* 에만, Spring Security 보다 먼저 등록된다")
-    void filterRegistration_isScopedToAdmin() {
-        assertThat(adminForwardedHeaderFilter.getUrlPatterns()).containsExactly("/admin/*");
+    @DisplayName("ForwardedHeaderFilter 는 /admin/*, /w/*(공개 웹 로그인·쓰기)에만, Spring Security 보다 먼저 등록된다")
+    void filterRegistration_isScopedToAdminAndWeb() {
+        assertThat(adminForwardedHeaderFilter.getUrlPatterns()).containsExactly("/admin/*", "/w/*");
         assertThat(adminForwardedHeaderFilter.getOrder()).isLessThan(0);
     }
 

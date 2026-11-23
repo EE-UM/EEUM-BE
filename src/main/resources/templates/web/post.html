@@ -43,7 +43,7 @@
     <section class="comments" data-mode="grid" aria-label="노래 댓글">
         <div class="comments-empty" th:if="${#lists.isEmpty(post.comments)}">
             <p>아직 도착한 노래가 없어요.</p>
-            <p>이 사연에 어울리는 노래를 이음 앱에서 남겨 주세요.</p>
+            <p>이 사연에 어울리는 첫 번째 노래를 남겨 주세요.</p>
         </div>
 
         <div class="comment-grid">
@@ -81,11 +81,54 @@
     </section>
 </main>
 
+<p class="toast" th:if="${notice}" th:text="${notice}" role="status">안내</p>
+
 <footer class="bottom-bar">
-    <p>사연에 어울리는 노래로 답하려면 <strong>이음</strong> 앱을 이용해 주세요.</p>
+    <th:block th:if="${viewer == null}">
+        <a class="bottom-cta" th:href="|${base}w/login?next=/p/${post.postId}|">
+            카카오로 로그인하고 <strong>노래 남기기</strong>
+        </a>
+    </th:block>
+    <th:block th:if="${viewer != null and post.completed}">
+        <p class="bottom-note">플레이리스트가 완성된 사연이에요.</p>
+    </th:block>
+    <th:block th:if="${viewer != null and !post.completed and !viewer.onboarded}">
+        <a class="bottom-cta" th:href="|${base}w/signup|">가입을 마치고 <strong>노래 남기기</strong></a>
+    </th:block>
+    <form class="comment-bar" method="post" th:if="${viewer != null and !post.completed and viewer.onboarded}"
+          th:action="|${base}w/p/${post.postId}/comments|" data-music-form>
+        <th:block th:replace="~{web/fragments/layout :: musicFields(${commentForm.music})}"></th:block>
+        <div class="music-chip" data-music-chip hidden>
+            <img th:src="|${base}web/img/musicnote.png|" width="11" height="13" alt="">
+            <span data-music-chip-label></span>
+            <button type="button" class="chip-clear" data-music-clear aria-label="첨부 음악 삭제">
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                    <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+        <div class="comment-row">
+            <button type="button" class="icon-button" data-music-open aria-label="노래 검색">
+                <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10.5"/>
+                    <path d="M12 7.5v9M7.5 12h9" stroke="#F5F4F0" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <textarea name="content" rows="1" th:maxlength="${contentMaxLength}" aria-label="댓글"
+                      placeholder="사연과 관련된 노래와 글을 추가해보세요."></textarea>
+            <button type="submit" class="icon-button send-button" aria-label="댓글 작성" data-music-submit disabled>
+                <img th:src="|${base}web/img/send.png|" width="29" height="19" alt="">
+            </button>
+        </div>
+    </form>
 </footer>
+
+<th:block th:if="${viewer != null and !post.completed and viewer.onboarded}">
+    <div th:replace="~{web/fragments/layout :: musicSheet}"></div>
+</th:block>
 
 <audio id="player" preload="none"></audio>
 <script th:src="|${base}web/web.js|" defer></script>
+<script th:src="|${base}web/music-picker.js|" defer></script>
 </body>
 </html>

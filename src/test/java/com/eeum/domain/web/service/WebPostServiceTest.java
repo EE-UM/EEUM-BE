@@ -65,4 +65,16 @@ class WebPostServiceTest {
 
         assertThat(webPostService.pickRandomPostId()).isEmpty();
     }
+
+    @Test
+    void 로그인한_방문자_기준으로_읽고_완료_여부를_담는다() {
+        given(postsService.read(7L, 1L)).willReturn(new com.eeum.domain.posts.dto.response.PostsReadResponse(
+            3L, 1L, "제목", "본문", "닉", "곡", "가수", null, null, java.time.LocalDateTime.now(), false,
+            List.of()));
+        Posts post = mock(Posts.class);
+        given(post.getIsCompleted()).willReturn(true);
+        given(postsRepository.findById(1L)).willReturn(Optional.of(post));
+
+        assertThat(webPostService.read(1L, 7L).completed()).isTrue();
+    }
 }

@@ -78,6 +78,20 @@ ssh ubuntu@<host> 'mkdir -p /home/ubuntu/blue-green && echo blue > /home/ubuntu/
 - 카카오 개발자 콘솔에는 사용하는 콜백 주소를 모두 등록해야 합니다: `https://eeum.site/admin/login/oauth2/code/kakao-admin`, `https://eeum.site/dev/admin/login/oauth2/code/kakao-admin` (`/prod/admin`으로도 접속한다면 그 주소도).
 - 컨테이너 호스트 포트(8080~8083)가 외부에 열려 있으면 nginx를 우회할 수 있으므로 보안그룹에서 막혀 있어야 합니다.
 
+## 공개 웹 로그인·쓰기 (`/w`)
+
+공개 웹 화면(`/`, `/p/**`, `/web/**`)은 기존 API location(`/`, `/dev/`)을 그대로 탑니다. 카카오 로그인·가입·댓글·글쓰기(`/w/**`, 세션 + CSRF)만 관리자 페이지와 같은 방식으로 따로 둡니다.
+
+| 경로 (443) | 백엔드 | `X-Forwarded-Prefix` |
+|---|---|---|
+| `/w/**` | `prod_backend` | (빈 값) |
+| `/prod/w/**` | `prod_backend` (접두어 제거) | `/prod` |
+| `/dev/w/**` | `dev_backend` (접두어 제거) | `/dev` |
+
+- 80번 포트의 `/w/`, `/dev/w/`, `/prod/w/`는 `https://`로 301 리다이렉트합니다.
+- 앱은 `/w/*`에도 `ForwardedHeaderFilter`를 적용하므로(`AdminWebConfig`) admin location과 같은 헤더 세트로 모두 덮어써야 합니다.
+- 카카오 개발자 콘솔(관리자 페이지와 같은 앱)에 콜백 주소를 등록해야 합니다: `https://eeum.site/w/login/oauth2/code/kakao-web`, `https://eeum.site/dev/w/login/oauth2/code/kakao-web` (로컬: `http://localhost:8080/w/login/oauth2/code/kakao-web`).
+
 ## 알려진 이슈 / 정리 필요 항목
 
 - `/etc/nginx/sites-available/eeum`, `/etc/nginx/sites-available/eeum.save`는 실제로 로드되지 않는 죽은 복사본입니다 (`sites-enabled/eeum`이 심볼릭 링크가 아니라 별도 파일이기 때문). 혼동 방지를 위해 서버에서 삭제 권장:

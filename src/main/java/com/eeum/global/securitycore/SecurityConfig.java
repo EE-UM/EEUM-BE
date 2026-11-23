@@ -22,7 +22,7 @@ public class SecurityConfig {
     private final JWTUtil jwtUtil;
 
     @Bean
-    @Order(2)
+    @Order(3)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(withDefaults());
         http.csrf((auth) -> auth.disable());

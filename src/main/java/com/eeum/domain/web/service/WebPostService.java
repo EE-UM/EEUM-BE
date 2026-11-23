@@ -1,5 +1,7 @@
 package com.eeum.domain.web.service;
 
+import com.eeum.domain.posts.dto.request.CreatePostRequest;
+import com.eeum.domain.posts.dto.response.PostsReadResponse;
 import com.eeum.domain.posts.dto.response.ShowRandomStoryOnShakeResponse;
 import com.eeum.domain.posts.entity.Posts;
 import com.eeum.domain.posts.repository.PostsRandomShakeRepository;
@@ -33,7 +35,18 @@ public class WebPostService {
                 .map(Posts::getId));
     }
 
-    public WebPostView read(Long postId) {
-        return WebPostView.from(postsService.read(null, postId));
+    /**
+     * 로그인한 방문자면 차단한 사용자의 댓글을 빼고 보여준다 (앱과 동일).
+     */
+    public WebPostView read(Long postId, Long viewerId) {
+        PostsReadResponse post = postsService.read(viewerId, postId);
+        boolean completed = postsRepository.findById(postId)
+            .map(Posts::getIsCompleted)
+            .orElse(false);
+        return WebPostView.from(post, Boolean.TRUE.equals(completed));
+    }
+
+    public Long write(Long userId, CreatePostRequest request) {
+        return postsService.createPost(userId, request).postId();
     }
 }
