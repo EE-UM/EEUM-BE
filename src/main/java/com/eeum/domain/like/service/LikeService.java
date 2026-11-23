@@ -5,14 +5,11 @@ import com.eeum.domain.like.entity.Like;
 import com.eeum.domain.like.entity.LikeCount;
 import com.eeum.domain.like.repository.LikeCountRepository;
 import com.eeum.domain.like.repository.LikeRepository;
-import com.eeum.domain.like.repository.RedisLockRepository;
 import com.eeum.domain.posts.repository.PostsRepository;
 import jakarta.persistence.EntityNotFoundException;
-import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +21,6 @@ public class LikeService {
 
   private final LikeRepository likeRepository;
   private final LikeCountRepository likeCountRepository;
-  private final RedisLockRepository redisLockRepository;
   private final PostsRepository postsRepository;
 
   public LikeResponse read(Long postId, Long userId) {
@@ -33,44 +29,32 @@ public class LikeService {
         .orElseThrow(() -> new EntityNotFoundException("즐겨찾기 내역이 존재하지 않습니다."));
   }
 
+  /**
+   * 중복 좋아요는 likes(post_id, user_id) 유니크 키로 막는다. 동시 요청으로 조회 검사를 통과해도 INSERT 가 유니크 키에 걸려
+   * 트랜잭션 전체가 롤백되므로 카운트도 증가하지 않는다.
+   */
   @Transactional(isolation = Isolation.READ_COMMITTED)
   public void like(Long postId, Long userId) {
     postsRepository.findById(postId)
         .orElseThrow(() -> new NullPointerException("해당 게시글이 존재하지 않습니다."));
 
-    String lockValue = UUID.randomUUID().toString();
-    String lockKey = redisLockRepository.generateKey(postId, userId);
-    boolean acquired = redisLockRepository.lock(
-        lockKey,
-        lockValue,
-        Duration.ofSeconds(3));
-
-    if (!acquired) {
-      throw new IllegalArgumentException("동일 자원에 대한 동시 요청이 발생했습니다. 3초 후 다시 시도해주세요.");
+    if (likeRepository.findByPostIdAndUserId(postId, userId).isPresent()) {
+      throw alreadyLiked();
     }
-
     try {
-      Optional<Like> like = likeRepository.findByPostIdAndUserId(postId, userId);
-
-      if (like.isEmpty()) {
-        likeRepository.save(
-            Like.of(
-                userId,
-                postId
-            )
-        );
-      } else {
-        throw new RuntimeException("이미 좋아요를 누른 상태입니다.");
-      }
-
-      int result = likeCountRepository.increase(postId);
-      if (result == 0) {
-        likeCountRepository.save(LikeCount.of(postId, 1L));
-      }
-
-    } finally {
-      redisLockRepository.releaseLock(lockKey, lockValue);
+      likeRepository.saveAndFlush(Like.of(userId, postId));
+    } catch (DataIntegrityViolationException e) {
+      throw alreadyLiked();
     }
+
+    int result = likeCountRepository.increase(postId);
+    if (result == 0) {
+      likeCountRepository.save(LikeCount.of(postId, 1L));
+    }
+  }
+
+  private static RuntimeException alreadyLiked() {
+    return new RuntimeException("이미 좋아요를 누른 상태입니다.");
   }
 
   @Transactional(isolation = Isolation.READ_COMMITTED)

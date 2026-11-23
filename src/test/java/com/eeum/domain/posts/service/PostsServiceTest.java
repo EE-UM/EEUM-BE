@@ -26,7 +26,6 @@ import com.eeum.domain.posts.repository.PostsRandomShakeRepository;
 import com.eeum.domain.posts.repository.PostsRepository;
 import com.eeum.domain.user.entity.User;
 import com.eeum.domain.user.repository.UserRepository;
-import com.eeum.domain.view.service.ViewService;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
@@ -62,9 +61,6 @@ class PostsServiceTest {
 
     @Mock
     private LikeRepository likeRepository;
-
-    @Mock
-    private ViewService viewService;
 
     @Mock
     private PostsRandomShakeRepository postsRandomShakeRepository;
