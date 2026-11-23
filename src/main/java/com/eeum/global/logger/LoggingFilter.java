@@ -24,9 +24,9 @@ public class LoggingFilter implements Filter {
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
-    // 관리자 페이지는 폼 POST 를 쓰므로 본문을 먼저 읽으면 getParameter()(_csrf 등)가 비어 버린다. 본문 로깅에서 제외한다.
+    // 관리자 페이지·공개 웹(/w)은 폼 POST 를 쓰므로 본문을 먼저 읽으면 getParameter()(_csrf 등)가 비어 버린다. 본문 로깅에서 제외한다.
     if (request instanceof HttpServletRequest httpServletRequest
-        && !isAdminRequest(httpServletRequest)) {
+        && !isFormRequest(httpServletRequest)) {
       CachedBodyHttpServletRequest wrappedRequest = new CachedBodyHttpServletRequest(
           httpServletRequest);
 
@@ -43,9 +43,9 @@ public class LoggingFilter implements Filter {
   }
 
   // ForwardedHeaderFilter 가 X-Forwarded-Prefix(/dev) 를 contextPath 로 반영하므로 contextPath 를 뺀 경로로 판단한다.
-  private boolean isAdminRequest(HttpServletRequest request) {
+  private boolean isFormRequest(HttpServletRequest request) {
     String path = request.getRequestURI().substring(request.getContextPath().length());
-    return path.startsWith("/admin");
+    return path.startsWith("/admin") || path.startsWith("/w/");
   }
 
   String maskSensitiveData(String body) {

@@ -16,12 +16,17 @@ public record WebPostView(
     String artworkUrl,
     String previewUrl,
     String description,
+    boolean completed,
     List<WebCommentView> comments
 ) {
 
     static final int DESCRIPTION_MAX_LENGTH = 100;
 
     public static WebPostView from(PostsReadResponse post) {
+        return from(post, false);
+    }
+
+    public static WebPostView from(PostsReadResponse post, boolean completed) {
         List<WebCommentView> comments = post.comments() == null ? List.of()
             : post.comments().stream().map(WebCommentView::from).toList();
         return new WebPostView(
@@ -33,6 +38,7 @@ public record WebPostView(
             upscaleArtwork(post.artworkUrl()),
             post.appleMusicUrl(),
             describe(post.content(), post.songName(), post.artistName()),
+            completed,
             comments
         );
     }

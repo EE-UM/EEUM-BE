@@ -14,13 +14,52 @@
     <a class="topbar-logo" th:href="${base}" aria-label="이음 홈">
         <img th:src="|${base}web/img/logo.png|" width="40" height="26" alt="이음">
     </a>
-    <a class="shuffle" th:href="${base}">
-        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-            <path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5" fill="none" stroke="currentColor"
-                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        다른 사연 듣기
-    </a>
+    <nav class="topbar-actions">
+        <a class="nav-pill" th:href="${base}">
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                <path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5" fill="none" stroke="currentColor"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            다른 사연
+        </a>
+        <th:block th:if="${viewer == null}">
+            <a class="nav-pill nav-pill-dark" th:href="${loginNext} ? |${base}w/login?next=${loginNext}| : |${base}w/login|">로그인</a>
+        </th:block>
+        <th:block th:if="${viewer != null}">
+            <a class="nav-pill nav-pill-dark" th:href="|${base}w/write|">글쓰기</a>
+            <form class="topbar-logout" method="post" th:action="|${base}w/logout|">
+                <button type="submit" class="text-button">로그아웃</button>
+            </form>
+        </th:block>
+    </nav>
 </header>
+
+<!-- 노래 검색 바텀시트 (앱 SearchScreen + TrackRow). data-music-form 안의 hidden 필드를 채운다. -->
+<div class="sheet" th:fragment="musicSheet" data-music-sheet th:attr="data-search-url=|${base}apple-music/search|" hidden>
+    <div class="sheet-backdrop" data-sheet-close></div>
+    <div class="sheet-panel" role="dialog" aria-modal="true" aria-label="노래 검색">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="search-field">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input type="search" placeholder="노래나 아티스트를 검색해 보세요" autocomplete="off"
+                   enterkeyhint="search" data-music-query aria-label="노래 검색어">
+            <button type="button" class="text-button" data-sheet-close>닫기</button>
+        </div>
+        <p class="search-status" data-music-status></p>
+        <ul class="search-results" data-music-results></ul>
+    </div>
+</div>
+
+<!-- 노래 선택 hidden 필드 (WebMusic). 폼 안에서 사용한다. -->
+<th:block th:fragment="musicFields(music)">
+    <input type="hidden" name="music.albumName" th:value="${music?.albumName}" data-music-field="albumName">
+    <input type="hidden" name="music.songName" th:value="${music?.songName}" data-music-field="songName">
+    <input type="hidden" name="music.artistName" th:value="${music?.artistName}" data-music-field="artistName">
+    <input type="hidden" name="music.artworkUrl" th:value="${music?.artworkUrl}" data-music-field="artworkUrl">
+    <input type="hidden" name="music.appleMusicUrl" th:value="${music?.appleMusicUrl}" data-music-field="previewMusicUrl">
+</th:block>
 </body>
 </html>

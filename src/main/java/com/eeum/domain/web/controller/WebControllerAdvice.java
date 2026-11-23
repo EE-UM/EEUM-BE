@@ -1,6 +1,7 @@
 package com.eeum.domain.web.controller;
 
 import com.eeum.domain.posts.exception.PostsNotFoundException;
+import com.eeum.global.securitycore.web.WebSecurityConfig;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
@@ -43,8 +44,6 @@ public class WebControllerAdvice {
     }
 
     static String baseOf(HttpServletRequest request) {
-        return request.getServletPath().startsWith("/p/")
-            ? WebPostController.POST_BASE
-            : WebPostController.ROOT_BASE;
+        return WebPaths.baseOf(WebSecurityConfig.pathWithinApplication(request));
     }
 }

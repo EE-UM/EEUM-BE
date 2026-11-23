@@ -60,8 +60,10 @@ com.eeum/
 │   │                  #   AdminStatsRepository(JDBC 집계) + KstPeriod: 저장 시간대(운영 UTC)와 무관하게 KST 날짜로 집계
 │   │                  #   AdminPostService: 삭제/복구는 PostsDeletionService + 같은 TX 에서 admin_audit_log 기록(사유 필수)
 │   │                  #   AdminPostQueryRepository: 삭제 글 포함 조회용 네이티브 쿼리, AdminControllerAdvice: 관리자 에러 페이지
-│   ├── web/           # eeum.site 공개 웹(Thymeleaf, 비로그인 읽기 전용) — `/` 랜덤 사연으로 리다이렉트, `/p/{postId}` 게시글(OG 태그)
+│   ├── web/           # eeum.site 공개 웹(Thymeleaf) — `/` 랜덤 사연 리다이렉트, `/p/{postId}` 게시글(OG 태그, 누구나),
+│   │                  #   `/w/**` 카카오 로그인·가입(약관+닉네임)·노래 댓글·사연 쓰기 (CommentService/PostsService 재사용)
 │   │                  #   dev(/dev 접두어) 대응을 위해 리다이렉트·정적 리소스는 상대 경로(`base`) 사용, 작성자 식별 정보 비노출
+│   │                  #   결과 안내는 플래시 대신 `?notice=<코드>`(dev 에서 플래시 대상 경로가 어긋남)
 │   ├── posts/         # 게시물 CRUD, 흔들기(Redis 랜덤 풀), Apple Music 검색
 │   │   ├── gateway/   #   MusicSearchGateway / AppleMusicSearchGateway, DeveloperTokenProvider(Caffeine 캐시)
 │   │   └── batch/     #   AppleMusicTokenGenerateJob — 분기별(1·4·7·10월 1일 03시 KST) 토큰 재발급
@@ -144,6 +146,12 @@ com.eeum/
   nginx 뒤 동작은 `AdminWebConfig`가 담당합니다: `/admin/*`에만 `ForwardedHeaderFilter`(https 콜백, `/dev` 접두어, 감사 로그 IP —
   nginx admin location이 `X-Forwarded-*`를 모두 덮어씀), 세션 쿠키 이름 `EEUM_ADMIN_SESSION_<PROFILE>`(dev/prod가 같은 도메인),
   local 외 `Secure`, `SameSite=Lax`(카카오 콜백에 쿠키가 실려야 함). 상세는 `infra/nginx/README.md`의 관리자 페이지 절.
+- **공개 웹 인증** — `/`, `/p/**`, `/w/**`, `/web/**`는 `WebSecurityConfig`의 체인(`@Order(2)`, 앱 API 체인은 `@Order(3)`)이
+  처리합니다. 관리자와 같은 카카오 앱(`admin.kakao.*`)으로 `kakao-web` 등록·`/w/login/oauth2/code/*` 콜백을 쓰고, 세션 + CSRF입니다.
+  관리자와 같은 HttpSession을 쓰므로 SecurityContext를 `EEUM_WEB_SECURITY_CONTEXT` 키에 따로 저장하며(로그아웃도 세션을 무효화하지
+  않음), `WebOidcUserService`가 카카오 `sub`로 `users`를 찾거나 가입 전(`isRegistered=false`) 계정을 만듭니다. 가입 전이면
+  `/w/signup`으로 보내고, 돌아갈 경로는 `WebReturnTo`(허용 경로만)로 세션에 둡니다. `/w/*`도 `ForwardedHeaderFilter`·`LoggingFilter`
+  본문 제외 대상이며 nginx `/w/` location이 `X-Forwarded-*`를 덮어씁니다.
 - **`@CurrentUser`** — 시큐리티 컨텍스트에서 `UserPrincipalInfo` 주입.
 - **`@RequireLogin`** — 메서드 실행 전 인증 강제 (게스트 차단 등).
 - **`ApiResponse<T>`** — 모든 응답의 공통 JSON 래퍼. 예외는 `CoreApiException(ErrorType)`으로 던지고
@@ -172,7 +180,7 @@ com.eeum/
 
 - **모든 `application*.yml`은 `.gitignore` 대상**이며 시크릿을 포함합니다. 내용을 커밋하거나 출력·공유하지 마세요. 새 설정 키를 추가하면 사용자에게
   dev/prod yml(GitHub Secrets `APPLICATION_DEV_YML` 등)에도 추가해야 한다고 알려주세요.
-- 주요 커스텀 키: `admin.kakao.client-id`, `admin.kakao.client-secret`, `admin.allowed-kakao-ids`, `rate-limit.*`, `outbound-rate-limit.*`, `gateway.max-attempts`, `apple-music.*`,
+- 주요 커스텀 키: `admin.kakao.client-id`, `admin.kakao.client-secret`(관리자·공개 웹 로그인 공용), `admin.allowed-kakao-ids`, `rate-limit.*`, `outbound-rate-limit.*`, `gateway.max-attempts`, `apple-music.*`,
   `firebase.credentials`, `app.redis-key-prefix`, `discord.*`.
 
 ## CI/CD & 인프라
